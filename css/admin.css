@@ -1,28 +1,28 @@
-/* ===== 后台样式 ===== */
+﻿/* ===== 后台样式 ===== */
 .admin-body { min-height: 100vh; }
 .admin-login {
   min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
 }
 .login-box { width: min(420px, 100%); padding: 40px; display: flex; flex-direction: column; gap: 18px; }
-.login-box h1 { font-size: 1.5rem; text-align: center; }
+.login-box h1 { font-family: var(--serif); font-size: 1.5rem; text-align: center; letter-spacing: 2px; }
 .login-tip { color: var(--muted); font-size: .85rem; text-align: center; }
 
 .admin-shell { display: flex; min-height: 100vh; }
 .admin-side {
   width: 230px; flex-shrink: 0; padding: 26px 18px;
   border-right: 1px solid var(--panel-border);
-  background: rgba(20, 16, 13, .6); backdrop-filter: blur(10px);
+  background: rgba(253, 250, 242, .85); backdrop-filter: blur(10px);
   display: flex; flex-direction: column; gap: 22px;
 }
-.admin-brand { font-weight: 800; font-size: 1.15rem; padding: 0 8px; }
+.admin-brand { font-family: var(--serif); font-weight: 800; font-size: 1.15rem; padding: 0 8px; letter-spacing: 2px; }
 .admin-tabs { display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .tab {
   text-align: left; background: none; border: 0; color: var(--muted);
   padding: 12px 14px; border-radius: 12px; font-size: .95rem; cursor: pointer;
   transition: background .2s, color .2s;
 }
-.tab:hover { background: rgba(245,165,36,.08); color: var(--amber); }
-.tab.active { background: rgba(245,165,36,.14); color: var(--gold); font-weight: 700; }
+.tab:hover { background: rgba(194,64,43,.08); color: var(--gold); }
+.tab.active { background: rgba(194,64,43,.14); color: var(--gold); font-weight: 700; }
 
 .admin-main { flex: 1; padding: 30px; max-width: 1000px; }
 .panel-head {
@@ -44,11 +44,11 @@
   border: 1px solid var(--panel-border); border-radius: 999px; padding: 2px 10px;
 }
 .o-status { font-size: .78rem; border-radius: 999px; padding: 4px 12px; }
-.o-status.new { background: rgba(225,29,72,.16); color: #ff8098; }
-.o-status.processing { background: rgba(245,165,36,.16); color: var(--amber); }
-.o-status.done { background: rgba(74,222,128,.14); color: #4ade80; }
+.o-status.new { background: rgba(194,64,43,.12); color: #b03a28; }
+.o-status.processing { background: rgba(217,154,43,.16); color: #a5711a; }
+.o-status.done { background: rgba(47,93,74,.14); color: #2f5d4a; }
 .order-meta { color: var(--muted); font-size: .85rem; display: flex; gap: 18px; flex-wrap: wrap; }
-.order-desc { color: var(--text); font-size: .92rem; background: rgba(0,0,0,.25); border-radius: 10px; padding: 12px 14px; white-space: pre-wrap; }
+.order-desc { color: var(--text); font-size: .92rem; background: rgba(64,48,32,.06); border-radius: 10px; padding: 12px 14px; white-space: pre-wrap; }
 .order-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .order-actions select { width: auto; padding: 8px 12px; font-size: .85rem; }
 .mini-btn {
@@ -68,8 +68,8 @@
 .post-row .p-cat { font-size: .75rem; color: var(--orange); border: 1px solid var(--panel-border); border-radius: 999px; padding: 2px 10px; margin-left: 10px; }
 .post-row .p-meta { color: var(--muted); font-size: .8rem; margin-top: 4px; }
 .p-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-.p-dot.on { background: #4ade80; }
-.p-dot.off { background: #78716c; }
+.p-dot.on { background: #3e8e63; }
+.p-dot.off { background: #b3a794; }
 
 /* 设置表单 */
 .config-form { display: flex; flex-direction: column; gap: 16px; }
