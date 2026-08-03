@@ -74,9 +74,20 @@ create policy "config_public_read" on public.site_config
 
 -- 站点配置：仅管理员可改
 drop policy if exists "config_admin_write" on public.site_config;
-create policy "config_admin_write" on public.site_config
-  for insert, update, delete to authenticated
+drop policy if exists "config_admin_insert" on public.site_config;
+create policy "config_admin_insert" on public.site_config
+  for insert to authenticated
+  with check (true);
+
+drop policy if exists "config_admin_update" on public.site_config;
+create policy "config_admin_update" on public.site_config
+  for update to authenticated
   using (true) with check (true);
+
+drop policy if exists "config_admin_delete" on public.site_config;
+create policy "config_admin_delete" on public.site_config
+  for delete to authenticated
+  using (true);
 
 -- ============ 默认数据 ============
 insert into public.site_config (key, value) values
