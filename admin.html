@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>薄想后台管理</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<!-- 登录 -->
+<div class="admin-login" id="loginView">
+  <form class="login-box glass" id="loginForm">
+    <h1>薄想 · 后台管理</h1>
+    <p class="login-tip">使用你在 Supabase 添加的管理员账号登录</p>
+    <label>邮箱
+      <input type="email" id="lgEmail" required placeholder="admin@example.com" autocomplete="username">
+    </label>
+    <label>密码
+      <input type="password" id="lgPass" required placeholder="密码" autocomplete="current-password">
+    </label>
+    <button class="btn btn-primary btn-block" type="submit" id="lgBtn">登 录</button>
+    <p class="form-tip" id="lgTip"></p>
+  </form>
+</div>
+
+<!-- 后台主界面 -->
+<div class="admin-shell" id="adminView" hidden>
+  <aside class="admin-side">
+    <div class="admin-brand">薄想<span class="grad">✦</span>后台</div>
+    <nav class="admin-tabs">
+      <button class="tab active" data-tab="orders">📋 接单管理</button>
+      <button class="tab" data-tab="posts">📝 内容管理</button>
+      <button class="tab" data-tab="config">⚙️ 站点设置</button>
+    </nav>
+    <button class="btn btn-ghost btn-block" id="logoutBtn">退出登录</button>
+  </aside>
+
+  <main class="admin-main">
+    <!-- 订单 -->
+    <section class="panel" id="tab-orders">
+      <div class="panel-head">
+        <h2>接单需求</h2>
+        <div class="panel-actions">
+          <select id="orderFilter">
+            <option value="">全部状态</option>
+            <option value="new">新需求</option>
+            <option value="processing">处理中</option>
+            <option value="done">已完成</option>
+          </select>
+          <button class="btn btn-ghost" id="refreshOrders">刷新</button>
+        </div>
+      </div>
+      <div class="order-list" id="orderList"><div class="empty-tip">加载中…</div></div>
+    </section>
+
+    <!-- 内容 -->
+    <section class="panel" id="tab-posts" hidden>
+      <div class="panel-head">
+        <h2>作品 / 文章管理</h2>
+        <button class="btn btn-primary" id="newPost">＋ 新建内容</button>
+      </div>
+      <div class="post-list" id="postList"><div class="empty-tip">加载中…</div></div>
+    </section>
+
+    <!-- 设置 -->
+    <section class="panel" id="tab-config" hidden>
+      <div class="panel-head"><h2>站点设置</h2><button class="btn btn-primary" id="saveConfig">保存设置</button></div>
+      <div class="config-form" id="configForm"><div class="empty-tip">加载中…</div></div>
+    </section>
+  </main>
+</div>
+
+<!-- 内容编辑弹窗 -->
+<div class="modal" id="postEditor" hidden>
+  <div class="modal-backdrop" id="peBackdrop"></div>
+  <div class="modal-box editor-box">
+    <button class="modal-close" id="peClose">✕</button>
+    <h2 id="peTitle">编辑内容</h2>
+    <div class="editor-form">
+      <div class="form-row">
+        <label>标题 <span>*</span><input type="text" id="pePostTitle" required maxlength="100"></label>
+        <label>分类 <span>*</span>
+          <select id="peCategory"><option value="work">作品</option><option value="blog">博客文章</option></select>
+        </label>
+      </div>
+      <label>封面图片 URL
+        <input type="text" id="peCover" placeholder="https://…（作品可留空用默认图标）" maxlength="500">
+      </label>
+      <label>摘要
+        <input type="text" id="peSummary" placeholder="列表页显示的简短介绍" maxlength="200">
+      </label>
+      <label>标签（逗号分隔）
+        <input type="text" id="peTags" placeholder="如：网站,Three.js" maxlength="100">
+      </label>
+      <label>正文
+        <textarea id="peContent" rows="10" placeholder="内容正文，换行自动显示" maxlength="20000"></textarea>
+      </label>
+      <label class="check-row"><input type="checkbox" id="pePublished" checked> 发布（勾选后前台可见）</label>
+      <div class="editor-actions">
+        <button class="btn btn-ghost" id="peDelete" hidden>删除</button>
+        <div style="flex:1"></div>
+        <button class="btn btn-primary" id="peSave">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
