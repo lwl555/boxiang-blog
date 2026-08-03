@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>薄想 · 接单创作工作室</title>
+<meta name="description" content="薄想工作室，专注网站开发、视频创作、AI 绘画等接单服务。抖音：薄想30786753040，微信公众号：超有用的林">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 3D 背景画布 -->
+<canvas id="bg3d"></canvas>
+<div class="grain"></div>
+
+<!-- 导航 -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#top" class="logo">薄想<span class="logo-dot">✦</span></a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#home">首页</a>
+      <a href="#about">关于</a>
+      <a href="#services">服务</a>
+      <a href="#works">作品</a>
+      <a href="#blog">博客</a>
+      <a href="#order" class="nav-cta">立即接单</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="菜单">☰</button>
+  </div>
+</header>
+
+<main>
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="hero-content">
+      <p class="hero-tag reveal" id="heroTag">✦ 创意接单工作室</p>
+      <h1 class="hero-title reveal" id="heroTitle">把想法，做成<br><span class="grad">会发光</span>的作品</h1>
+      <p class="hero-sub reveal" id="heroSub">网站开发 · 视频创作 · AI 绘画 · 设计落地</p>
+      <div class="hero-actions reveal">
+        <a href="#order" class="btn btn-primary">开始接单 <span>→</span></a>
+        <a href="#works" class="btn btn-ghost">看看作品</a>
+      </div>
+      <div class="hero-meta reveal" id="heroMeta">
+        <span>📱 抖音：<b id="metaDouyin">薄想30786753040</b></span>
+        <span>📮 公众号：<b id="metaWechat">超有用的林</b></span>
+      </div>
+    </div>
+    <div class="scroll-hint" id="scrollHint">向下滚动探索 <span>↓</span></div>
+  </section>
+
+  <!-- 关于 -->
+  <section class="section" id="about">
+    <div class="container">
+      <p class="sec-label reveal">关于我 · ABOUT</p>
+      <h2 class="sec-title reveal">你好，我是 <span class="grad" id="aboutName">薄想</span></h2>
+      <div class="about-grid">
+        <div class="about-card glass reveal" id="aboutCard">
+          <p id="aboutText">一个把创意做成实物的接单工作室。无论你是想做网站、剪视频、还是用 AI 生成画面，都可以把需求丢给我，我来帮你落地。</p>
+          <div class="about-contacts">
+            <a href="https://www.douyin.com/search/薄想30786753040" target="_blank" rel="noopener" class="chip">📱 抖音 · 薄想30786753040</a>
+            <a href="https://weixin.qq.com" target="_blank" rel="noopener" class="chip">📮 公众号 · 超有用的林</a>
+          </div>
+        </div>
+        <div class="stat-card reveal" id="statCard">
+          <div class="stat"><b data-count="50">0</b><span>+ 完成项目</span></div>
+          <div class="stat"><b data-count="24">0</b><span>h 极速响应</span></div>
+          <div class="stat"><b data-count="100">0</b><span>% 用心交付</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 服务 -->
+  <section class="section" id="services">
+    <div class="container">
+      <p class="sec-label reveal">服务范围 · SERVICES</p>
+      <h2 class="sec-title reveal">我能帮你做什么</h2>
+      <div class="service-grid" id="serviceGrid">
+        <div class="service-card glass reveal">
+          <div class="svc-icon">🌐</div>
+          <h3>网站开发</h3>
+          <p>个人主页、博客、商城、企业官网，从设计到上线一条龙。</p>
+        </div>
+        <div class="service-card glass reveal">
+          <div class="svc-icon">🎬</div>
+          <h3>视频创作</h3>
+          <p>剪辑、包装、AI 视频生成，让你的内容更出彩。</p>
+        </div>
+        <div class="service-card glass reveal">
+          <div class="svc-icon">🎨</div>
+          <h3>AI 绘画</h3>
+          <p>插画、海报、三视图、道具设定，AI 快速出图。</p>
+        </div>
+        <div class="service-card glass reveal">
+          <div class="svc-icon">🚀</div>
+          <h3>其他定制</h3>
+          <p>脚本写作、公众号排版、自动化工具，有需求尽管说。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 作品 -->
+  <section class="section" id="works">
+    <div class="container">
+      <p class="sec-label reveal">作品集 · WORKS</p>
+      <h2 class="sec-title reveal">最近的作品</h2>
+      <div class="work-grid" id="workGrid">
+        <div class="empty-tip" id="worksEmpty">作品加载中…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 博客 -->
+  <section class="section" id="blog">
+    <div class="container">
+      <p class="sec-label reveal">博客 · BLOG</p>
+      <h2 class="sec-title reveal">最新文章</h2>
+      <div class="blog-list" id="blogList">
+        <div class="empty-tip">文章加载中…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 接单表单 -->
+  <section class="section section-order" id="order">
+    <div class="container">
+      <p class="sec-label reveal">接单 · ORDER</p>
+      <h2 class="sec-title reveal">把你的需求告诉我</h2>
+      <div class="order-wrap reveal">
+        <form id="orderForm" class="glass order-form">
+          <div class="form-row">
+            <label>怎么称呼你 <span>*</span>
+              <input type="text" id="oName" placeholder="你的名字/昵称" required maxlength="30">
+            </label>
+            <label>联系方式 <span>*</span>
+              <input type="text" id="oContact" placeholder="微信 / 电话 / 邮箱" required maxlength="60">
+            </label>
+          </div>
+          <div class="form-row">
+            <label>需求类型 <span>*</span>
+              <select id="oType" required>
+                <option value="">请选择</option>
+                <option>网站开发</option>
+                <option>视频创作</option>
+                <option>AI 绘画</option>
+                <option>脚本写作</option>
+                <option>其他定制</option>
+              </select>
+            </label>
+            <label>预算范围
+              <select id="oBudget">
+                <option value="">暂不确定</option>
+                <option>100 以内</option>
+                <option>100 - 500</option>
+                <option>500 - 1000</option>
+                <option>1000 - 5000</option>
+                <option>5000 以上</option>
+              </select>
+            </label>
+          </div>
+          <label>详细需求 <span>*</span>
+            <textarea id="oDesc" rows="5" placeholder="描述你想做的事情：目标、截止时间、参考素材等…" required maxlength="2000"></textarea>
+          </label>
+          <button type="submit" class="btn btn-primary btn-block" id="orderBtn">提交需求 <span>→</span></button>
+          <p class="form-tip" id="orderTip">提交后我会尽快联系你，放心，需求不会被公开。</p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <div>
+      <p class="footer-logo">薄想 <span class="grad">✦</span></p>
+      <p class="footer-tip">抖音：薄想30786753040 · 公众号：超有用的林</p>
+    </div>
+    <p class="footer-copy">© <span id="year"></span> 薄想工作室 · 用心做每一单</p>
+  </div>
+</footer>
+
+<!-- 文章弹窗 -->
+<div class="modal" id="postModal" hidden>
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose">✕</button>
+    <h2 id="modalTitle"></h2>
+    <div class="modal-meta" id="modalMeta"></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/three-scene.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
