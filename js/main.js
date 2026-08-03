@@ -1,4 +1,4 @@
-// ===== 前台逻辑 =====
+﻿// ===== 前台逻辑 =====
 (function () {
   const url = window.SUPABASE_URL, key = window.SUPABASE_ANON_KEY;
   const sb = window.supabase.createClient(url, key);
@@ -145,11 +145,11 @@
     btn.disabled = false; btn.innerHTML = '提交需求 <span>→</span>';
     if (error) {
       tip.textContent = '提交失败：' + (error.message || '网络异常') + '，可直接联系抖音/公众号';
-      tip.style.color = '#ff6b6b';
+      tip.style.color = '#c2402b';
     } else {
       e.target.reset();
       tip.textContent = '✅ 提交成功！我会尽快联系你，谢谢信任～';
-      tip.style.color = '#f5a524';
+      tip.style.color = '#3e8e63';
     }
   });
 
