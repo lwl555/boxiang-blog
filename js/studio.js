@@ -285,6 +285,13 @@
     return addMsg('bot', '<span class="status">' + text + '</span>');
   }
 
+  // addMsg/addStatus 返回气泡元素，删状态消息要删整条（否则留下空头像）
+  function removeMsgEl(el) {
+    const m = el && el.closest ? el.closest('.msg') : null;
+    if (m) m.remove();
+    else if (el) el.remove();
+  }
+
   function esc(s) {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
@@ -515,7 +522,7 @@
 
       const fastReply = intent.intent === 'chat' ? localFastReply(q) : null;
       if (fastReply) {
-        if (statusEl.isConnected) statusEl.remove();
+        if (statusEl.isConnected) removeMsgEl(statusEl);
         messages.push({ role: 'user', content: fullQ });
         addMsg('bot', fastReply);
         messages.push({ role: 'assistant', content: fastReply });
@@ -548,14 +555,14 @@
               chatList.scrollTop = chatList.scrollHeight;
             },
             onDelta: (d) => {
-              if (!reply) { if (statusEl.isConnected) statusEl.remove(); chatList.appendChild(bubble); }
+              if (!reply) { if (statusEl.isConnected) removeMsgEl(statusEl); chatList.appendChild(bubble); }
               reply += d;
               bubbleText.textContent = reply.slice(-900);
               chatList.scrollTop = chatList.scrollHeight;
             }
           });
         } catch (e) { cont = ''; } // 网络波动：交给下面的重试兜底，避免出现空 AI 图标
-        if (statusEl.isConnected) statusEl.remove();
+        if (statusEl.isConnected) removeMsgEl(statusEl);
         let safe = guardIdentity(/^<!DOCTYPE html|<html[\s>]/i.test(String(cont).trim()) ? '我是薄想 AI 建站助手～如果你需要生成网站，直接告诉我网站类型、风格和内容，我就帮你做出来！' : cont);
         if (!safe || !safe.trim()) {
           // 空回复兜底：非流式重试一次，绝不显示"只有头像没有文字"的气泡
@@ -575,7 +582,7 @@
       }
       if (intent.intent === 'ask' && intent.question) {
         messages.push({ role: 'user', content: fullQ });
-        if (statusEl.isConnected) statusEl.remove();
+        if (statusEl.isConnected) removeMsgEl(statusEl);
         addMsg('bot', '<span class="status">❓ ' + esc(intent.question) + '</span>');
         messages.push({ role: 'assistant', content: intent.question });
         persistCurrent();
@@ -584,7 +591,7 @@
 
       // —— 建站/改站：生成完整网站（带思考过程展示）——
       messages.push({ role: 'user', content: fullQ });
-      if (statusEl.isConnected) statusEl.remove();
+      if (statusEl.isConnected) removeMsgEl(statusEl);
       const waitStart = Date.now();
       statusEl = addMsg('bot', '<div class="think-wrap"><div class="think-head">🧠 AI 深度思考中… <span class="think-arrow">▾ 点击展开思考过程</span></div><div class="think-body" hidden></div><p class="think-tip">AI 正在生成网站（已等待 0 秒），完整页面通常需要 30~90 秒，请耐心等待…</p></div>');
       statusEl.addEventListener('click', () => {
@@ -613,7 +620,7 @@
           streamText = '';
           started = false;
           buildBubbleText.textContent = '';
-          if (statusEl.isConnected) statusEl.remove();
+          if (statusEl.isConnected) removeMsgEl(statusEl);
           statusEl = addStatus('<span class="status">✦ AI 正在继续完善页面…（第 ' + attempt + ' 次）</span>');
         }
         const chatMsgs = attempt === 0
@@ -637,7 +644,7 @@
             onDelta: (d) => {
               if (!started) {
                 started = true;
-                statusEl.remove();
+                removeMsgEl(statusEl);
                 chatList.appendChild(buildBubble);
                 chatList.scrollTop = chatList.scrollHeight;
               }
@@ -654,7 +661,7 @@
         } catch (e2) {
           const net = e2 && (e2.code === 'network' || e2.code === 'timeout' || /network|fetch|timeout|abort|连接|网络|中断/i.test(e2.message || ''));
           if (net && attempt < 3) {
-            if (statusEl.isConnected) statusEl.remove();
+            if (statusEl.isConnected) removeMsgEl(statusEl);
             statusEl = addStatus('<span class="status">⚠️ ' + esc(e2.message) + '，正在自动重试第 ' + (attempt + 2) + ' 次…</span>');
             continue;
           }
@@ -662,7 +669,7 @@
         }
       }
 
-      if (statusEl.isConnected) statusEl.remove();
+      if (statusEl.isConnected) removeMsgEl(statusEl);
       if (!started && full) {
         chatList.appendChild(buildBubble);
         buildBubbleText.textContent = full.slice(-600);
