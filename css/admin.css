@@ -1,4 +1,7 @@
-﻿/* ===== 后台样式 ===== */
+/* 修复：hidden 属性被 display:flex 覆盖导致登录/后台界面同时显示 */
+[hidden] { display: none !important; }
+
+/* ===== 后台样式 ===== */
 .admin-body { min-height: 100vh; }
 .admin-login {
   min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
