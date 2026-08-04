@@ -30,7 +30,7 @@
   });
 
   $('logoutBtn').addEventListener('click', async () => {
-    await sb.auth.signOut();
+    try { await sb.auth.signOut(); } catch (e) {}
     showLogin();
   });
 
