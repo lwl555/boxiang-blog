@@ -6,7 +6,7 @@
 <title>AI 建站工作台 · 薄想工作室</title>
 <meta name="description" content="薄想工作室免费 AI 建站工作台：跟 AI 对话生成任意类型的网站，一键发布上线。">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
-<link rel="stylesheet" href="css/studio.css?v=20260821">
+<link rel="stylesheet" href="css/studio.css?v=20260822">
 </head>
 <body>
 
@@ -76,11 +76,19 @@
       <div class="pv-actions">
         <button class="mini-btn" id="stReload">🔄 刷新预览</button>
         <button class="mini-btn" id="stFull">⛶ 全屏</button>
+        <button class="mini-btn" id="stEditText">✏️ 编辑文字</button>
         <button class="mini-btn" id="stCopyCode">📋 复制代码</button>
         <button class="mini-btn" id="stDownload">⬇️ 下载</button>
       </div>
     </div>
     <div class="preview-frame" id="previewFrame"><iframe id="stFrame" title="网站预览"></iframe></div>
+
+    <!-- 预览文字编辑栏 -->
+    <div class="edit-bar" id="editBar" hidden>
+      <span>✏️ 点击预览里的文字直接修改，改完点保存</span>
+      <button class="mini-btn ok" id="editSave">💾 保存修改</button>
+      <button class="mini-btn" id="editCancel">取消</button>
+    </div>
 
     <!-- 文件区 -->
     <div class="files-wrap" id="filesPanel" hidden>
@@ -151,7 +159,7 @@
 
 <script src="js/supabase.min.js?v=20260809"></script>
 <script src="js/config.js?v=20260809"></script>
-<script src="js/agnes.js?v=20260821"></script>
-<script src="js/studio.js?v=20260821"></script>
+<script src="js/agnes.js?v=20260822"></script>
+<script src="js/studio.js?v=20260822"></script>
 </body>
 </html>
