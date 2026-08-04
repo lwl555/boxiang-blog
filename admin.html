@@ -1,141 +1,142 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>钖勬兂鍚庡彴绠＄悊</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>馃攼</text></svg>">
+<title>薄想后台管理</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
 <link rel="stylesheet" href="css/style.css?v=20260809">
 <link rel="stylesheet" href="css/admin.css?v=20260809">
 </head>
 <body class="admin-body">
 
-<!-- 鐧诲綍 -->
+<!-- 登录 -->
 <div class="admin-login" id="loginView">
   <form class="login-box glass" id="loginForm">
-    <h1>钖勬兂 路 鍚庡彴绠＄悊</h1>
-    <p class="login-tip">浣跨敤浣犲湪 Supabase 娣诲姞鐨勭鐞嗗憳璐﹀彿鐧诲綍</p>
-    <label>閭
+    <h1>薄想 · 后台管理</h1>
+    <p class="login-tip">使用你在 Supabase 添加的管理员账号登录</p>
+    <label>邮箱
       <input type="email" id="lgEmail" required placeholder="admin@example.com" autocomplete="username">
     </label>
-    <label>瀵嗙爜
-      <input type="password" id="lgPass" required placeholder="瀵嗙爜" autocomplete="current-password">
+    <label>密码
+      <input type="password" id="lgPass" required placeholder="密码" autocomplete="current-password">
     </label>
-    <button class="btn btn-primary btn-block" type="submit" id="lgBtn">鐧?褰?/button>
+    <button class="btn btn-primary btn-block" type="submit" id="lgBtn">登 录</button>
     <p class="form-tip" id="lgTip"></p>
   </form>
 </div>
 
-<!-- 鍚庡彴涓荤晫闈?-->
+<!-- 后台主界面 -->
 <div class="admin-shell" id="adminView" hidden>
   <aside class="admin-side">
-    <div class="admin-brand">钖勬兂<span class="grad">鉁?/span>鍚庡彴</div>
+    <div class="admin-brand">薄想<span class="grad">✦</span>后台</div>
     <nav class="admin-tabs">
-      <button class="tab active" data-tab="orders">馃搵 鎺ュ崟绠＄悊</button>
-      <button class="tab" data-tab="posts">馃摑 鍐呭绠＄悊</button>
-      <button class="tab" data-tab="sites">馃寪 寤虹珯瀹℃牳</button>
-      <button class="tab" data-tab="config">鈿欙笍 绔欑偣璁剧疆</button>
+      <button class="tab active" data-tab="orders">📋 接单管理</button>
+      <button class="tab" data-tab="posts">📝 内容管理</button>
+      <button class="tab" data-tab="sites">🌐 建站审核</button>
+      <button class="tab" data-tab="config">⚙️ 站点设置</button>
     </nav>
-    <button class="btn btn-ghost btn-block" id="logoutBtn">閫€鍑虹櫥褰?/button>
+    <button class="btn btn-ghost btn-block" id="logoutBtn">退出登录</button>
   </aside>
 
   <main class="admin-main">
-    <!-- 璁㈠崟 -->
+    <!-- 订单 -->
     <section class="panel" id="tab-orders">
       <div class="panel-head">
-        <h2>鎺ュ崟闇€姹?/h2>
+        <h2>接单需求</h2>
         <div class="panel-actions">
           <select id="orderFilter">
-            <option value="">鍏ㄩ儴鐘舵€?/option>
-            <option value="new">鏂伴渶姹?/option>
-            <option value="processing">澶勭悊涓?/option>
-            <option value="done">宸插畬鎴?/option>
+            <option value="">全部状态</option>
+            <option value="new">新需求</option>
+            <option value="processing">处理中</option>
+            <option value="done">已完成</option>
           </select>
-          <button class="btn btn-ghost" id="refreshOrders">鍒锋柊</button>
+          <button class="btn btn-ghost" id="refreshOrders">刷新</button>
         </div>
       </div>
-      <div class="order-list" id="orderList"><div class="empty-tip">鍔犺浇涓€?/div></div>
+      <div class="order-list" id="orderList"><div class="empty-tip">加载中…</div></div>
     </section>
 
-    <!-- 鍐呭 -->
+    <!-- 内容 -->
     <section class="panel" id="tab-posts" hidden>
       <div class="panel-head">
-        <h2>浣滃搧 / 鏂囩珷绠＄悊</h2>
-        <button class="btn btn-primary" id="newPost">锛?鏂板缓鍐呭</button>
+        <h2>作品 / 文章管理</h2>
+        <button class="btn btn-primary" id="newPost">＋ 新建内容</button>
       </div>
-      <div class="post-list" id="postList"><div class="empty-tip">鍔犺浇涓€?/div></div>
+      <div class="post-list" id="postList"><div class="empty-tip">加载中…</div></div>
     </section>
 
-    <!-- 寤虹珯瀹℃牳 -->
+    <!-- 建站审核 -->
     <section class="panel" id="tab-sites" hidden>
       <div class="panel-head">
-        <h2>鍏嶈垂寤虹珯瀹℃牳</h2>
+        <h2>免费建站审核</h2>
         <div class="panel-actions">
           <select id="siteFilter">
-            <option value="">鍏ㄩ儴鐘舵€?/option>
-            <option value="pending">寰呭鏍?/option>
-            <option value="published">宸蹭笂绾?/option>
-            <option value="rejected">宸叉嫆缁?/option>
-            <option value="offline">宸蹭笅鏋?/option>
+            <option value="">全部状态</option>
+            <option value="pending">待审核</option>
+            <option value="published">已上线</option>
+            <option value="rejected">已拒绝</option>
+            <option value="offline">已下架</option>
           </select>
-          <button class="btn btn-ghost" id="refreshSites">鍒锋柊</button>
+          <button class="btn btn-ghost" id="refreshSites">刷新</button>
         </div>
       </div>
-      <p class="sites-hint">璁垮鍦ㄣ€孉I 寤虹珯宸ヤ綔鍙般€嶇偣鍑诲彂甯冨悗锛屽埌杩欓噷銆屸渽 閫氳繃瀹℃牳銆嶁啋銆岎煔€ 绔嬪嵆涓婄嚎銆嶅嵆鍙妸缃戠珯鍙戝竷鍒扮嚎涓婏紝鏃犻渶绛夊緟鑷姩鍚屾銆備笅鏋朵細绔嬪嵆绉婚櫎绾夸笂鏂囦欢銆?/p>
-      <div class="site-admin-list" id="siteList"><div class="empty-tip">鍔犺浇涓€?/div></div>
+      <p class="sites-hint">访客在「AI 建站工作台」点击发布后，到这里「✅ 通过审核」→「🚀 立即上线」即可把网站发布到线上，无需等待自动同步。下架会立即移除线上文件。</p>
+      <div class="site-admin-list" id="siteList"><div class="empty-tip">加载中…</div></div>
     </section>
 
-    <!-- 璁剧疆 -->
+    <!-- 设置 -->
     <section class="panel" id="tab-config" hidden>
-      <div class="panel-head"><h2>绔欑偣璁剧疆</h2><button class="btn btn-primary" id="saveConfig">淇濆瓨璁剧疆</button></div>
-      <div class="config-form" id="configForm"><div class="empty-tip">鍔犺浇涓€?/div></div>
+      <div class="panel-head"><h2>站点设置</h2><button class="btn btn-primary" id="saveConfig">保存设置</button></div>
+      <div class="config-form" id="configForm"><div class="empty-tip">加载中…</div></div>
     </section>
   </main>
 </div>
 
-<!-- 鍐呭缂栬緫寮圭獥 -->
+<!-- 内容编辑弹窗 -->
 <div class="modal" id="postEditor" hidden>
   <div class="modal-backdrop" id="peBackdrop"></div>
   <div class="modal-box editor-box">
-    <button class="modal-close" id="peClose">鉁?/button>
-    <h2 id="peTitle">缂栬緫鍐呭</h2>
+    <button class="modal-close" id="peClose">✕</button>
+    <h2 id="peTitle">编辑内容</h2>
     <div class="editor-form">
       <div class="form-row">
-        <label>鏍囬 <span>*</span><input type="text" id="pePostTitle" required maxlength="100"></label>
-        <label>鍒嗙被 <span>*</span>
-          <select id="peCategory"><option value="work">浣滃搧</option><option value="blog">鍗氬鏂囩珷</option></select>
+        <label>标题 <span>*</span><input type="text" id="pePostTitle" required maxlength="100"></label>
+        <label>分类 <span>*</span>
+          <select id="peCategory"><option value="work">作品</option><option value="blog">博客文章</option></select>
         </label>
       </div>
-      <label>灏侀潰鍥剧墖 URL
-        <input type="text" id="peCover" placeholder="https://鈥︼紙浣滃搧鍙暀绌虹敤榛樿鍥炬爣锛? maxlength="500">
+      <label>封面图片 URL
+        <input type="text" id="peCover" placeholder="https://…（作品可留空用默认图标）" maxlength="500">
       </label>
-      <label>鎽樿
-        <input type="text" id="peSummary" placeholder="鍒楄〃椤垫樉绀虹殑绠€鐭粙缁? maxlength="200">
+      <label>摘要
+        <input type="text" id="peSummary" placeholder="列表页显示的简短介绍" maxlength="200">
       </label>
-      <label>鏍囩锛堥€楀彿鍒嗛殧锛?        <input type="text" id="peTags" placeholder="濡傦細缃戠珯,Three.js" maxlength="100">
+      <label>标签（逗号分隔）
+        <input type="text" id="peTags" placeholder="如：网站,Three.js" maxlength="100">
       </label>
-      <label>姝ｆ枃
-        <textarea id="peContent" rows="10" placeholder="鍐呭姝ｆ枃锛屾崲琛岃嚜鍔ㄦ樉绀? maxlength="20000"></textarea>
+      <label>正文
+        <textarea id="peContent" rows="10" placeholder="内容正文，换行自动显示" maxlength="20000"></textarea>
       </label>
-      <label class="check-row"><input type="checkbox" id="pePublished" checked> 鍙戝竷锛堝嬀閫夊悗鍓嶅彴鍙锛?/label>
+      <label class="check-row"><input type="checkbox" id="pePublished" checked> 发布（勾选后前台可见）</label>
       <div class="editor-actions">
-        <button class="btn btn-ghost" id="peDelete" hidden>鍒犻櫎</button>
+        <button class="btn btn-ghost" id="peDelete" hidden>删除</button>
         <div style="flex:1"></div>
-        <button class="btn btn-primary" id="peSave">淇濆瓨</button>
+        <button class="btn btn-primary" id="peSave">保存</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 寤虹珯浠ｇ爜棰勮寮圭獥 -->
+<!-- 建站代码预览弹窗 -->
 <div class="modal" id="siteCodeModal" hidden>
   <div class="modal-backdrop" id="scmBackdrop"></div>
   <div class="modal-box code-box">
-    <button class="modal-close" id="scmClose">鉁?/button>
-    <h2 id="scmTitle">缃戠珯浠ｇ爜</h2>
+    <button class="modal-close" id="scmClose">✕</button>
+    <h2 id="scmTitle">网站代码</h2>
     <textarea id="scmCode" rows="18" readonly spellcheck="false"></textarea>
     <div class="editor-actions">
-      <button class="btn btn-primary" id="scmCopy">澶嶅埗浠ｇ爜</button>
+      <button class="btn btn-primary" id="scmCopy">复制代码</button>
     </div>
   </div>
 </div>
@@ -143,6 +144,6 @@
 <script src="js/supabase.min.js?v=20260809"></script>
 <script src="js/config.js?v=20260809"></script>
 <script src="js/sitegen.js?v=20260809"></script>
-<script src="js/admin.js?v=20260820"></script>
+<script src="js/admin.js?v=20260821"></script>
 </body>
 </html>
