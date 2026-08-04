@@ -28,7 +28,8 @@
     '9. 文案：内容具体真实，围绕用户业务展开（导航、Hero、关于、服务/产品、案例、价格、联系等按类型取舍），避免空话套话。\n' +
     '10. 联系区域放一个明显按钮，链接到 https://lwl555.github.io/boxiang-blog/#order（文案：向薄想工作室下单）。\n' +
     '11. 页脚加一行小字：由 薄想工作室 免费生成。\n' +
-    '12. 输出前自检：单页不少于 60 行；无任何外部依赖；无 JS 明显错误；</html> 完整闭合。';
+    '12. 输出前自检：单页不少于 60 行；无任何外部依赖；无 JS 明显错误；</html> 完整闭合。\n' +
+    '13. 长度控制：整页控制在 400~700 行以内、总字符 12000 以内，宁可精简也不要写太长，确保一次输出完整、绝不截断。';
 
   let messages = [
     { role: 'system', content: SYSTEM_PROMPT }
@@ -99,15 +100,27 @@
     return t;
   }
 
-  function preview(html) {
-    let h = String(html || '');
-    const trimH = h.trim();
-    if (!/^<!DOCTYPE html/i.test(trimH) && !/^<html/i.test(trimH)) {
-      h = '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>生成页面</title>\n</head>\n<body>\n' + h + '\n</body>\n</html>';
+  function repairHtml(h) {
+    let s = String(h || '');
+    const trim = s.trim();
+    if (!/^<!DOCTYPE html/i.test(trim) && !/^<html/i.test(trim)) {
+      s = '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>生成页面</title>\n</head>\n<body>\n' + s;
     }
-    if (!/<\/html>\s*$/i.test(h.trim())) h = h.replace(/\s*$/, '') + '\n</html>';
-    lastHtml = h;
-    $('stFrame').srcdoc = h;
+    if (((s.match(/<style[\s>]/gi) || []).length) > ((s.match(/<\/style>/gi) || []).length)) s += '\n</style>';
+    if (((s.match(/<script[\s>]/gi) || []).length) > ((s.match(/<\/script>/gi) || []).length)) s += '\n</script>';
+    if (((s.match(/<body[\s>]/gi) || []).length) > ((s.match(/<\/body>/gi) || []).length)) s += '\n</body>';
+    if (!/<\/html>\s*$/i.test(s.trim())) s = s.replace(/\s*$/, '') + '\n</html>';
+    return s;
+  }
+  function isCompleteHtml(h) {
+    const s = String(h || '');
+    return /<\/html>\s*$/i.test(s.trim()) &&
+      ((s.match(/<style[\s>]/gi) || []).length) === ((s.match(/<\/style>/gi) || []).length) &&
+      ((s.match(/<script[\s>]/gi) || []).length) === ((s.match(/<\/script>/gi) || []).length);
+  }
+  function preview(html) {
+    lastHtml = repairHtml(html);
+    $('stFrame').srcdoc = lastHtml;
   }
 
   // ===== 会话持久化（刷新不丢）=====
@@ -186,7 +199,7 @@
 
     generating = true;
     setBusy(true);
-    const statusEl = addStatus('<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在思考，请稍候…</span>');
+    let statusEl = addStatus('<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在思考，请稍候…</span>');
     aborter = new AbortController();
     try {
       let streamText = '';
@@ -195,24 +208,45 @@
       bubble.className = 'msg bot';
       bubble.innerHTML = '<div class="avatar">✦</div><div class="bubble"></div>';
       const bubbleText = bubble.querySelector('.bubble');
+      let full = '';
+      let complete = false;
 
-      const full = await window.Agnes.chat(messages, {
-        stream: true,
-        signal: aborter.signal,
-        onDelta: (d) => {
-          if (!started) {
-            started = true;
-            statusEl.remove();
-            chatList.appendChild(bubble);
+      for (let attempt = 0; attempt < 4 && !complete; attempt++) {
+        if (attempt > 0) {
+          streamText = '';
+          started = false;
+          bubbleText.textContent = '';
+          statusEl = addStatus('<span class="status">⚠️ 刚才的输出不完整（AI 截断了），正在自动继续补全第 ' + attempt + ' 次…</span>');
+        }
+        const chatMsgs = attempt === 0
+          ? messages
+          : messages.concat([
+              { role: 'assistant', content: full },
+              { role: 'user', content: '【继续写】你刚才输出的 HTML 因为长度限制被系统截断了。请接着你输出的最后位置继续写，补齐所有剩余内容。要求：不要重复任何已输出的内容；如果还有未完成的标签（如 footer、body、html）必须全部闭合；最终输出必须以 </body> 和 </html> 结尾。只输出续写部分，不要解释。' }
+            ]);
+        const cont = await window.Agnes.chat(chatMsgs, {
+          stream: true,
+          signal: aborter.signal,
+          onDelta: (d) => {
+            if (!started) {
+              started = true;
+              statusEl.remove();
+              chatList.appendChild(bubble);
+              chatList.scrollTop = chatList.scrollHeight;
+            }
+            streamText += d;
+            bubbleText.textContent = streamText.slice(-600);
             chatList.scrollTop = chatList.scrollHeight;
           }
-          streamText += d;
-          bubbleText.textContent = streamText.slice(-600);
-          chatList.scrollTop = chatList.scrollHeight;
-        }
-      });
+        });
+        full = (attempt > 0 ? full.replace(/\s*$/, '') + '\n' : '') + cont;
+        full = full.split(String.fromCharCode(96)).join('').trim();
+        const html = extractHtml(full);
+        complete = !!html && html.length >= 300 && isCompleteHtml(html);
+      }
+
+      if (statusEl.isConnected) statusEl.remove();
       if (!started) {
-        statusEl.remove();
         chatList.appendChild(bubble);
         bubbleText.textContent = full || '';
         chatList.scrollTop = chatList.scrollHeight;
@@ -221,8 +255,11 @@
       if (!html || html.length < 300) throw new Error('AI 没有返回有效的网页内容，请再试一次');
       preview(html);
       messages.push({ role: 'assistant', content: full });
-      bubbleText.textContent = '✅ 网站已生成！看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
-      $('stStatus').textContent = '✅ 已生成 · 可继续对话修改';
+      bubbleText.textContent = complete
+        ? '✅ 网站已生成！看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。'
+        : '✅ 网站已生成（AI 输出略有截断，已自动修补显示）。不满意就继续跟我说，我来帮你改。'
+      ;
+      $('stStatus').textContent = complete ? '✅ 已生成 · 可继续对话修改' : '⚠️ 已生成（部分修补）· 可继续对话修改';
       saveState();
     } catch (e) {
       const msg = e && e.message ? e.message : '生成失败，请重试';
@@ -436,6 +473,14 @@
       btn.textContent = '🚀 发布网站';
     }
   }
+
+  // ===== 刷新预览 =====
+  $('stReload').addEventListener('click', () => {
+    if (!lastHtml) return;
+    $('stFrame').srcdoc = repairHtml(lastHtml);
+    const b = $('stReload'); b.textContent = 'U0001f504 已刷新';
+    setTimeout(() => { b.textContent = 'U0001f504 刷新预览'; }, 1200);
+  });
 
   // ===== 复制 / 下载 / 清空 =====
   $('stCopyCode').addEventListener('click', async () => {
