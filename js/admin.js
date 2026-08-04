@@ -283,13 +283,16 @@
     ['services', '服务列表(JSON)', '[{"icon":"🌐","title":"网站开发","desc":"个人主页、博客、商城、企业官网，从设计到上线一条龙。"},{"icon":"🎬","title":"视频创作","desc":"剪辑、包装、AI 视频生成，让你的内容更出彩。"},{"icon":"🎨","title":"AI 绘画","desc":"插画、海报、三视图、道具设定，AI 快速出图。"},{"icon":"🚀","title":"其他定制","desc":"脚本写作、公众号排版、自动化工具，有需求尽管说。"}]', 'JSON 数组，每条含 icon/title/desc']
   ];
 
+  let configKeys = new Set();
+
   async function loadConfigForm() {
     const form = $('configForm');
     form.innerHTML = '<div class="empty-tip">加载中…</div>';
     const { data, error } = await sb.from(T.config).select('key,value');
     if (error) { form.innerHTML = '<div class="empty-tip">加载失败：' + error.message + '</div>'; return; }
     const map = {};
-    (data || []).forEach((r) => { map[r.key] = r.value; });
+    configKeys = new Set();
+    (data || []).forEach((r) => { map[r.key] = r.value; configKeys.add(r.key); });
     form.innerHTML = CONFIG_DEFS.map(([k, label, def, hint]) => {
       const v = (map[k] ?? def).replace(/"/g, '&quot;');
       return `
@@ -310,14 +313,11 @@
     let failed = '';
     await Promise.all(changes.map(async (c) => {
       try {
-        const { data } = await sb.from(T.config).select('key').eq('key', c.key).maybeSingle();
-        if (data) {
-          const { error } = await sb.from(T.config).update({ value: c.val }).eq('key', c.key);
-          if (error) throw new Error(error.message);
-        } else {
-          const { error } = await sb.from(T.config).insert({ key: c.key, value: c.val });
-          if (error) throw new Error(error.message);
-        }
+        const { error } = configKeys.has(c.key)
+          ? await sb.from(T.config).update({ value: c.val }).eq('key', c.key)
+          : await sb.from(T.config).insert({ key: c.key, value: c.val });
+        if (error) throw new Error(error.message);
+        configKeys.add(c.key);
       } catch (e) { failed = (failed ? failed + '；' : '') + c.key + '：' + e.message; }
     }));
     btn.disabled = false; btn.textContent = '保存设置';
