@@ -257,6 +257,7 @@ body::before{
   padding:14px;margin:14px 0;word-break:break-all;text-decoration:none;
 }
 .pub-tip{font-size:.84rem;color:var(--soft);line-height:1.8;text-align:center}
+.pub-status-line{margin-top:12px;font-size:.85rem;font-weight:800;color:var(--amber);text-align:center}
 .pub-tip b{color:var(--ok)}
 .pub-actions{display:flex;gap:10px;justify-content:center;margin-top:18px}
 .pub-actions .st-btn{min-width:130px}
