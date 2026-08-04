@@ -417,7 +417,7 @@
       return (m.role === 'user' ? '用户' : '助手') + '：' + s;
     }).join('\n');
     return [
-      { role: 'system', content: '你是「薄想AI建站工作台」的意图判断器。结合对话历史判断用户最新消息属于哪类，只输出一个 JSON 对象，不要输出任何其他内容：\n- {"intent":"chat"}：问候、感谢、闲聊、询问助手能做什么、与建站无关的提问\n- {"intent":"ask","question":"..."}：用户想建站或改站，但信息不足，需要先问一个最关键的问题（question 用中文一句话，只问一个问题，不要罗列多个问题）\n- {"intent":"build"}：用户明确提出建站/改站需求且信息足够\n注意：问助手名字/模型/厂商/开发者/API等身份信息也算 chat；在已有网站基础上说「换个风格」「加个板块」「改成红色」「加联系方式」等都算 build；消息以建站需求为主但略带寒暄也算 build。用户说「当前网站不重要」「无所谓」「算了」「不要了」「重新开始」「重做」等表示放弃当前网站的意图时，属于 chat（先简短回应，再问一句想做什么网站）。' },
+      { role: 'system', content: '你是「薄想AI建站工作台」的意图判断器。结合对话历史判断用户最新消息属于哪类，只输出一个 JSON 对象，不要输出任何其他内容：\n- {"intent":"chat"}：问候、感谢、闲聊、询问助手能做什么、与建站无关的提问\n- {"intent":"ask","question":"..."}：用户想建站或改站，但信息不足，需要先问一个最关键的问题（question 用中文一句话，只问一个问题，不要罗列多个问题）\n- {"intent":"build"}：用户明确提出建站/改站需求且信息足够\n注意：问助手名字/模型/厂商/开发者/API等身份信息也算 chat；在已有网站基础上说「换个风格」「加个板块」「改成红色」「加联系方式」等都算 build；消息以建站需求为主但略带寒暄也算 build。对话历史中已有生成网站时，用户说「优化」「升级」「改一下」「改改」「再来一版」「继续」等模糊指令也算 build。用户说「当前网站不重要」「无所谓」「算了」「不要了」「重新开始」「重做」等表示放弃当前网站的意图时，属于 chat（先简短回应，再问一句想做什么网站）。' },
       { role: 'user', content: '对话历史：\n' + (hist || '（无）') + '\n\n用户最新消息：' + q }
     ];
   }
@@ -505,8 +505,11 @@
           const jout = await window.Agnes.chat(intentJudgeMsgs(q), { stream: false, maxTokens: 300, timeout: 60000, signal: aborter.signal });
           intent = parseIntent(jout);
         } catch (e) {
-          // 判断失败时先提问而不是盲目生成，避免误建站
-          intent = { intent: 'ask', question: '你想做什么类型的网站呢？比如个人主页、企业官网、小店、博客……告诉我网站类型和大概内容，我马上帮你做！' };
+          // 判断失败时：已有生成网站则直接继续改站，否则只问一个最关键的问题
+          const hasSite = messages.some((m) => m.role === 'assistant' && /<html/i.test(m.content || ''));
+          intent = hasSite
+            ? { intent: 'build' }
+            : { intent: 'ask', question: '你想做什么类型的网站呢？比如个人主页、企业官网、小店、博客……告诉我网站类型和大概内容，我马上帮你做！' };
         }
       }
 
@@ -675,7 +678,20 @@
         if (apiN) addMsg('bot', '<span class="status">🧩 AI 判断当前网站需要 ' + apiN + ' 个免费功能，已自动接入（可在「🧩 免费API」查看）。</span>');
         await resolveMediaPlaceholders();
       } catch (e) { /* 自动能力失败不影响主流程 */ }
-      if (buildBubble && buildBubble.isConnected) buildBubbleText.textContent = '✅ 网站已生成！看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
+      if (buildBubble && buildBubble.isConnected) {
+        let summary = '';
+        const h1m = (html0.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || [])[1] || '';
+        const secs = [];
+        const sr = /<(?:h2|h3)[^>]*>([\s\S]*?)<\/(?:h2|h3)>/gi;
+        let sm;
+        while ((sm = sr.exec(html0)) && secs.length < 8) {
+          const txt = sm[1].replace(/<[^>]+>/g, '').trim().slice(0, 20);
+          if (txt) secs.push(txt);
+        }
+        const parts = [h1m.replace(/<[^>]+>/g, '').trim(), ...secs].filter(Boolean);
+        if (parts.length) summary = ' 已包含：' + parts.join('、') + '。';
+        buildBubbleText.textContent = '✅ 网站已生成！' + summary + '\n看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
+      }
       $('stStatus').textContent = '✅ 已生成 · 可继续对话修改';
       persistCurrent();
     } catch (e) {
@@ -1087,7 +1103,7 @@
           changed = true;
           st.textContent = '⚠️ 配图失败，已移除占位';
         }
-        setTimeout(() => { if (st.isConnected) st.remove(); }, 1500);
+        // 配图状态保留在对话里，避免出现空头像和内容消失
       }
       const vids = [];
       const reVid = /src=["']BXVIDEO:([^"']+)["']/gi;
