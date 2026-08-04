@@ -29,7 +29,10 @@
     '10. 联系区域放一个明显按钮，链接到 https://lwl555.github.io/boxiang-blog/#order（文案：向薄想工作室下单）。\n' +
     '11. 页脚加一行小字：由 薄想工作室 免费生成。\n' +
     '12. 输出前自检：单页不少于 60 行；无任何外部依赖；无 JS 明显错误；</html> 完整闭合。\n' +
-    '13. 长度控制：整页控制在 250~450 行以内、总字符 8000 以内，宁可精简也不要写太长，确保一次输出完整、绝不截断。';
+    '13. 长度控制：整页控制在 250~450 行以内、总字符 8000 以内，宁可精简也不要写太长，确保一次输出完整、绝不截断。\n' +
+    '14. 【配图占位符】如果页面需要真实图片（产品图、场景图、插画、头像等），用 <img src=\"BXIMG:详细画面描述\" alt=\"描述\"> 占位（src 以 BXIMG: 开头，描述 30 字以内，写明主体/环境/光线/风格），系统会自动调用图像模型生成真实图片并替换。整个页面最多 3 个 BXIMG 占位。\n' +
+    '15. 【视频占位符】如果确实需要动态视频展示，用 <video src=\"BXVIDEO:画面描述\" controls poster=\"BXVIDEO:封面描述\"></video> 占位（最多 1 个），系统会自动生成并插入。不确定就优先用图片/动画。\n' +
+    '16. 【免费 API 自动接入】如果网站业务适合以下免费功能，在 </body> 前放一个注释标记 <!--BXAPI:功能id-->（一个功能最多一个标记），系统会自动接入并生效：hitokoto 一言（博客/主页金句）、jinrishici 今日诗词（文艺/国风）、weather 天气（本地生活/旅行，默认北京）、ipwhois IP定位（同城/本地服务）、fx 实时汇率（外贸/代购）、dog 随机狗图（宠物/休闲）、photo 随机美图（摄影/生活）、qrcode 二维码（线下引流）、translate 在线翻译（工具/学习）、avatar 随机头像（个人主页）、person 随机用户（演示/社区）、joke 冷笑话（娱乐）、agify 年龄预测（趣味）、genderize 性别预测（趣味）。用户明确要求接入或移除某个功能时，按用户要求执行。';
   // ===== 会话存储（每个网站一份记忆，刷新不丢）=====
   const SESSIONS_KEY = 'bx_studio_sessions_v2';
   const CUR_KEY = 'bx_studio_cur_v2';
@@ -441,6 +444,11 @@
       if (!html || html.length < 300) throw new Error('AI 没有返回有效的网页内容，请再试一次');
       preview(html);
       messages.push({ role: 'assistant', content: full });
+      try {
+        const apiN = applyApiMarkers();
+        if (apiN) addMsg('bot', '<span class="status">🧩 AI 判断当前网站需要 ' + apiN + ' 个免费功能，已自动接入（可在「🧩 免费API」查看）。</span>');
+        await resolveMediaPlaceholders();
+      } catch (e) { /* 自动能力失败不影响主流程 */ }
       bubbleText.textContent = '✅ 网站已生成！看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
       $('stStatus').textContent = '✅ 已生成 · 可继续对话修改';
       persistCurrent();
@@ -689,8 +697,52 @@
         return '<script>/* 随机美图 · picsum 免费API */' + floatWidget('bx-api-photo', '') +
           '(function(){var t=document.getElementById("bx-api-photo");if(t&&t.lastChild){t.lastChild.innerHTML="🖼️ 随机美图<br><img src=\"https://picsum.photos/seed/"+Math.random().toString(36).slice(2)+"/400/300\" style=\"width:100%;border-radius:10px;margin-top:6px;display:block\">"}})();</' + 'script>';
       }
+    },
+    translate: {
+      name: '在线翻译',
+      icon: '🌏',
+      desc: '右下角小窗输入英文，自动翻译成中文，适合工具类、学习类网站。免费无需 key。',
+      sample: 'fetch("https://api.mymemory.translated.net/get?q=hello&langpair=en|zh-CN").then(r=>r.json()).then(d=>console.log(d.responseData.translatedText))',
+      script: function () {
+        return '<script>/* 翻译 · mymemory 免费API */' + floatWidget('bx-api-trans', '') +
+          '(function(){var t=document.getElementById("bx-api-trans");if(!t||!t.lastChild)return;t.lastChild.innerHTML="🌏 在线翻译<br><input type=\"text\" placeholder=\"输入英文，回车翻译\" style=\"width:100%;box-sizing:border-box;margin-top:6px;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:12px;outline:none\"><div style=\"margin-top:6px;font-size:12px;opacity:.9\"></div>";var inp=t.lastChild.querySelector("input"),out=t.lastChild.lastChild;inp.addEventListener("keydown",function(e){if(e.key==="Enter"){var q=inp.value.trim();if(!q)return;out.textContent="翻译中…";fetch("https://api.mymemory.translated.net/get?q="+encodeURIComponent(q)+"&langpair=en|zh-CN").then(function(r){return r.json()}).then(function(j){out.textContent=(j.responseData&&j.responseData.translatedText)||"翻译失败"})}})})();</' + 'script>';
+      }
+    },
+    agify: {
+      name: '年龄预测',
+      icon: '🎂',
+      desc: '输入一个名字，预测大概年龄（全球样本统计），显示在右下角，趣味互动类网站最爱。免费无需 key。',
+      sample: 'fetch("https://api.agify.io/?name=lin").then(r=>r.json()).then(d=>console.log(d.age))',
+      script: function () {
+        return '<script>/* 年龄预测 · agify 免费API（改 body data-name 换名字） */' + floatWidget('bx-api-age', '加载…') +
+          'var _nm=document.body.getAttribute("data-name")||"boxiang";fetch("https://api.agify.io/?name="+encodeURIComponent(_nm)).then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-age");if(t&&t.lastChild&&j&&j.age){t.lastChild.innerHTML="🎂 名字「"+_nm+"」预测年龄<br><span style=\"font-size:1.5rem;font-weight:900\">"+(j.age||"-")+" 岁</span><br><span style=\"opacity:.7\">样本 "+(j.count||"-")+" · 改 body data-name 换名字</span>"}}).catch(function(){var t=document.getElementById("bx-api-age");if(t)t.lastChild.textContent="加载失败"});</' + 'script>';
+      }
+    },
+    genderize: {
+      name: '性别预测',
+      icon: '👥',
+      desc: '输入一个名字，预测性别倾向与概率（全球样本统计），显示在右下角，趣味互动类网站最爱。免费无需 key。',
+      sample: 'fetch("https://api.genderize.io/?name=lin").then(r=>r.json()).then(d=>console.log(d.gender, d.probability))',
+      script: function () {
+        return '<script>/* 性别预测 · genderize 免费API（改 body data-name 换名字） */' + floatWidget('bx-api-gender', '加载…') +
+          'var _nm=document.body.getAttribute("data-name")||"boxiang";fetch("https://api.genderize.io/?name="+encodeURIComponent(_nm)).then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-gender");if(t&&t.lastChild&&j&&j.gender){var g=j.gender==="male"?"👦 偏男性":"👧 偏女性";t.lastChild.innerHTML="👥 名字「"+_nm+"」性别预测<br><span style=\"font-size:1.1rem;font-weight:900\">"+g+"</span><br><span style=\"opacity:.7\">概率 "+(j.probability?Math.round(j.probability*100):"-")+"% · 改 body data-name 换名字</span>"}}).catch(function(){var t=document.getElementById("bx-api-gender");if(t)t.lastChild.textContent="加载失败"});</' + 'script>';
+      }
     }
   };
+
+  function attachApi(apiId, silent) {
+    const def = FREE_APIS[apiId];
+    if (!def || !current) return false;
+    if (current.apis.includes(apiId)) return false;
+    if (!lastHtml) return false;
+    if (!injectScript(def.script())) return false;
+    current.apis.push(apiId);
+    messages.push({ role: 'user', content: '（系统：已接入免费 API「' + def.name + '」，代码已插入页面 </body> 前。继续修改网站时请保留该功能，除非用户要求移除或移动位置。）', sys: true });
+    if (!silent) {
+      addMsg('bot', '<span class="status">🧩 已接入「' + def.name + '」：代码已插入页面并生效（右下角可看到效果）。AI 后续改版会自动保留，想移动位置直接跟 AI 说。</span>');
+    }
+    return true;
+  }
 
   function addApi(apiId) {
     const def = FREE_APIS[apiId];
@@ -698,15 +750,124 @@
     if (!current) { alert('请先新建一个网站'); return; }
     if (current.apis.includes(apiId)) { alert('这个 API 已经接入过啦'); return; }
     if (!lastHtml) { alert('先让 AI 生成网站内容，再接 API 效果更好'); return; }
-    if (!injectScript(def.script())) { alert('还没有网站代码，无法接入'); return; }
-    current.apis.push(apiId);
-    persistCurrent();
-    messages.push({ role: 'user', content: '（系统：用户已一键接入免费 API「' + def.name + '」，代码已插入页面 </body> 前。继续修改网站时请保留该功能，除非用户要求移除或移动位置。）', sys: true });
-    persistCurrent();
-    addMsg('bot', '<span class="status">🧩 已接入「' + def.name + '」：代码已插入页面并生效（右下角可看到效果）。AI 后续改版会自动保留，想移动位置直接跟 AI 说。</span>');
-    renderApis();
-    renderFiles();
-    $('stStatus').textContent = '✅ 已接入 ' + def.name;
+    if (attachApi(apiId, false)) {
+      persistCurrent();
+      renderApis();
+      renderFiles();
+      $('stStatus').textContent = '✅ 已接入 ' + def.name;
+    } else {
+      alert('接入失败，请先生成网站内容');
+    }
+  }
+
+  // ===== AI 自动能力：按需接入 API / 自动配图 / 自动视频 =====
+  const API_GROUPS = {
+    hitokoto: 'content', jinrishici: 'content', translate: 'content', joke: 'content',
+    weather: 'tool', ipwhois: 'tool', fx: 'tool', qrcode: 'tool',
+    dog: 'visual', avatar: 'visual', photo: 'visual', person: 'visual', agify: 'visual', genderize: 'visual'
+  };
+  const API_GROUP_NAMES = [['content', '📖 内容灵感'], ['tool', '🛠️ 实用工具'], ['visual', '🎨 视觉趣味']];
+
+  function extractApiMarkers(html) {
+    const ids = [];
+    const re = /BXAPI:([a-z]+)/gi;
+    let m;
+    while ((m = re.exec(html))) ids.push(m[1].toLowerCase());
+    return Array.from(new Set(ids)).filter((id) => FREE_APIS[id]);
+  }
+
+  function applyApiMarkers() {
+    if (!lastHtml) return 0;
+    const ids = extractApiMarkers(lastHtml);
+    let n = 0;
+    ids.forEach((id) => { if (attachApi(id, true)) n++; });
+    if (n) {
+      lastHtml = lastHtml.replace(/<!--\s*BXAPI:[a-z]+\s*-->/gi, '');
+      renderApis();
+      renderFiles();
+    }
+    return n;
+  }
+
+  // 图片/视频占位符解析：BXIMG:描述 / BXVIDEO:描述
+  function resolveMediaPlaceholders() {
+    return (async () => {
+      if (!lastHtml) return;
+      const imgs = [];
+      const reImg = /src=["']BXIMG:([^"']+)["']/gi;
+      let m;
+      while ((m = reImg.exec(lastHtml))) imgs.push(m[1].trim());
+      const uniq = Array.from(new Set(imgs)).slice(0, 3);
+      let done = 0;
+      let changed = false;
+      for (const desc of uniq) {
+        done++;
+        const st = addStatus('<span class="status">🎨 AI 正在为页面配图（' + done + '/' + uniq.length + '）…</span>');
+        try {
+          const url = await window.Agnes.generateImage(desc, { ratio: '16:9' });
+          if (url) {
+            lastHtml = lastHtml.split('BXIMG:' + desc).join(url);
+            changed = true;
+            st.textContent = '✅ 配图完成（' + done + '/' + uniq.length + '）';
+          } else {
+            lastHtml = lastHtml.split('BXIMG:' + desc).join('');
+            changed = true;
+            st.textContent = '⚠️ 配图失败，已移除占位';
+          }
+        } catch (e) {
+          lastHtml = lastHtml.split('BXIMG:' + desc).join('');
+          changed = true;
+          st.textContent = '⚠️ 配图失败，已移除占位';
+        }
+        setTimeout(() => { if (st.isConnected) st.remove(); }, 1500);
+      }
+      const vids = [];
+      const reVid = /src=["']BXVIDEO:([^"']+)["']/gi;
+      let vm;
+      while ((vm = reVid.exec(lastHtml))) vids.push(vm[1].trim());
+      const vuniq = Array.from(new Set(vids)).slice(0, 1);
+      for (const desc of vuniq) {
+        try {
+          const vid = await window.Agnes.createVideo(desc, { num_frames: 121, frame_rate: 24 });
+          if (vid) {
+            const st = addStatus('<span class="status">🎬 视频任务已创建，AI 生成后自动插入（约 1~3 分钟）…</span>');
+            pollVideoInsert(vid, 'BXVIDEO:' + desc, st);
+            changed = true;
+          }
+        } catch (e) { /* 视频创建失败则保留占位 */ }
+      }
+      if (changed) preview(lastHtml);
+    })();
+  }
+
+  function pollVideoInsert(videoId, marker, stEl) {
+    let tries = 0;
+    const timer = setInterval(async () => {
+      tries++;
+      try {
+        const v = await window.Agnes.getVideo(videoId);
+        const st = v.status || 'queued';
+        if (st === 'completed' && v.metadata && v.metadata.url) {
+          clearInterval(timer);
+          if (lastHtml.includes(marker)) {
+            lastHtml = lastHtml.split(marker).join(v.metadata.url);
+            preview(lastHtml);
+            persistCurrent();
+          }
+          if (stEl && stEl.isConnected) stEl.textContent = '✅ 视频已插入页面';
+          addMsg('bot', '<span class="status">🎬 AI 生成的视频已插入页面！</span>');
+        } else if (st === 'failed') {
+          clearInterval(timer);
+          if (stEl && stEl.isConnected) stEl.textContent = '⚠️ 视频生成失败';
+        } else {
+          const pct = v.progress || Math.min(tries * 6, 90);
+          if (stEl && stEl.isConnected) stEl.textContent = '🎬 视频生成中… ' + pct + '%';
+          if (tries > 80) { clearInterval(timer); if (stEl && stEl.isConnected) stEl.textContent = '⏳ 视频生成较慢，稍后可在预览查看'; }
+        }
+      } catch (e) {
+        if (tries > 3) { clearInterval(timer); }
+      }
+    }, 5000);
   }
 
   function injectScript(tag) {
@@ -721,18 +882,24 @@
   function renderApis() {
     const panel = $('apiList');
     if (!panel) return;
-    const ids = Object.keys(FREE_APIS);
-    panel.innerHTML = ids.map((id) => {
-      const def = FREE_APIS[id];
-      const on = !!(current && current.apis && current.apis.includes(id));
-      return '<div class="api-card' + (on ? ' on' : '') + '">' +
-        '<div class="api-head"><span class="api-icon">' + def.icon + '</span><b>' + esc(def.name) + '</b>' +
-        (on ? '<span class="api-tag">✅ 已接入</span>' : '') + '</div>' +
-        '<p>' + esc(def.desc) + '</p>' +
-        '<pre>' + esc(def.sample) + '</pre>' +
-        '<button class="st-btn ' + (on ? 'ghost' : 'accent') + ' api-add" data-api="' + id + '"' + (on ? ' disabled' : '') + '>' + (on ? '已接入' : '一键接入') + '</button>' +
-        '</div>';
-    }).join('');
+    let htmlStr = '';
+    API_GROUP_NAMES.forEach(([gid, gname]) => {
+      const ids = Object.keys(FREE_APIS).filter((id) => (API_GROUPS[id] || 'tool') === gid);
+      if (!ids.length) return;
+      htmlStr += '<div class="api-group"><span class="api-group-name">' + gname + '</span><div class="api-group-grid">' +
+        ids.map((id) => {
+          const def = FREE_APIS[id];
+          const on = !!(current && current.apis && current.apis.includes(id));
+          return '<div class="api-card' + (on ? ' on' : '') + '">' +
+            '<div class="api-head"><span class="api-icon">' + def.icon + '</span><b>' + esc(def.name) + '</b>' +
+            (on ? '<span class="api-tag">✅ 已接入</span>' : '') + '</div>' +
+            '<p>' + esc(def.desc) + '</p>' +
+            '<pre>' + esc(def.sample) + '</pre>' +
+            '<button class="st-btn ' + (on ? 'ghost' : 'accent') + ' api-add" data-api="' + id + '"' + (on ? ' disabled' : '') + '>' + (on ? '已接入' : '一键接入') + '</button>' +
+            '</div>';
+        }).join('') + '</div></div>';
+    });
+    panel.innerHTML = htmlStr || '<div class="empty-tip">暂无可用 API</div>';
     panel.querySelectorAll('[data-api]').forEach((b) => {
       b.addEventListener('click', () => addApi(b.dataset.api));
     });
@@ -812,14 +979,25 @@
       $('fileView').hidden = true;
       return;
     }
+    const groups = [];
+    files.forEach((f) => {
+      const dir = f.path.includes('/') ? f.path.split('/')[0] : '';
+      let g = groups.find((x) => x.dir === dir);
+      if (!g) { g = { dir: dir, items: [] }; groups.push(g); }
+      g.items.push(f);
+    });
     tree.innerHTML = '<div class="file-folder">📁 ' + esc($('stName').value.trim() || '我的网站') + '</div>' +
-      files.map((f, i) => {
-        const short = f.path.split('/').pop();
-        return '<div class="file-item" data-fi="' + i + '">' +
-          '<span class="fi-icon">' + fileIcon(f) + '</span>' +
-          '<span class="fi-name">' + esc(short) + '</span>' +
-          (f.type === 'asset' ? '<span class="fi-sub">' + esc(f.name.slice(0, 30)) + '…</span>' : '<span class="fi-sub">' + fmtSize(f.content.length) + '</span>') +
-          '</div>';
+      groups.map((g) => {
+        const inner = g.items.map((f) => {
+          const i = files.indexOf(f);
+          const short = f.path.split('/').pop();
+          return '<div class="file-item' + (g.dir ? ' sub' : '') + '" data-fi="' + i + '">' +
+            '<span class="fi-icon">' + fileIcon(f) + '</span>' +
+            '<span class="fi-name">' + esc(short) + '</span>' +
+            (f.type === 'asset' ? '<span class="fi-sub">' + esc(f.name.slice(0, 30)) + '…</span>' : '<span class="fi-sub">' + fmtSize(f.content.length) + '</span>') +
+            '</div>';
+        }).join('');
+        return (g.dir ? '<div class="file-dir">📂 ' + g.dir + '/</div>' : '') + inner;
       }).join('');
     tree.querySelectorAll('[data-fi]').forEach((el) => {
       el.addEventListener('click', () => {
