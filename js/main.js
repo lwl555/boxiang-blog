@@ -42,7 +42,6 @@
       const map = {};
       (data || []).forEach((r) => { map[r.key] = r.value; });
       const set = (id, v) => { if (v && $(id)) $(id).textContent = v; };
-      set('heroTag', map.hero_tag);
       set('heroTitle', map.hero_title);
       set('heroSub', map.hero_sub);
       set('aboutName', map.nickname);
