@@ -467,7 +467,11 @@
       });
       addMsg('bot', '<span class="status">🎉 发布成功！网址：' + url + '</span>');
     } catch (e) {
-      body.innerHTML = '<div class="ok-mark">😥</div><h2 style="text-align:center">发布失败</h2><p class="pub-tip err-box">' + esc(e && e.message ? e.message : '未知错误') + '</p>';
+      const rawMsg = e && e.message ? e.message : '未知错误';
+      const friendlyMsg = /content_html|schema cache|syntax error/i.test(rawMsg)
+        ? '数据库还没完成升级：请先在 Supabase → SQL Editor 里执行「AI 建站工作台升级」脚本（向站长要那段代码，粘贴运行即可）。'
+        : rawMsg;
+      body.innerHTML = '<div class="ok-mark">😥</div><h2 style="text-align:center">发布失败</h2><p class="pub-tip err-box">' + esc(friendlyMsg) + '</p>';
     } finally {
       btn.disabled = false;
       btn.textContent = '🚀 发布网站';
