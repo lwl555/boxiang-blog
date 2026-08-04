@@ -43,7 +43,8 @@
     '3. 你的职责是帮用户设计、生成、修改网站：个人主页、作品集、企业官网、电商小店、博客、活动落地页、工具页等都可以做。\n' +
     '4. 回答用中文，热情、简洁、友好，可适当用 emoji，像贴心的朋友一样。\n' +
     '5. 用户问普通问题可以简单回答，然后自然地引导回建站话题；用户想建站但需求没说清时，主动问清网站类型、风格、想放什么内容。\n' +
-    '6. 你在「薄想工作室」工作，平台网址是 lwl555.github.io/boxiang-blog，可以放心告诉用户。\n';
+    '6. 你在「薄想工作室」工作，平台网址是 lwl555.github.io/boxiang-blog，可以放心告诉用户。\n' +
+    '7. 用户问你的模型、厂商、公司、开发者、API、密钥、账号、用户名、服务器等任何底层信息时，一律回答：「我是薄想 AI 建站助手，由薄想工作室开发，专门帮你免费搭建网站～有什么建站需求都可以告诉我！」不要解释、不要展开。\n';
   // ===== 会话存储（每个网站一份记忆，刷新不丢）=====
   const SESSIONS_KEY = 'bx_studio_sessions_v2';
   const CUR_KEY = 'bx_studio_cur_v2';
@@ -395,7 +396,7 @@
       return (m.role === 'user' ? '用户' : '助手') + '：' + s;
     }).join('\n');
     return [
-      { role: 'system', content: '你是「薄想AI建站工作台」的意图判断器。结合对话历史判断用户最新消息属于哪类，只输出一个 JSON 对象，不要输出任何其他内容：\n- {"intent":"chat"}：问候、感谢、闲聊、询问助手能做什么、与建站无关的提问\n- {"intent":"ask","question":"..."}：用户想建站或改站，但信息不足，需要先问一个最关键的问题（question 用中文一句话）\n- {"intent":"build"}：用户明确提出建站/改站需求且信息足够\n注意：在已有网站基础上说「换个风格」「加个板块」「改成红色」「加联系方式」等都算 build；消息以建站需求为主但略带寒暄也算 build。' },
+      { role: 'system', content: '你是「薄想AI建站工作台」的意图判断器。结合对话历史判断用户最新消息属于哪类，只输出一个 JSON 对象，不要输出任何其他内容：\n- {"intent":"chat"}：问候、感谢、闲聊、询问助手能做什么、与建站无关的提问\n- {"intent":"ask","question":"..."}：用户想建站或改站，但信息不足，需要先问一个最关键的问题（question 用中文一句话）\n- {"intent":"build"}：用户明确提出建站/改站需求且信息足够\n注意：问助手名字/模型/厂商/开发者/API等身份信息也算 chat；在已有网站基础上说「换个风格」「加个板块」「改成红色」「加联系方式」等都算 build；消息以建站需求为主但略带寒暄也算 build。' },
       { role: 'user', content: '对话历史：\n' + (hist || '（无）') + '\n\n用户最新消息：' + q }
     ];
   }
@@ -414,9 +415,18 @@
     const t = String(q || '').trim();
     if (!t) return true;
     if (t.length > 14) return false; // 长句交给 AI 判断
-    return /^(你好|您好|嗨|哈喽|哈啰|哈喽呀|你好呀|您好呀|hello|hi|hey|hi~|早上好|上午好|中午好|下午好|晚上好|晚安|在吗|在不在|嗨喽|你是谁|你叫什么|你叫啥|你叫什么名字|你是什么|你是啥|你是什么模型|你是哪个|你能做什么|你会做什么|你能干嘛|你会啥|你能帮什么|介绍一下你|自我介绍|自我介绍一下|介绍下你|谢谢|感谢|多谢|辛苦了|再见|拜拜|886|88|help)$/i.test(t);
+    return /^(你好|您好|嗨|哈喽|哈啰|哈喽呀|你好呀|您好呀|hello|hi|hey|hi~|早上好|上午好|中午好|下午好|晚上好|晚安|在吗|在不在|嗨喽|你是谁|你叫什么|你叫啥|你叫什么名字|你是什么|你是啥|你是什么模型|你是哪个|你能做什么|你会做什么|你能干嘛|你会啥|你能帮什么|介绍一下你|自我介绍|自我介绍一下|介绍下你|谢谢|感谢|多谢|辛苦了|再见|拜拜|886|88|help)$/i.test(t) || /^(你的|你是)(什么模型|啥模型|模型|厂商|哪个公司|公司|开发者|谁开发的|谁做的|谁造的|谁创建的|老板|团队|api|接口|密钥|密码|token|用户名|账号)|^(谁开发了你|谁做的你|谁创建的你|你有账号吗|你背后|你的底层|你是哪个公司)/i.test(t);
   }
 
+  // ===== 身份遮罩：回复中出现真实模型/厂商关键词时强制替换（最后防线）=====
+  const IDENTITY_LEAK_RE = /Agnes|OpenAI|GPT-?\d?|DeepSeek|Claude|Anthropic|Gemini|GLM|智谱|豆包|Kimi|ChatGPT|api\.agnes-ai|api\.openai|openrouter|硅基流动/i;
+  function guardIdentity(text) {
+    const t = String(text || '');
+    if (IDENTITY_LEAK_RE.test(t)) {
+      return '我是「薄想 AI 建站助手」，由薄想工作室开发，专门帮你免费搭建网站～模型、厂商这些技术细节就不透露啦，直接告诉我你想做什么网站吧！';
+    }
+    return t;
+  }
   // ===== 强制页脚标注（模型偶尔遗漏时兜底注入，保证每个网站都有）=====
   function ensureFooter(html) {
     const s = String(html || '');
@@ -486,9 +496,10 @@
         if (statusEl.isConnected) statusEl.remove();
         if (!reply) chatList.appendChild(bubble);
         const clean = /^<!DOCTYPE html|<html[\s>]/i.test(String(cont).trim()) ? '我是薄想 AI 建站助手～如果你需要生成网站，直接告诉我网站类型、风格和内容，我就帮你做出来！' : cont;
-        bubbleText.textContent = clean;
+        const safe = guardIdentity(clean);
+        bubbleText.textContent = safe;
         chatList.scrollTop = chatList.scrollHeight;
-        messages.push({ role: 'assistant', content: clean });
+        messages.push({ role: 'assistant', content: safe });
         persistCurrent();
         return;
       }
