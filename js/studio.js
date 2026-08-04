@@ -154,8 +154,9 @@
       $('stStatus').textContent = '👀 实时预览';
     }
     $('stPreviewUrl').textContent = current.publishedSlug
-      ? '✅ 已发布：' + BASE + '/sites/' + current.publishedSlug + '/'
-      : '还没发布 · 发布后这里显示网址';
+      ? '🕐 已提交 · 等待站长上线'
+      : '还没发布 · 发布后需站长上线才能访问，网址会显示在这里';
+    if (current.publishedSlug) refreshSiteStatus(current.publishedSlug);
     if (saved.messages && saved.messages.length) renderHistory(saved.messages);
     else welcome();
     renderSessions();
@@ -180,13 +181,23 @@
         $('stFrame').srcdoc = '';
         $('stName').value = ''; $('stType').value = '自动判断'; $('stTheme').value = '朱砂';
         $('stStatus').textContent = '👀 实时预览';
-        $('stPreviewUrl').textContent = '还没发布 · 发布后这里显示网址';
+        $('stPreviewUrl').textContent = '还没发布 · 发布后需站长上线才能访问，网址会显示在这里';
         newSession();
       }
     } else {
       renderSessions();
       $('stSessionCount').textContent = sessions.length;
     }
+  }
+
+  async function refreshSiteStatus(slug) {
+    try {
+      const { data } = await sb.from(T.sites).select('deployed_at').eq('slug', slug).maybeSingle();
+      const url = BASE + '/sites/' + slug + '/';
+      $('stPreviewUrl').textContent = data && data.deployed_at
+        ? '✅ 已上线：' + url
+        : '🕐 已提交 · 等待站长上线';
+    } catch (e) { /* 保留当前提示 */ }
   }
 
   function renderSessions() {
@@ -203,18 +214,28 @@
         '<div class="session-main">' +
         '<b>' + esc(s.name || '未命名网站') + '</b>' +
         '<span class="session-meta">' + esc(s.type || '自动判断') + ' · ' +
-        (s.published ? '✅ 已上线' : '🕐 未发布') + ' · ' + fmtTime(s.updated_at) +
+        (s.published ? '🕐 已提交' : '🕐 未发布') + ' · ' + fmtTime(s.updated_at) +
         (s.apis && s.apis.length ? ' · 🧩' + s.apis.length + '个API' : '') +
         '</span>' +
-        (url ? '<a class="session-open" href="' + url + '" target="_blank" rel="noopener">🌐 查看已上线网站</a>' : '') +
+        (url ? '<a class="session-open" href="' + url + '" target="_blank" rel="noopener" hidden>🌐 查看已上线网站</a>' : '') +
         '</div>' +
         '<div class="session-ops">' +
-        (url ? '<a class="mini-btn link" href="' + url + '" target="_blank" rel="noopener">🌐 打开</a>' : '') +
+        (url ? '<a class="mini-btn link" href="' + url + '" target="_blank" rel="noopener" hidden>🌐 打开</a>' : '') +
         '<button class="mini-btn" data-rename="' + s.id + '">✏️ 改名</button>' +
         '<button class="mini-btn danger" data-del="' + s.id + '">删除</button>' +
         '</div>' +
         '</div>';
     }).join('');
+    sessions.filter((x) => x.published && x.publishedSlug).forEach((x) => {
+      sb.from(T.sites).select('deployed_at').eq('slug', x.publishedSlug).maybeSingle().then(({ data }) => {
+        if (!data || !data.deployed_at) return;
+        const item = list.querySelector('[data-sid="' + x.id + '"]');
+        if (!item) return;
+        const meta = item.querySelector('.session-meta');
+        if (meta) meta.textContent = meta.textContent.replace('🕐 已提交', '✅ 已上线');
+        item.querySelectorAll('[hidden]').forEach((a) => { a.hidden = false; });
+      }).catch(() => {});
+    });
     list.querySelectorAll('[data-sid]').forEach((el) => {
       el.addEventListener('click', (e) => {
         if (e.target.closest('[data-del],[data-rename],a')) return;
@@ -1330,23 +1351,27 @@
         touchSession();
         saveSessions();
         renderSessions();
+        $('stPreviewUrl').textContent = '🕐 已提交 · 等待站长上线';
       }
       body.innerHTML =
-        '<div class="ok-mark">🎉</div>' +
+        '<div class="ok-mark">📨</div>' +
         '<h2 style="text-align:center">发布成功！</h2>' +
-        '<p class="pub-tip">你的网站已提交上线，站长审核通过后即可访问：</p>' +
+        '<p class="pub-tip">你的网站已提交给站长，站长点「立即上线」后即可访问：</p>' +
         '<a class="pub-url" href="' + url + '" target="_blank" rel="noopener">' + url + '</a>' +
+        '<p class="pub-status-line">🕐 当前状态：待站长上线 · 站长点「立即上线」后即可访问</p>' +
         '<p class="pub-tip"><b>提示：</b>发布的是当前这份代码，后续继续让 AI 修改后需要重新发布。</p>' +
         '<div class="pub-actions">' +
-        '<button class="st-btn ghost" id="pubVisit" onclick="window.open(\'' + url + '\',\'_blank\')">🔗 打开网站</button>' +
+        '<button class="st-btn ghost" id="pubDone">👍 知道了</button>' +
         '<button class="st-btn accent" id="pubCopy" onclick="navigator.clipboard.writeText(\'' + url + '\')">📋 复制网址</button>' +
         '</div>';
+      const doneBtn = body.querySelector('#pubDone');
+      if (doneBtn) doneBtn.addEventListener('click', () => { $('pubModal').hidden = true; });
       const copyBtn = body.querySelector('#pubCopy');
       if (copyBtn) copyBtn.addEventListener('click', async () => {
         try { await navigator.clipboard.writeText(url); copyBtn.textContent = '已复制 ✓'; }
         catch (e) { window.prompt('复制网址：', url); }
       });
-      addMsg('bot', '<span class="status">🎉 发布成功！网址：' + url + '</span>');
+      addMsg('bot', '<span class="status">📨 发布成功！已提交站长上线：' + url + '（站长点「立即上线」后即可访问）</span>');
     } catch (e) {
       const rawMsg = e && e.message ? e.message : '未知错误';
       const friendlyMsg = /content_html|schema cache|syntax error/i.test(rawMsg)
