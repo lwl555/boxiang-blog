@@ -290,33 +290,41 @@
     if (error) { form.innerHTML = '<div class="empty-tip">加载失败：' + error.message + '</div>'; return; }
     const map = {};
     (data || []).forEach((r) => { map[r.key] = r.value; });
-    form.innerHTML = CONFIG_DEFS.map(([k, label, def, hint]) => `
+    form.innerHTML = CONFIG_DEFS.map(([k, label, def, hint]) => {
+      const v = (map[k] ?? def).replace(/"/g, '&quot;');
+      return `
       <label>${label}
-        <input type="text" data-key="${k}" value="${(map[k] ?? def).replace(/"/g, '&quot;')}" maxlength="2000">
+        <input type="text" data-key="${k}" data-orig="${v}" value="${v}" maxlength="2000">
         ${hint ? `<span class="hint">${hint}</span>` : ''}
-      </label>`).join('');
+      </label>`;
+    }).join('');
   }
 
   $('saveConfig').addEventListener('click', async () => {
     const btn = $('saveConfig');
     btn.disabled = true; btn.textContent = '保存中…';
-    const inputs = document.querySelectorAll('#configForm input[data-key]');
-    let failed = false;
-    for (const inp of inputs) {
-      const key = inp.dataset.key;
-      const val = inp.value;
-      const { data } = await sb.from(T.config).select('key').eq('key', key).maybeSingle();
-      if (data) {
-        const { error } = await sb.from(T.config).update({ value: val }).eq('key', key);
-        if (error) failed = error.message;
-      } else {
-        const { error } = await sb.from(T.config).insert({ key, value: val });
-        if (error) failed = error.message;
-      }
-      if (failed) break;
-    }
+    const inputs = [...document.querySelectorAll('#configForm input[data-key]')];
+    const changes = inputs
+      .map((inp) => ({ key: inp.dataset.key, val: inp.value, orig: inp.dataset.orig }))
+      .filter((c) => c.val !== c.orig);
+    let failed = '';
+    await Promise.all(changes.map(async (c) => {
+      try {
+        const { data } = await sb.from(T.config).select('key').eq('key', c.key).maybeSingle();
+        if (data) {
+          const { error } = await sb.from(T.config).update({ value: c.val }).eq('key', c.key);
+          if (error) throw new Error(error.message);
+        } else {
+          const { error } = await sb.from(T.config).insert({ key: c.key, value: c.val });
+          if (error) throw new Error(error.message);
+        }
+      } catch (e) { failed = (failed ? failed + '；' : '') + c.key + '：' + e.message; }
+    }));
     btn.disabled = false; btn.textContent = '保存设置';
-    if (failed) alert('保存失败：' + failed); else { btn.textContent = '已保存 ✓'; setTimeout(() => { btn.textContent = '保存设置'; }, 1500); }
+    if (failed) { alert('保存失败：' + failed); return; }
+    inputs.forEach((inp) => { inp.dataset.orig = inp.value; });
+    btn.textContent = changes.length ? '已保存 ✓' : '没有修改';
+    setTimeout(() => { btn.textContent = '保存设置'; }, 1500);
   });
 
   async function loadAll() { loadOrders(); loadPosts(); loadSites(); loadConfigForm(); }
