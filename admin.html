@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>薄想后台管理</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
-<link rel="stylesheet" href="css/style.css?v=20260804">
-<link rel="stylesheet" href="css/admin.css?v=20260804">
+<link rel="stylesheet" href="css/style.css?v=20260806">
+<link rel="stylesheet" href="css/admin.css?v=20260806">
 </head>
 <body class="admin-body">
 
@@ -33,6 +33,7 @@
     <nav class="admin-tabs">
       <button class="tab active" data-tab="orders">📋 接单管理</button>
       <button class="tab" data-tab="posts">📝 内容管理</button>
+      <button class="tab" data-tab="sites">🌐 建站审核</button>
       <button class="tab" data-tab="config">⚙️ 站点设置</button>
     </nav>
     <button class="btn btn-ghost btn-block" id="logoutBtn">退出登录</button>
@@ -63,6 +64,24 @@
         <button class="btn btn-primary" id="newPost">＋ 新建内容</button>
       </div>
       <div class="post-list" id="postList"><div class="empty-tip">加载中…</div></div>
+    </section>
+
+    <!-- 建站审核 -->
+    <section class="panel" id="tab-sites" hidden>
+      <div class="panel-head">
+        <h2>免费建站审核</h2>
+        <div class="panel-actions">
+          <select id="siteFilter">
+            <option value="">全部状态</option>
+            <option value="pending">待审核</option>
+            <option value="published">已上线</option>
+            <option value="rejected">已拒绝</option>
+          </select>
+          <button class="btn btn-ghost" id="refreshSites">刷新</button>
+        </div>
+      </div>
+      <p class="sites-hint">审核通过后网站即上线，访客可通过 /sites/网址 访问。通过前请先复制代码检查内容。</p>
+      <div class="site-admin-list" id="siteList"><div class="empty-tip">加载中…</div></div>
     </section>
 
     <!-- 设置 -->
@@ -108,8 +127,22 @@
   </div>
 </div>
 
+<!-- 建站代码预览弹窗 -->
+<div class="modal" id="siteCodeModal" hidden>
+  <div class="modal-backdrop" id="scmBackdrop"></div>
+  <div class="modal-box code-box">
+    <button class="modal-close" id="scmClose">✕</button>
+    <h2 id="scmTitle">网站代码</h2>
+    <textarea id="scmCode" rows="18" readonly spellcheck="false"></textarea>
+    <div class="editor-actions">
+      <button class="btn btn-primary" id="scmCopy">复制代码</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=20260804"></script>
-<script src="js/admin.js?v=20260804"></script>
+<script src="js/config.js?v=20260806"></script>
+<script src="js/sitegen.js?v=20260806"></script>
+<script src="js/admin.js?v=20260806"></script>
 </body>
 </html>
