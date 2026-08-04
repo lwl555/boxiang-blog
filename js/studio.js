@@ -27,12 +27,14 @@
     '8. 响应式：移动端必须同样好看，导航折叠、字号自适应、卡片单列。\n' +
     '9. 文案：内容具体真实，围绕用户业务展开（导航、Hero、关于、服务/产品、案例、价格、联系等按类型取舍），避免空话套话。\n' +
     '10. 联系区域放一个明显按钮，链接到 https://lwl555.github.io/boxiang-blog/#order（文案：向薄想工作室下单）。\n' +
-    '11. 页脚加一行小字：由 薄想工作室 免费生成。\n' +
+    '11. 【强制性·不许遗漏】页脚最底部必须有一行半透明小字：由 薄想工作室 免费生成 · lwl555.github.io/boxiang-blog。生成和改版都必须保留。\n' +
     '12. 输出前自检：单页不少于 60 行；无任何外部依赖；无 JS 明显错误；</html> 完整闭合。\n' +
     '13. 长度控制：整页控制在 250~450 行以内、总字符 8000 以内，宁可精简也不要写太长，确保一次输出完整、绝不截断。\n' +
     '14. 【配图占位符】如果页面需要真实图片（产品图、场景图、插画、头像等），用 <img src=\"BXIMG:详细画面描述\" alt=\"描述\"> 占位（src 以 BXIMG: 开头，描述 30 字以内，写明主体/环境/光线/风格），系统会自动调用图像模型生成真实图片并替换。整个页面最多 3 个 BXIMG 占位。\n' +
     '15. 【视频占位符】如果确实需要动态视频展示，用 <video src=\"BXVIDEO:画面描述\" controls poster=\"BXVIDEO:封面描述\"></video> 占位（最多 1 个），系统会自动生成并插入。不确定就优先用图片/动画。\n' +
-    '16. 【免费 API 自动接入】如果网站业务适合以下免费功能，在 </body> 前放一个注释标记 <!--BXAPI:功能id-->（一个功能最多一个标记），系统会自动接入并生效：hitokoto 一言（博客/主页金句）、jinrishici 今日诗词（文艺/国风）、weather 天气（本地生活/旅行，默认北京）、ipwhois IP定位（同城/本地服务）、fx 实时汇率（外贸/代购）、dog 随机狗图（宠物/休闲）、photo 随机美图（摄影/生活）、qrcode 二维码（线下引流）、translate 在线翻译（工具/学习）、avatar 随机头像（个人主页）、person 随机用户（演示/社区）、joke 冷笑话（娱乐）、agify 年龄预测（趣味）、genderize 性别预测（趣味）。用户明确要求接入或移除某个功能时，按用户要求执行。';
+    '16. 【免费 API 自动接入】如果网站业务适合以下免费功能，在 </body> 前放一个注释标记 <!--BXAPI:功能id-->（一个功能最多一个标记），系统会自动接入并生效：hitokoto 一言（博客/主页金句）、jinrishici 今日诗词（文艺/国风）、weather 天气（本地生活/旅行，默认北京）、ipwhois IP定位（同城/本地服务）、fx 实时汇率（外贸/代购）、dog 随机狗图（宠物/休闲）、photo 随机美图（摄影/生活）、qrcode 二维码（线下引流）、translate 在线翻译（工具/学习）、avatar 随机头像（个人主页）、person 随机用户（演示/社区）、joke 冷笑话（娱乐）、agify 年龄预测（趣味）、genderize 性别预测（趣味）、ghzen GitHub开发格言（程序员主页）、ghcard GitHub名片（程序员主页，默认展示 lwl555，可改 body data-github）、sunrise 日出日落（摄影/旅行/户外）、rain 未来24小时降雨提醒（户外/活动）。用户明确要求接入或移除某个功能时，按用户要求执行。\n' +
+    '17. 【轻量数据】免费版不提供服务器数据库。需要留言、预约、收藏、计数等功能时，用浏览器本地存储 localStorage 实现（单访客本地保存），或提供 mailto: 联系链接。不要假装有后端接口。\n' +
+    '18. 【理解用户】动笔前先推断用户的行业、目标人群、想传达的情绪（温暖/专业/活泼/高端），据此统一文案语气、板块取舍与配色深浅；改版时只按用户最新要求调整，不要擅自改掉已确认的信息。';
   // ===== 会话存储（每个网站一份记忆，刷新不丢）=====
   const SESSIONS_KEY = 'bx_studio_sessions_v2';
   const CUR_KEY = 'bx_studio_cur_v2';
@@ -184,27 +186,48 @@
       list.innerHTML = '<div class="empty-tip">还没有网站记忆，点下面「新建网站」开始吧 ✨</div>';
       return;
     }
-    list.innerHTML = sessions.map((s) => {
+    list.innerHTML = sessions.slice().sort((a, b) => ((b.published ? 1 : 0) - (a.published ? 1 : 0))).map((s) => {
       const active = s.id === curId();
+      const url = s.published && s.publishedSlug ? BASE + '/sites/' + s.publishedSlug + '/' : '';
       return '<div class="session-item' + (active ? ' active' : '') + '" data-sid="' + s.id + '">' +
         '<div class="session-main">' +
         '<b>' + esc(s.name || '未命名网站') + '</b>' +
         '<span class="session-meta">' + esc(s.type || '自动判断') + ' · ' +
-        (s.published ? '✅ 已发布' : '🕐 未发布') + ' · ' + fmtTime(s.updated_at) +
+        (s.published ? '✅ 已上线' : '🕐 未发布') + ' · ' + fmtTime(s.updated_at) +
         (s.apis && s.apis.length ? ' · 🧩' + s.apis.length + '个API' : '') +
-        '</span></div>' +
+        '</span>' +
+        (url ? '<a class="session-open" href="' + url + '" target="_blank" rel="noopener">🌐 查看已上线网站</a>' : '') +
+        '</div>' +
+        '<div class="session-ops">' +
+        (url ? '<a class="mini-btn link" href="' + url + '" target="_blank" rel="noopener">🌐 打开</a>' : '') +
+        '<button class="mini-btn" data-rename="' + s.id + '">✏️ 改名</button>' +
         '<button class="mini-btn danger" data-del="' + s.id + '">删除</button>' +
+        '</div>' +
         '</div>';
     }).join('');
     list.querySelectorAll('[data-sid]').forEach((el) => {
       el.addEventListener('click', (e) => {
-        if (e.target.closest('[data-del]')) return;
+        if (e.target.closest('[data-del],[data-rename],a')) return;
         switchTo(el.dataset.sid);
         $('sessionModal').hidden = true;
       });
     });
     list.querySelectorAll('[data-del]').forEach((b) => {
       b.addEventListener('click', (e) => { e.stopPropagation(); deleteSession(b.dataset.del); });
+    });
+    list.querySelectorAll('[data-rename]').forEach((b) => {
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const s = sessions.find((x) => x.id === b.dataset.rename);
+        if (!s) return;
+        const nm = window.prompt('给这个网站起个新名字：', s.name || '');
+        if (nm === null) return;
+        s.name = String(nm).trim();
+        s.updated_at = new Date().toISOString();
+        saveSessions();
+        if (s.id === curId()) $('stName').value = s.name;
+        renderSessions();
+      });
     });
   }
 
@@ -355,6 +378,37 @@
     $('chatHint').textContent = MODE_INFO[m].hint;
     $('chatInput').placeholder = m === 'text' ? '跟 AI 说你想做什么网站…' : (m === 'image' ? '描述想生成的图片…' : '描述想生成的视频…');
   }
+  // ===== 意图判断：打招呼/闲聊/提问 直接对话，建站才生成 =====
+  function intentJudgeMsgs(q) {
+    const hist = compactForRequest().slice(-8).map((m) => {
+      let s = String(m.content || '').replace(/\s+/g, ' ').trim();
+      if (s.length > 120) s = s.slice(0, 120) + '…';
+      return (m.role === 'user' ? '用户' : '助手') + '：' + s;
+    }).join('\n');
+    return [
+      { role: 'system', content: '你是「薄想AI建站工作台」的意图判断器。结合对话历史判断用户最新消息属于哪类，只输出一个 JSON 对象，不要输出任何其他内容：\n- {"intent":"chat"}：问候、感谢、闲聊、询问助手能做什么、与建站无关的提问\n- {"intent":"ask","question":"..."}：用户想建站或改站，但信息不足，需要先问一个最关键的问题（question 用中文一句话）\n- {"intent":"build"}：用户明确提出建站/改站需求且信息足够\n注意：在已有网站基础上说「换个风格」「加个板块」「改成红色」「加联系方式」等都算 build；消息以建站需求为主但略带寒暄也算 build。' },
+      { role: 'user', content: '对话历史：\n' + (hist || '（无）') + '\n\n用户最新消息：' + q }
+    ];
+  }
+  function parseIntent(text) {
+    try {
+      const t = String(text || '').replace(/```/g, '').trim();
+      const m = t.match(/\{[\s\S]*\}/);
+      const j = JSON.parse(m ? m[0] : t);
+      if (j && j.intent) return j;
+    } catch (e) { /* 解析失败按建站处理 */ }
+    return { intent: 'build' };
+  }
+
+  // ===== 强制页脚标注（模型偶尔遗漏时兜底注入，保证每个网站都有）=====
+  function ensureFooter(html) {
+    const s = String(html || '');
+    if (!s) return s;
+    if (s.includes('薄想工作室') && s.includes('lwl555.github.io')) return s;
+    const tag = '<footer style="text-align:center;padding:16px 12px;font-size:11.5px;color:#6d5c4b;background:transparent;border-top:1px solid rgba(51,38,29,.1);margin-top:28px;line-height:1.8">本站由 <b style="color:#c2402b">薄想工作室</b> AI 免费生成 · <a href="https://lwl555.github.io/boxiang-blog" target="_blank" rel="noopener" style="color:#c98a16;text-decoration:none">lwl555.github.io/boxiang-blog</a></footer>';
+    if (/<\/body>/i.test(s)) return s.replace(/<\/body>/i, tag + '</body>');
+    return s + tag;
+  }
   // ===== 文本：生成/修改网站（带断网自动重试）=====
   async function sendText() {
     const input = $('chatInput');
@@ -376,20 +430,63 @@
     const apiCtx = apiCtxText();
     if (apiCtx) ctx.unshift(apiCtx.replace(/\n$/, ''));
     const fullQ = (ctx.length ? '【站点信息】' + ctx.join('；') + '。\n' : '') + '【用户需求】' + q;
-    messages.push({ role: 'user', content: fullQ });
-
     generating = true;
     setBusy(true);
-    const waitStart = Date.now();
-    let statusEl = addStatus('<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在理解需求并生成网站，完整页面通常需要 30~90 秒，请耐心等待…</span>');
-    const waitTimer = setInterval(() => {
-      if (statusEl && statusEl.isConnected) {
-        const sec = Math.round((Date.now() - waitStart) / 1000);
-        statusEl.innerHTML = '<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在生成网站（已等待 ' + sec + ' 秒），完整页面通常需要 30~90 秒，请耐心等待…</span>';
-      }
-    }, 1000);
     aborter = new AbortController();
+    let waitTimer = null;
+    let statusEl = addStatus('<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>正在理解你的消息…</span>');
     try {
+      // —— 意图分流：打招呼/闲聊/提问 直接对话，建站需求才生成网站 ——
+      let intent = { intent: 'build' };
+      try {
+        const jout = await window.Agnes.chat(intentJudgeMsgs(q), { stream: false, maxTokens: 300, timeout: 60000, signal: aborter.signal });
+        intent = parseIntent(jout);
+      } catch (e) { /* 意图判断失败时按建站处理，保证不卡住 */ }
+
+      if (intent.intent === 'chat') {
+        messages.push({ role: 'user', content: fullQ });
+        let reply = '';
+        const bubble = document.createElement('div');
+        bubble.className = 'msg bot';
+        bubble.innerHTML = '<div class="avatar">✦</div><div class="bubble"></div>';
+        const bubbleText = bubble.querySelector('.bubble');
+        const cont = await window.Agnes.chat(compactForRequest(), {
+          stream: true, signal: aborter.signal, maxTokens: 1024, timeout: 120000,
+          onDelta: (d) => {
+            if (!reply) { if (statusEl.isConnected) statusEl.remove(); chatList.appendChild(bubble); }
+            reply += d;
+            bubbleText.textContent = reply.slice(-900);
+            chatList.scrollTop = chatList.scrollHeight;
+          }
+        });
+        if (statusEl.isConnected) statusEl.remove();
+        if (!reply) chatList.appendChild(bubble);
+        bubbleText.textContent = cont;
+        chatList.scrollTop = chatList.scrollHeight;
+        messages.push({ role: 'assistant', content: cont });
+        persistCurrent();
+        return;
+      }
+      if (intent.intent === 'ask' && intent.question) {
+        messages.push({ role: 'user', content: fullQ });
+        if (statusEl.isConnected) statusEl.remove();
+        addMsg('bot', '<span class="status">❓ ' + esc(intent.question) + '</span>');
+        messages.push({ role: 'assistant', content: intent.question });
+        persistCurrent();
+        return;
+      }
+
+      // —— 建站/改站：生成完整网站 ——
+      messages.push({ role: 'user', content: fullQ });
+      if (statusEl.isConnected) statusEl.remove();
+      const waitStart = Date.now();
+      statusEl = addStatus('<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在理解需求并生成网站，完整页面通常需要 30~90 秒，请耐心等待…</span>');
+      waitTimer = setInterval(() => {
+        if (statusEl && statusEl.isConnected) {
+          const sec = Math.round((Date.now() - waitStart) / 1000);
+          statusEl.innerHTML = '<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在生成网站（已等待 ' + sec + ' 秒），完整页面通常需要 30~90 秒，请耐心等待…</span>';
+        }
+      }, 1000);
       let streamText = '';
       let started = false;
       const bubble = document.createElement('div');
@@ -435,7 +532,7 @@
           full = (attempt > 0 ? full.replace(/\s*$/, '') + '\n' : '') + part;
           full = full.trim();
           const html = extractHtml(full);
-          complete = !!html && html.length >= 300 && isCompleteHtml(html);
+          complete = !!html && isCompleteHtml(html);
         } catch (e2) {
           const net = e2 && (e2.code === 'network' || e2.code === 'timeout' || /network|fetch|timeout|abort|连接|网络|中断/i.test(e2.message || ''));
           if (net && attempt < 3) {
@@ -453,8 +550,9 @@
         bubbleText.textContent = full || '';
         chatList.scrollTop = chatList.scrollHeight;
       }
-      const html = extractHtml(full);
-      if (!html || html.length < 300) throw new Error('AI 没有返回有效的网页内容，请再试一次');
+      const html0 = extractHtml(full);
+      if (!html0 || html0.length < 80) throw new Error('AI 没有返回有效的网页内容，请再试一次');
+      const html = ensureFooter(html0);
       preview(html);
       messages.push({ role: 'assistant', content: full });
       try {
@@ -741,6 +839,46 @@
         return '<script>/* 性别预测 · genderize 免费API（改 body data-name 换名字） */' + floatWidget('bx-api-gender', '加载…') +
           'var _nm=document.body.getAttribute("data-name")||"boxiang";fetch("https://api.genderize.io/?name="+encodeURIComponent(_nm)).then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-gender");if(t&&t.lastChild&&j&&j.gender){var g=j.gender==="male"?"👦 偏男性":"👧 偏女性";t.lastChild.innerHTML="👥 名字「"+_nm+"」性别预测<br><span style=\"font-size:1.1rem;font-weight:900\">"+g+"</span><br><span style=\"opacity:.7\">概率 "+(j.probability?Math.round(j.probability*100):"-")+"% · 改 body data-name 换名字</span>"}}).catch(function(){var t=document.getElementById("bx-api-gender");if(t)t.lastChild.textContent="加载失败"});</' + 'script>';
       }
+    },
+    ghzen: {
+      name: 'GitHub 开发格言',
+      icon: '⚡',
+      desc: '随机显示一句 GitHub 官方开发格言（英文），显示在页面右下角，程序员主页必备。免费无需 key。',
+      sample: 'fetch("https://api.github.com/zen").then(r=>r.text()).then(t=>console.log(t))',
+      script: function () {
+        return '<script>/* GitHub格言 · api.github.com 免费API */' + floatWidget('bx-api-ghzen', '加载格言…') +
+          'fetch("https://api.github.com/zen").then(function(r){return r.text()}).then(function(t){var x=document.getElementById("bx-api-ghzen");if(x&&x.lastChild&&t){x.lastChild.innerHTML="⚡ “"+t.trim()+"”<br><span style=\"opacity:.7\">—— GitHub Zen</span>"}}).catch(function(){var t=document.getElementById("bx-api-ghzen");if(t)t.lastChild.textContent="格言加载失败"});</' + 'script>';
+      }
+    },
+    ghcard: {
+      name: 'GitHub 名片',
+      icon: '🐙',
+      desc: '展示指定 GitHub 用户的头像、粉丝、仓库与星标数，默认 lwl555，可改 body data-github 换成任意用户名。程序员主页必备。免费无需 key。',
+      sample: 'fetch("https://api.github.com/users/lwl555").then(r=>r.json()).then(d=>console.log(d.followers))',
+      script: function () {
+        return '<script>/* GitHub名片 · api.github.com 免费API（改 body data-github 换用户） */' + floatWidget('bx-api-ghcard', '加载GitHub…') +
+          'var _gh=document.body.getAttribute("data-github")||"lwl555";fetch("https://api.github.com/users/"+encodeURIComponent(_gh)).then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-ghcard");if(t&&t.lastChild&&j&&j.login){t.lastChild.innerHTML="🐙 <b>"+j.login+"</b><br><img src=\""+j.avatar_url+"\" style=\"width:64px;height:64px;border-radius:50%;margin-top:6px;display:block\"><span style=\"opacity:.7\">📦 "+(j.public_repos||0)+" 仓库 · 👥 "+(j.followers||0)+" 粉丝</span><br><a href=\""+j.html_url+"\" target=\"_blank\" rel=\"noopener\" style=\"color:#c98a16\">查看主页 ↗</a>"}}).catch(function(){var t=document.getElementById("bx-api-ghcard");if(t)t.lastChild.textContent="GitHub加载失败"});</' + 'script>';
+      }
+    },
+    sunrise: {
+      name: '日出日落',
+      icon: '🌅',
+      desc: '显示指定城市今天的日出与日落时间（默认北京，改 body data-city 换城市），摄影/旅行/户外网站最爱。免费无需 key。',
+      sample: 'fetch("https://wttr.in/Beijing?format=j1").then(r=>r.json()).then(d=>console.log(d.weather[0].astronomy[0].sunrise))',
+      script: function () {
+        return '<script>/* 日出日落 · wttr.in 免费API（改 body data-city 换城市） */' + floatWidget('bx-api-sun', '加载天文…') +
+          'var _city=document.body.getAttribute("data-city")||"Beijing";fetch("https://wttr.in/"+_city+"?format=j1").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-sun");var a=j&&j.weather&&j.weather[0]&&j.weather[0].astronomy&&j.weather[0].astronomy[0];if(t&&t.lastChild&&a){t.lastChild.innerHTML="🌅 日出 "+a.sunrise+" · 日落 "+a.sunset+"<br><span style=\"opacity:.7\">🌙 月出 "+a.moonrise+" · 月落 "+a.moonset+"</span>"}}).catch(function(){var t=document.getElementById("bx-api-sun");if(t)t.lastChild.textContent="天文加载失败"});</' + 'script>';
+      }
+    },
+    rain: {
+      name: '降雨提醒',
+      icon: '☔',
+      desc: '按城市显示未来 24 小时降雨概率（默认北京，改 body data-city 换城市），户外活动、本地生活网站很实用。免费无需 key。',
+      sample: 'fetch("https://wttr.in/Beijing?format=j1").then(r=>r.json()).then(d=>console.log(d.weather[0].hourly))',
+      script: function () {
+        return '<script>/* 降雨提醒 · wttr.in 免费API（改 body data-city 换城市） */' + floatWidget('bx-api-rain', '加载降雨…') +
+          'var _city=document.body.getAttribute("data-city")||"Beijing";fetch("https://wttr.in/"+_city+"?format=j1").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-rain");var h=(j&&j.weather&&j.weather[0]&&j.weather[0].hourly)||[];if(t&&t.lastChild&&h.length){var n=h.filter(function(x){return parseInt(x.chanceofrain,10)>=50}).length;var m=0;for(var i=0;i<h.length;i++){var v=parseInt(h[i].chanceofrain,10);if(v>m)m=v}t.lastChild.innerHTML="☔ 未来24小时降雨概率最高 "+m+"%<br><span style=\"opacity:.7\">"+(n>0?"约 "+n+" 个小时降雨概率过半":"大概率不下雨")+" · "+_city+"</span>"}}).catch(function(){var t=document.getElementById("bx-api-rain");if(t)t.lastChild.textContent="降雨加载失败"});</' + 'script>';
+      }
     }
   };
 
@@ -776,9 +914,9 @@
 
   // ===== AI 自动能力：按需接入 API / 自动配图 / 自动视频 =====
   const API_GROUPS = {
-    hitokoto: 'content', jinrishici: 'content', translate: 'content', joke: 'content',
-    weather: 'tool', ipwhois: 'tool', fx: 'tool', qrcode: 'tool',
-    dog: 'visual', avatar: 'visual', photo: 'visual', person: 'visual', agify: 'visual', genderize: 'visual'
+    hitokoto: 'content', jinrishici: 'content', translate: 'content', joke: 'content', ghzen: 'content',
+    weather: 'tool', ipwhois: 'tool', fx: 'tool', qrcode: 'tool', sunrise: 'tool', rain: 'tool',
+    dog: 'visual', avatar: 'visual', photo: 'visual', person: 'visual', agify: 'visual', genderize: 'visual', ghcard: 'visual'
   };
   const API_GROUP_NAMES = [['content', '📖 内容灵感'], ['tool', '🛠️ 实用工具'], ['visual', '🎨 视觉趣味']];
 
@@ -1105,7 +1243,7 @@
           contact: '站内联系',
           client_id: getClientId(),
           status: 'published',
-          content_html: lastHtml
+          content_html: ensureFooter(lastHtml)
         });
         if (!error) ok = true; else lastErr = error.message || '网络异常';
       }
