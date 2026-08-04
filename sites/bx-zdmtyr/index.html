@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>薄想工作室 — 免费 AI 建站工作台</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#f5efe2;--accent:#c2402b;--gold:#c98a16;--text:#33261d;
+--muted:#6d5c4b;--white:#fffdf8;--card:rgba(245,239,226,.85);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",serif;
+background:var(--bg);color:var(--text);line-height:1.7;
+overflow-x:hidden;
+}
+/* 装饰背景 */
+body::before{
+content:"";position:fixed;top:0;left:0;right:0;bottom:0;
+background:
+radial-gradient(ellipse at 20% 20%,rgba(194,64,43,.06) 0%,transparent 50%),
+radial-gradient(ellipse at 80% 80%,rgba(201,138,22,.05) 0%,transparent 50%);
+pointer-events:none;z-index:-1;
+}
+/* 导航 */
+.nav{
+position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(245,239,226,.92);
+backdrop-filter:blur(12px);
+border-bottom:1px solid rgba(194,64,43,.1);
+transition:all .3s ease;
+}
+.nav-inner{
+max-width:1100px;margin:0 auto;padding:0 24px;
+display:flex;align-items:center;justify-content:space-between;
+height:64px;
+}
+.logo{
+font-size:1.4rem;font-weight:700;color:var(--accent);
+letter-spacing:2px;
+}
+.logo span{color:var(--gold)}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{
+color:var(--muted);text-decoration:none;font-size:.95rem;
+transition:color .3s;position:relative;
+}
+.nav-links a::after{
+content:"";position:absolute;bottom:-4px;left:0;width:0;height:2px;
+background:var(--accent);transition:width .3s;
+}
+.nav-links a:hover{color:var(--accent)}
+.nav-links a:hover::after{width:100%}
+.menu-toggle{
+display:none;background:none;border:none;cursor:pointer;
+flex-direction:column;gap:5px;padding:8px;
+}
+.menu-toggle span{
+width:24px;height:2px;background:var(--text);
+transition:all .3s;display:block;
+}
+/* Hero */
+.hero{
+min-height:100vh;display:flex;align-items:center;justify-content:center;
+padding:120px 24px 80px;position:relative;overflow:hidden;
+}
+.hero::before{
+content:"";position:absolute;top:-20%;right:-10%;
+width:600px;height:600px;
+background:radial-gradient(circle,rgba(194,64,43,.08) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero::after{
+content:"";position:absolute;bottom:-10%;left:-5%;
+width:400px;height:400px;
+background:radial-gradient(circle,rgba(201,138,22,.06) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero-content{
+max-width:800px;text-align:center;position:relative;z-index:1;
+}
+.hero-badge{
+display:inline-block;padding:8px 20px;
+background:rgba(194,64,43,.1);color:var(--accent);
+border-radius:20px;font-size:.85rem;margin-bottom:24px;
+letter-spacing:1px;
+}
+.hero h1{
+font-size:clamp(2.2rem,5vw,3.8rem);font-weight:800;
+line-height:1.3;margin-bottom:24px;
+background:linear-gradient(135deg,var(--text) 0%,var(--accent) 100%);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+background-clip:text;
+}
+.hero p{
+font-size:1.15rem;color:var(--muted);max-width:600px;
+margin:0 auto 40px;line-height:1.8;
+}
+.hero-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn{
+padding:14px 32px;border-radius:8px;font-size:1rem;
+text-decoration:none;transition:all .3s;cursor:pointer;
+border:none;font-family:inherit;
+}
+.btn-primary{
+background:var(--accent);color:var(--white);
+box-shadow:0 4px 20px rgba(194,64,43,.3);
+}
+.btn-primary:hover{
+transform:translateY(-2px);
+box-shadow:0 6px 28px rgba(194,64,43,.4);
+}
+.btn-secondary{
+background:transparent;color:var(--accent);
+border:2px solid var(--accent);
+}
+.btn-secondary:hover{
+background:var(--accent);color:var(--white);
+}
+/* 滚动动画 */
+.fade-up{
+opacity:0;transform:translateY(30px);
+transition:opacity .6s ease,transform .6s ease;
+}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+/* 板块通用 */
+section{padding:100px 24px}
+.section-title{
+text-align:center;margin-bottom:60px;
+}
+.section-title h2{
+font-size:clamp(1.8rem,3vw,2.4rem);font-weight:700;
+color:var(--text);margin-bottom:12px;
+}
+.section-title p{color:var(--muted);font-size:1.05rem}
+.section-title::after{
+content:"";display:block;width:60px;height:3px;
+background:linear-gradient(90deg,var(--accent),var(--gold));
+margin:16px auto 0;border-radius:2px;
+}
+/* 服务卡片 */
+.services-grid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:24px;max-width:1100px;margin:0 auto;
+}
+.service-card{
+background:var(--card);
+backdrop-filter:blur(10px);
+border:1px solid rgba(194,64,43,.1);
+border-radius:16px;padding:36px 28px;
+transition:all .3s ease;position:relative;overflow:hidden;
+}
+.service-card::before{
+content:"";position:absolute;top:0;left:0;right:0;height:3px;
+background:linear-gradient(90deg,var(--accent),var(--gold));
+transform:scaleX(0);transition:transform .3s;transform-origin:left;
+}
+.service-card:hover{
+transform:translateY(-4px);
+box-shadow:0 12px 40px rgba(194,64,43,.12);
+}
+.service-card:hover::before{transform:scaleX(1)}
+.service-icon{
+width:56px;height:56px;border-radius:12px;
+background:linear-gradient(135deg,rgba(194,64,43,.1),rgba(201,138,22,.1));
+display:flex;align-items:center;justify-content:center;
+font-size:1.6rem;margin-bottom:20px;
+}
+.service-card h3{font-size:1.2rem;margin-bottom:12px;color:var(--text)}
+.service-card p{color:var(--muted);font-size:.95rem;line-height:1.7}
+/* 案例展示 */
+.cases{background:rgba(194,64,43,.03)}
+.cases-grid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:24px;max-width:1100px;margin:0 auto;
+}
+.case-card{
+background:var(--white);border-radius:16px;overflow:hidden;
+box-shadow:0 4px 20px rgba(51,38,29,.06);
+transition:all .3s;
+}
+.case-card:hover{
+transform:translateY(-4px);
+box-shadow:0 12px 40px rgba(51,38,29,.12);
+}
+.case-thumb{
+height:200px;position:relative;overflow:hidden;
+}
+.case-thumb-inner{
+width:100%;height:100%;
+display:flex;align-items:center;justify-content:center;
+font-size:4rem;
+transition:transform .5s;
+}
+.case-card:hover .case-thumb-inner{transform:scale(1.05)}
+.case-info{padding:24px}
+.case-info h3{font-size:1.1rem;margin-bottom:8px;color:var(--text)}
+.case-info p{color:var(--muted);font-size:.9rem;margin-bottom:16px}
+.case-tag{
+display:inline-block;padding:4px 12px;
+background:rgba(194,64,43,.08);color:var(--accent);
+border-radius:12px;font-size:.8rem;
+}
+/* 价格 */
+.pricing-grid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:24px;max-width:900px;margin:0 auto;
+}
+.price-card{
+background:var(--card);backdrop-filter:blur(10px);
+border:1px solid rgba(194,64,43,.1);
+border-radius:16px;padding:36px 28px;text-align:center;
+transition:all .3s;
+}
+.price-card.featured{
+border-color:var(--accent);
+background:linear-gradient(135deg,rgba(194,64,43,.05),rgba(201,138,22,.05));
+position:relative;
+}
+.price-card.featured::before{
+content:"推荐";position:absolute;top:-12px;left:50%;
+transform:translateX(-50%);
+background:var(--accent);color:var(--white);
+padding:4px 16px;border-radius:12px;font-size:.8rem;
+}
+.price-card h3{font-size:1.2rem;margin-bottom:8px;color:var(--text)}
+.price-card .price{
+font-size:2.4rem;font-weight:800;color:var(--accent);
+margin:16px 0;
+}
+.price-card .price span{font-size:1rem;color:var(--muted);font-weight:400}
+.price-card ul{
+list-style:none;text-align:left;margin:24px 0;
+}
+.price-card li{
+padding:8px 0;color:var(--muted);font-size:.95rem;
+border-bottom:1px solid rgba(194,64,43,.06);
+}
+.price-card li::before{content:"✓ ";color:var(--accent)}
+/* 联系 */
+.contact{
+background:linear-gradient(135deg,rgba(194,64,43,.06),rgba(201,138,22,.04));
+}
+.contact-box{
+max-width:600px;margin:0 auto;text-align:center;
+}
+.contact-box p{color:var(--muted);margin-bottom:32px;font-size:1.05rem}
+/* 页脚 */
+.footer{
+background:var(--text);color:rgba(255,253,248,.7);
+padding:40px 24px;text-align:center;
+}
+.footer p{font-size:.9rem;margin-bottom:8px}
+.footer a{color:var(--gold);text-decoration:none}
+.footer a:hover{text-decoration:underline}
+.footer .small{font-size:.8rem;opacity:.6}
+/* 响应式 */
+@media(max-width:768px){
+.nav-links{
+position:fixed;top:64px;left:0;right:0;
+background:rgba(245,239,226,.98);
+flex-direction:column;padding:24px;
+gap:20px;
+transform:translateY(-120%);transition:transform .3s;
+box-shadow:0 8px 20px rgba(0,0,0,.1);
+}
+.nav-links.active{transform:translateY(0)}
+.menu-toggle{display:flex}
+.menu-toggle.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+.menu-toggle.active span:nth-child(2){opacity:0}
+.menu-toggle.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+.hero{padding:100px 24px 60px}
+section{padding:60px 24px}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+<div class="nav-inner">
+<div class="logo">薄想<span>工作室</span></div>
+<ul class="nav-links" id="navLinks">
+<li><a href="#services">服务</a></li>
+<li><a href="#cases">案例</a></li>
+<li><a href="#pricing">价格</a></li>
+<li><a href="#contact">联系</a></li>
+</ul>
+<button class="menu-toggle" id="menuToggle" aria-label="菜单">
+<span></span><span></span><span></span>
+</button>
+</div>
+</nav>
+
+<section class="hero">
+<div class="hero-content fade-up">
+<div class="hero-badge">✦ 免费 AI 建站工作台</div>
+<h1>用东方美学，打造你的专属网站</h1>
+<p>薄想工作室提供零成本、高质量的 AI 自动建站服务。无需代码经验，描述你的需求，我们为你生成精美的品牌官网。</p>
+<div class="hero-btns">
+<a href="#contact" class="btn btn-primary">立即体验</a>
+<a href="#services" class="btn btn-secondary">了解更多</a>
+</div>
+</div>
+</section>
+
+<section id="services">
+<div class="section-title fade-up">
+<h2>我们的服务</h2>
+<p>从设计到上线，一站式解决你的建站需求</p>
+</div>
+<div class="services-grid">
+<div class="service-card fade-up">
+<div class="service-icon">🎨</div>
+<h3>智能设计</h3>
+<p>AI 理解你的业务类型和目标人群，自动匹配东方美学风格，生成独一无二的视觉方案。</p>
+</div>
+<div class="service-card fade-up">
+<div class="service-icon">⚡</div>
+<p>快速生成</h3>
+<p>单文件自包含 HTML，无需服务器配置，打开即可使用，断网也能完整显示。</p>
+</div>
+<div class="service-card fade-up">
+<div class="service-icon">📱</div>
+<h3>响应式布局</h3>
+<p>完美适配手机、平板、桌面各种设备，确保每个屏幕都呈现最佳效果。</p>
+</div>
+<div class="service-card fade-up">
+<div class="service-icon">🔧</div>
+<h3>灵活定制</h3>
+<p>支持多轮修改，根据你的反馈不断调整，直到满意为止。</p>
+</div>
+<div class="service-card fade-up">
+<div class="service-icon">🌐</div>
+<h3>免费 API</h3>
+<p>自动接入天气、诗词、一言等免费服务，让网站更有温度和个性。</p>
+</div>
+<div class="service-card fade-up">
+<div class="service-icon">🚀</div>
+<h3>一键发布</h3>
+<p>生成的网站可直接部署到 GitHub Pages、Vercel 等免费托管平台。</p>
+</div>
+</div>
+</section>
+
+<section id="cases" class="cases">
+<div class="section-title fade-up">
+<h2>精选案例</h2>
+<p>每一个网站都是独一无二的创作</p>
+</div>
+<div class="cases-grid">
+<div class="case-card fade-up">
+<div class="case-thumb">
+<div class="case-thumb-inner" style="background:linear-gradient(135deg,#f5efe2,#e8d5c0)">
+<span>🍵</span>
+</div>
+</div>
+<div class="case-info">
+<h3>桂雨茶社</h3>
+<p>古风茶饮品牌官网，融合传统与现代，面向都市女性用户。</p>
+<span class="case-tag">企业官网</span>
+</div>
+</div>
+<div class="case-card fade-up">
+<div class="case-thumb">
+<div class="case-thumb-inner" style="background:linear-gradient(135deg,#f5efe2,#d4c5b0)">
+<span>📷</span>
+</div>
+</div>
+<div class="case-info">
+<h3>墨影摄影</h3>
+<p>独立摄影师作品集，展示人像与风光摄影作品。</p>
+<span class="case-tag">作品集</span>
+</div>
+</div>
+<div class="case-card fade-up">
+<div class="case-thumb">
+<div class="case-thumb-inner" style="background:linear-gradient(135deg,#f5efe2,#e0d0c0)">
+<span>🎋</span>
+</div>
+</div>
+<div class="case-info">
+<h3>竹隐书院</h3>
+<p>传统文化教育平台，提供国学课程与雅集活动。</p>
+<span class="case-tag">教育平台</span>
+</div>
+</div>
+</div>
+</section>
+
+<section id="pricing">
+<div class="section-title fade-up">
+<h2> pricing</h2>
+<p>免费版已包含所有核心功能</p>
+</div>
+<div class="pricing-grid">
+<div class="price-card fade-up">
+<h3>免费版</h3>
+<div class="price">¥0 <span>/ 永久</span></div>
+<ul>
+<li>单页网站生成</li>
+<li>东方美学设计</li>
+<li>响应式布局</li>
+<li>一次修改机会</li>
+</ul>
+<a href="#contact" class="btn btn-secondary" style="width:100%">开始使用</a>
+</div>
+<div class="price-card featured fade-up">
+<h3>专业版</h3>
+<div class="price">¥99 <span>/ 次</span></div>
+<ul>
+<li>多页网站生成</li>
+<li>高级定制设计</li>
+<li>无限修改机会</li>
+<li>API 服务接入</li>
+<li>优先支持</li>
+</ul>
+<a href="#contact" class="btn btn-primary" style="width:100%">立即定制</a>
+</div>
+</div>
+</section>
+
+<section id="contact" class="contact">
+<div class="section-title fade-up">
+<h2>联系我们</h2>
+<p>有想法？来聊聊吧</p>
+</div>
+<div class="contact-box fade-up">
+<p>无论你有一个明确的建站需求，还是只有一个模糊的想法，都可以联系我们。薄想工作室的 AI 工作班会根据你的描述，为你生成最合适的网站方案。</p>
+<a href="https://lwl555.github.io/boxiang-blog/#order" class="btn btn-primary" target="_blank" rel="noopener">向薄想工作室下单</a>
+</div>
+</section>
+
+<footer class="footer">
+<p><strong>薄想工作室</strong> — 免费 AI 建站工作台</p>
+<p class="small">由 薄想工作室 免费生成</p>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+var toggle=document.getElementById('menuToggle');
+var navLinks=document.getElementById('navLinks');
+if(toggle&&navLinks){
+toggle.addEventListener('click',function(){
+navLinks.classList.toggle('active');
+toggle.classList.toggle('active');
+});
+document.querySelectorAll('.nav-links a').forEach(function(a){
+a.addEventListener('click',function(){
+navLinks.classList.remove('active');
+toggle.classList.remove('active');
+});
+});
+}
+var fades=document.querySelectorAll('.fade-up');
+if('IntersectionObserver' in window){
+var observer=new IntersectionObserver(function(entries){
+entries.forEach(function(entry){
+if(entry.isIntersecting){
+entry.target.classList.add('visible');
+observer.unobserve(entry.target);
+}
+});
+},{threshold:0.1});
+fades.forEach(function(el){observer.observe(el)});
+}else{
+fades.forEach(function(el){el.classList.add('visible')});
+}
+});
+</script>
+</body>
+</html>
