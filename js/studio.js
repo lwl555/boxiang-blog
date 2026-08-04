@@ -405,8 +405,16 @@
       const m = t.match(/\{[\s\S]*\}/);
       const j = JSON.parse(m ? m[0] : t);
       if (j && j.intent) return j;
-    } catch (e) { /* 解析失败按建站处理 */ }
+    } catch (e) { /* 解析失败按兜底处理 */ }
     return { intent: 'build' };
+  }
+
+  // ===== 本地问候/闲聊规则：常见短语直接对话，不调 AI、零误判 =====
+  function isChatByRule(q) {
+    const t = String(q || '').trim();
+    if (!t) return true;
+    if (t.length > 14) return false; // 长句交给 AI 判断
+    return /^(你好|您好|嗨|哈喽|哈啰|哈喽呀|你好呀|您好呀|hello|hi|hey|hi~|早上好|上午好|中午好|下午好|晚上好|晚安|在吗|在不在|嗨喽|你是谁|你叫什么|你叫啥|你叫什么名字|你是什么|你是啥|你是什么模型|你是哪个|你能做什么|你会做什么|你能干嘛|你会啥|你能帮什么|介绍一下你|自我介绍|自我介绍一下|介绍下你|谢谢|感谢|多谢|辛苦了|再见|拜拜|886|88|help)$/i.test(t);
   }
 
   // ===== 强制页脚标注（模型偶尔遗漏时兜底注入，保证每个网站都有）=====
@@ -447,10 +455,17 @@
     try {
       // —— 意图分流：打招呼/闲聊/提问 直接对话，建站需求才生成网站 ——
       let intent = { intent: 'build' };
-      try {
-        const jout = await window.Agnes.chat(intentJudgeMsgs(q), { stream: false, maxTokens: 300, timeout: 60000, signal: aborter.signal });
-        intent = parseIntent(jout);
-      } catch (e) { /* 意图判断失败时按建站处理，保证不卡住 */ }
+      if (isChatByRule(q)) {
+        intent = { intent: 'chat' }; // 常见问候/闲聊：本地识别，稳定且零延迟
+      } else {
+        try {
+          const jout = await window.Agnes.chat(intentJudgeMsgs(q), { stream: false, maxTokens: 300, timeout: 60000, signal: aborter.signal });
+          intent = parseIntent(jout);
+        } catch (e) {
+          // 判断失败时先提问而不是盲目生成，避免误建站
+          intent = { intent: 'ask', question: '你想做什么类型的网站呢？比如个人主页、企业官网、小店、博客……告诉我网站类型和大概内容，我马上帮你做！' };
+        }
+      }
 
       if (intent.intent === 'chat') {
         messages.push({ role: 'user', content: fullQ });
@@ -470,9 +485,10 @@
         });
         if (statusEl.isConnected) statusEl.remove();
         if (!reply) chatList.appendChild(bubble);
-        bubbleText.textContent = cont;
+        const clean = /^<!DOCTYPE html|<html[\s>]/i.test(String(cont).trim()) ? '我是薄想 AI 建站助手～如果你需要生成网站，直接告诉我网站类型、风格和内容，我就帮你做出来！' : cont;
+        bubbleText.textContent = clean;
         chatList.scrollTop = chatList.scrollHeight;
-        messages.push({ role: 'assistant', content: cont });
+        messages.push({ role: 'assistant', content: clean });
         persistCurrent();
         return;
       }
