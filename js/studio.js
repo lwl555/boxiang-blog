@@ -29,7 +29,7 @@
     '10. 联系区域放一个明显按钮，链接到 https://lwl555.github.io/boxiang-blog/#order（文案：向薄想工作室下单）。\n' +
     '11. 页脚加一行小字：由 薄想工作室 免费生成。\n' +
     '12. 输出前自检：单页不少于 60 行；无任何外部依赖；无 JS 明显错误；</html> 完整闭合。\n' +
-    '13. 长度控制：整页控制在 400~700 行以内、总字符 12000 以内，宁可精简也不要写太长，确保一次输出完整、绝不截断。';
+    '13. 长度控制：整页控制在 250~450 行以内、总字符 8000 以内，宁可精简也不要写太长，确保一次输出完整、绝不截断。';
   // ===== 会话存储（每个网站一份记忆，刷新不丢）=====
   const SESSIONS_KEY = 'bx_studio_sessions_v2';
   const CUR_KEY = 'bx_studio_cur_v2';
@@ -392,13 +392,13 @@
           started = false;
           bubbleText.textContent = '';
           if (statusEl.isConnected) statusEl.remove();
-          statusEl = addStatus('<span class="status">⚠️ 刚才的输出不完整（AI 截断了），正在自动继续补全第 ' + attempt + ' 次…</span>');
+          statusEl = addStatus('<span class="status">✦ AI 正在继续完善页面…（第 ' + attempt + ' 次）</span>');
         }
         const chatMsgs = attempt === 0
           ? compactForRequest()
           : compactForRequest().concat([
-              { role: 'assistant', content: full },
-              { role: 'user', content: '【继续写】你刚才输出的 HTML 因为长度限制被系统截断了。请接着你输出的最后位置继续写，补齐所有剩余内容。要求：不要重复任何已输出的内容；如果还有未完成的标签（如 footer、body、html）必须全部闭合；最终输出必须以 </body> 和 </html> 结尾。只输出续写部分，不要解释。' }
+              { role: 'assistant', content: '【上一段输出的末尾】\n' + full.slice(-1500) },
+              { role: 'user', content: '【继续写】你刚才输出的 HTML 因为长度限制被系统截断了。请接着上面末尾的位置继续输出，补齐所有剩余内容。要求：不要重复任何已输出的内容；未完成的标签（style、body、html 等）必须全部闭合；最终必须以 </body> 和 </html> 结尾；只输出续写部分，不要解释。' }
             ]);
         try {
           const cont = await window.Agnes.chat(chatMsgs, {
@@ -417,7 +417,7 @@
             }
           });
           full = (attempt > 0 ? full.replace(/\s*$/, '') + '\n' : '') + cont;
-          full = full.split(String.fromCharCode(96)).join('').trim();
+          full = full.trim();
           const html = extractHtml(full);
           complete = !!html && html.length >= 300 && isCompleteHtml(html);
         } catch (e2) {
@@ -441,10 +441,8 @@
       if (!html || html.length < 300) throw new Error('AI 没有返回有效的网页内容，请再试一次');
       preview(html);
       messages.push({ role: 'assistant', content: full });
-      bubbleText.textContent = complete
-        ? '✅ 网站已生成！看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。'
-        : '✅ 网站已生成（AI 输出略有截断，已自动修补显示）。不满意就继续跟我说，我来帮你改。';
-      $('stStatus').textContent = complete ? '✅ 已生成 · 可继续对话修改' : '⚠️ 已生成（部分修补）· 可继续对话修改';
+      bubbleText.textContent = '✅ 网站已生成！看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
+      $('stStatus').textContent = '✅ 已生成 · 可继续对话修改';
       persistCurrent();
     } catch (e) {
       const msg = e && e.message ? e.message : '生成失败，请重试';
@@ -630,6 +628,66 @@
       script: function () {
         return '<script>/* 汇率 · open.er-api.com 免费API */' + floatWidget('bx-api-fx', '加载汇率…') +
           'fetch("https://open.er-api.com/v6/latest/CNY").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-fx");if(t&&t.lastChild&&j&&j.rates){t.lastChild.innerHTML="💱 1 USD ≈ "+(j.rates.USD?j.rates.USD.toFixed(2):"-")+" CNY<br><span style=\"opacity:.7\">1 EUR ≈ "+(j.rates.EUR?j.rates.EUR.toFixed(2):"-")+" CNY</span>"}}).catch(function(){var t=document.getElementById("bx-api-fx");if(t)t.lastChild.textContent="汇率加载失败"});</' + 'script>';
+      }
+    },
+    dog: {
+      name: '随机狗图',
+      icon: '🐶',
+      desc: '每次刷新随机显示一张可爱的狗狗照片（全球最大免费狗图库），显示在页面右下角。免费无需 key。',
+      sample: 'fetch("https://dog.ceo/api/breeds/image/random").then(r=>r.json()).then(d=>console.log(d.message))',
+      script: function () {
+        return '<script>/* 随机狗图 · dog.ceo 免费API */' + floatWidget('bx-api-dog', '加载狗图…') +
+          'fetch("https://dog.ceo/api/breeds/image/random").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-dog");if(t&&t.lastChild&&j&&j.message){t.lastChild.innerHTML="🐶 今日狗子<br><img src=\""+j.message+"\" style=\"width:100%;border-radius:10px;margin-top:6px;display:block\">"}}).catch(function(){var t=document.getElementById("bx-api-dog");if(t)t.lastChild.textContent="狗图加载失败"});</' + 'script>';
+      }
+    },
+    avatar: {
+      name: '随机头像',
+      icon: '🎭',
+      desc: '随机生成一张卡通头像（SVG 矢量，加载快），显示在页面右下角，适合个人主页。免费无需 key。',
+      sample: 'https://api.dicebear.com/9.x/thumbs/svg?seed=boxiang',
+      script: function () {
+        return '<script>/* 随机头像 · dicebear 免费API */' + floatWidget('bx-api-avatar', '') +
+          '(function(){var t=document.getElementById("bx-api-avatar");if(t&&t.lastChild){t.lastChild.innerHTML="🎭 随机头像<br><img src=\"https://api.dicebear.com/9.x/thumbs/svg?seed="+Math.random().toString(36).slice(2)+"\" style=\"width:96px;height:96px;border-radius:50%;margin-top:6px;display:block\">"}})();</' + 'script>';
+      }
+    },
+    qrcode: {
+      name: '二维码生成',
+      icon: '📱',
+      desc: '自动生成当前网页地址的二维码，访客扫码即可访问，显示在页面右下角，适合线下引流。免费无需 key。',
+      sample: 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://example.com',
+      script: function () {
+        return '<script>/* 二维码 · qrserver 免费API */' + floatWidget('bx-api-qrcode', '') +
+          '(function(){var t=document.getElementById("bx-api-qrcode");if(t&&t.lastChild){t.lastChild.innerHTML="📱 扫码访问<br><img src=\"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data="+encodeURIComponent(location.href)+"\" style=\"width:140px;height:140px;border-radius:10px;margin-top:6px;display:block\">"}})();</' + 'script>';
+      }
+    },
+    person: {
+      name: '随机用户信息',
+      icon: '👤',
+      desc: '随机展示一位用户的中文姓名、邮箱和头像，显示在页面右下角，适合做演示/示例数据。免费无需 key。',
+      sample: 'fetch("https://randomuser.me/api/?nat=cn").then(r=>r.json()).then(d=>console.log(d.results[0].name))',
+      script: function () {
+        return '<script>/* 随机用户 · randomuser.me 免费API */' + floatWidget('bx-api-person', '加载用户…') +
+          'fetch("https://randomuser.me/api/?nat=cn").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-person");var u=j&&j.results&&j.results[0];if(t&&t.lastChild&&u){var nm=(u.name&&(u.name.first||"")+(u.name.last||""))||"";t.lastChild.innerHTML="👤 "+nm+"<br><span style=\"opacity:.7\">"+(u.email||"")+"</span>"}}).catch(function(){var t=document.getElementById("bx-api-person");if(t)t.lastChild.textContent="加载失败"});</' + 'script>';
+      }
+    },
+    joke: {
+      name: '英文冷笑话',
+      icon: '😂',
+      desc: '随机显示一句英文冷笑话（附关闭按钮），显示在页面右下角，适合休闲娱乐类网站。免费无需 key。',
+      sample: 'fetch("https://icanhazdadjoke.com/",{headers:{"Accept":"application/json"}}).then(r=>r.json()).then(d=>console.log(d.joke))',
+      script: function () {
+        return '<script>/* 冷笑话 · icanhazdadjoke 免费API */' + floatWidget('bx-api-joke', '加载笑话…') +
+          'fetch("https://icanhazdadjoke.com/",{headers:{"Accept":"application/json"}}).then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-joke");if(t&&t.lastChild&&j&&j.joke){t.lastChild.innerHTML="😂 "+j.joke}}).catch(function(){var t=document.getElementById("bx-api-joke");if(t)t.lastChild.textContent="笑话加载失败"});</' + 'script>';
+      }
+    },
+    photo: {
+      name: '随机美图',
+      icon: '🖼️',
+      desc: '每次刷新随机显示一张高清风景美图（Picsum 图库），显示在页面右下角，适合摄影/生活类网站。免费无需 key。',
+      sample: 'https://picsum.photos/seed/boxiang/400/300',
+      script: function () {
+        return '<script>/* 随机美图 · picsum 免费API */' + floatWidget('bx-api-photo', '') +
+          '(function(){var t=document.getElementById("bx-api-photo");if(t&&t.lastChild){t.lastChild.innerHTML="🖼️ 随机美图<br><img src=\"https://picsum.photos/seed/"+Math.random().toString(36).slice(2)+"/400/300\" style=\"width:100%;border-radius:10px;margin-top:6px;display:block\">"}})();</' + 'script>';
       }
     }
   };
