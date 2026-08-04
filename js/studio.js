@@ -274,9 +274,12 @@
   // ===== HTML 工具 =====
   function extractHtml(text) {
     if (!text) return '';
-    let t = text.trim();
-    const fence = t.match(/```(?:html)?\s*([\s\S]*?)```/i);
-    if (fence) return fence[1].trim();
+    let t = String(text).trim();
+    // 剥离开头的 Markdown 代码围栏（``` 或 ```html）
+    t = t.replace(/^```(?:html)?\s*/i, '');
+    // 若末尾仍有围栏（含围栏后的多余文字），从最后一个 ``` 截断
+    const li = t.lastIndexOf('```');
+    if (li >= 0) t = t.slice(0, li).trim();
     if (/^<!DOCTYPE html/i.test(t) || /^<html/i.test(t)) return t;
     const idx = t.search(/<!DOCTYPE html|<html/i);
     if (idx >= 0) return t.slice(idx).trim();
@@ -377,7 +380,14 @@
 
     generating = true;
     setBusy(true);
-    let statusEl = addStatus('<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在思考，请稍候…</span>');
+    const waitStart = Date.now();
+    let statusEl = addStatus('<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在理解需求并生成网站，完整页面通常需要 30~90 秒，请耐心等待…</span>');
+    const waitTimer = setInterval(() => {
+      if (statusEl && statusEl.isConnected) {
+        const sec = Math.round((Date.now() - waitStart) / 1000);
+        statusEl.innerHTML = '<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在生成网站（已等待 ' + sec + ' 秒），完整页面通常需要 30~90 秒，请耐心等待…</span>';
+      }
+    }, 1000);
     aborter = new AbortController();
     try {
       let streamText = '';
@@ -407,6 +417,8 @@
           const cont = await window.Agnes.chat(chatMsgs, {
             stream: true,
             signal: aborter.signal,
+            maxTokens: 16384,
+            timeout: 420000,
             onDelta: (d) => {
               if (!started) {
                 started = true;
@@ -419,7 +431,8 @@
               chatList.scrollTop = chatList.scrollHeight;
             }
           });
-          full = (attempt > 0 ? full.replace(/\s*$/, '') + '\n' : '') + cont;
+          const part = attempt === 0 ? extractHtml(cont) : cont;
+          full = (attempt > 0 ? full.replace(/\s*$/, '') + '\n' : '') + part;
           full = full.trim();
           const html = extractHtml(full);
           complete = !!html && html.length >= 300 && isCompleteHtml(html);
@@ -456,6 +469,7 @@
       const msg = e && e.message ? e.message : '生成失败，请重试';
       addMsg('bot', '<span class="status">❌ ' + esc(msg) + '</span>');
     } finally {
+      clearInterval(waitTimer);
       generating = false;
       setBusy(false);
     }
@@ -463,7 +477,7 @@
 
   function setBusy(busy) {
     $('chatSend').disabled = busy;
-    $('chatSend').textContent = busy ? '…' : '发送';
+    $('chatSend').textContent = busy ? '生成中…' : '发送';
   }
 
   // ===== 工具模式（图像/视频）=====
