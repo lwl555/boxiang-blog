@@ -140,10 +140,14 @@ window.Agnes = (function () {
           if (!payload || payload === '[DONE]') continue;
           try {
             const j = JSON.parse(payload);
-            const delta = j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content;
-            if (delta) {
-              full += delta;
-              if (opts.onDelta) opts.onDelta(delta);
+            const choice = j.choices && j.choices[0] && j.choices[0].delta;
+            if (choice) {
+              // 思考过程（reasoning_content）：不进入正文，单独回调给前端展示
+              if (choice.reasoning_content && opts.onReasoning) opts.onReasoning(choice.reasoning_content);
+              if (choice.content) {
+                full += choice.content;
+                if (opts.onDelta) opts.onDelta(choice.content);
+              }
             }
           } catch (e) { /* 跳过解析失败的行 */ }
         }
