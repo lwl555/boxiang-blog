@@ -1,13 +1,15 @@
-// ===== 免费建站 · 子站部署脚本 =====
-// 读取 Supabase 中已审核通过（published）的网站 → 本地生成 sites/<slug>/index.html → 推送到 GitHub
-// 运行：node deploy-sites.js   （环境变量 DEPLOY_TOKEN_LIST 传 GitHub token，多个用分号分隔）
+// ===== 免费建站 · 子站部署脚本（v2）=====
+// 读取 Supabase 中已上线（published）的网站 → 生成 sites/<slug>/index.html → 推送到 GitHub
+// 支持 GitHub Actions 自动运行（cron 每 5 分钟），也可手动：node deploy-sites.js
+// 环境变量：SB_URL / SB_KEY（Supabase 地址与 anon key）、DEPLOY_TOKEN_LIST（GitHub token，分号分隔）
 const fs = require('fs');
 const path = require('path');
 const SRC = __dirname;
 const REPO = 'lwl555/boxiang-blog';
-const SB_URL = 'https://wcnssyiqitugqfmcbdhe.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjbnNzeWlxaXR1Z3FmbWNiZGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MDEyNzUsImV4cCI6MjA5ODk3NzI3NX0.9EfbEr7BQhZtbOwHJ3IrkOy16kcaxlmzuJuV0A2Z8Eg';
+const SB_URL = process.env.SB_URL || 'https://wcnssyiqitugqfmcbdhe.supabase.co';
+const SB_KEY = process.env.SB_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjbnNzeWlxaXR1Z3FmbWNiZGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MDEyNzUsImV4cCI6MjA5ODk3NzI3NX0.9EfbEr7BQhZtbOwHJ3IrkOy16kcaxlmzuJuV0A2Z8Eg';
 
+// ===== 模板生成（仅当该站点没有 AI 生成的内容时使用）=====
 const THEMES = {
   '朱砂':   { bg: '#faf3e6', panel: '#fffdf6', accent: '#c2402b', dark: '#8a2f22', ink: '#33261d', soft: '#6d5c4b' },
   '墨绿':   { bg: '#f3efe2', panel: '#fbf8ee', accent: '#2f5d4a', dark: '#1f4034', ink: '#2c3026', soft: '#5f6b58' },
@@ -101,7 +103,7 @@ footer a{color:var(--accent)}
 }
 
 async function fetchPublishedSites() {
-  const url = SB_URL + '/rest/v1/sites?select=*&status=eq.published&order=published_at.desc';
+  const url = SB_URL + '/rest/v1/sites?select=*&status=eq.published&order=created_at.desc';
   const r = await fetch(url, {
     headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, Accept: 'application/json' }
   });
@@ -109,58 +111,87 @@ async function fetchPublishedSites() {
   return r.json();
 }
 
+// GitHub API：推送 / 删除 / 列目录
+async function gh(token, method, url, body) {
+  const headers = { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'User-Agent': 'boxiang-deploy' };
+  const r = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  if (!r.ok && !(method === 'GET' && r.status === 404)) {
+    throw new Error('GitHub ' + method + ' ' + url.slice(0, 90) + ' 失败：' + r.status + ' ' + (await r.text()).slice(0, 150));
+  }
+  return r;
+}
+
 async function pushFile(token, relPath, content) {
   const api = 'https://api.github.com/repos/' + REPO + '/contents/' + encodeURI(relPath);
-  const headers = { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'User-Agent': 'codex-deploy' };
+  const r0 = await gh(token, 'GET', api);
   let sha = null;
-  try {
-    const r0 = await fetch(api, { headers });
-    if (r0.ok) sha = (await r0.json()).sha;
-  } catch (e) {}
+  if (r0.ok) sha = (await r0.json()).sha;
   const body = { message: '发布免费网站 ' + relPath, content: Buffer.from(content, 'utf8').toString('base64') };
   if (sha) body.sha = sha;
-  const r = await fetch(api, { method: 'PUT', headers, body: JSON.stringify(body) });
-  if (!r.ok) throw new Error(relPath + ' 推送失败：' + r.status + ' ' + (await r.text()).slice(0, 150));
+  const r = await gh(token, 'PUT', api, body);
   return relPath;
+}
+
+async function deleteFile(token, relPath) {
+  const api = 'https://api.github.com/repos/' + REPO + '/contents/' + encodeURI(relPath);
+  const r0 = await gh(token, 'GET', api);
+  if (!r0.ok) return 'skip'; // 文件不存在
+  const info = await r0.json();
+  await gh(token, 'DELETE', api, { message: '下线网站 ' + relPath, sha: info.sha });
+  return relPath;
+}
+
+async function listSiteDirs(token) {
+  const api = 'https://api.github.com/repos/' + REPO + '/contents/sites';
+  const r = await gh(token, 'GET', api);
+  if (!r.ok) return [];
+  const items = await r.json();
+  return items.filter((i) => i.type === 'dir').map((i) => i.name);
 }
 
 async function main() {
   const sites = await fetchPublishedSites();
   console.log('已上线网站数：' + sites.length);
-  if (!sites.length) { console.log('没有需要部署的网站'); return; }
 
   const tokens = (process.env.DEPLOY_TOKEN_LIST || '').split(';').filter(Boolean);
   if (!tokens.length) { console.error('缺少 GitHub token：请设置环境变量 DEPLOY_TOKEN_LIST'); process.exit(1); }
+  const token = tokens[0];
 
   const local = path.join(SRC, 'sites');
   fs.mkdirSync(local, { recursive: true });
-  const jobs = [];
+
+  // 1) 生成本地文件 + 推送
+  let pushed = 0;
   for (const s of sites) {
-    const html = generateSiteHtml(s);
+    const html = (s.content_html && s.content_html.trim()) ? s.content_html : generateSiteHtml(s);
     const dir = path.join(local, s.slug);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
-    jobs.push({ slug: s.slug, content: html });
-    console.log('已生成 sites/' + s.slug + '/index.html ← ' + s.title);
+    try {
+      await pushFile(token, 'sites/' + s.slug + '/index.html', html);
+      pushed++;
+      console.log('OK   sites/' + s.slug + '/index.html ← ' + s.title);
+    } catch (e) {
+      console.log('FAIL sites/' + s.slug + '/index.html：' + e.message);
+    }
   }
 
-  let lastErr = null;
-  for (const token of tokens) {
-    let fail = false, okCount = 0;
-    for (const j of jobs) {
-      try {
-        await pushFile(token, 'sites/' + j.slug + '/index.html', j.content);
-        okCount++;
-        console.log('OK   sites/' + j.slug + '/index.html');
-      } catch (e) {
-        fail = true; lastErr = e.message; console.log('FAIL ' + e.message);
+  // 2) 清理已下架/删除的站点目录
+  try {
+    const published = new Set(sites.map((s) => s.slug));
+    const existing = await listSiteDirs(token);
+    for (const dir of existing) {
+      if (!published.has(dir)) {
+        const r = await deleteFile(token, 'sites/' + dir + '/index.html');
+        if (r !== 'skip') console.log('DEL  sites/' + dir + '/（已下架）');
       }
     }
-    if (!fail) { console.log('ALL_DONE ok=' + okCount + '，访问：https://lwl555.github.io/boxiang-blog/sites/<slug>/'); return; }
-    console.log('该 token 有失败，尝试下一个');
+  } catch (e) {
+    console.log('清理下架站点失败（不影响上线）：' + e.message);
   }
-  console.error('ALL_TOKENS_FAILED', lastErr);
-  process.exit(1);
+
+  console.log('DONE pushed=' + pushed + '，访问：https://lwl555.github.io/boxiang-blog/sites/<slug>/');
+  if (pushed < sites.length) process.exit(2);
 }
 
 main().catch((e) => { console.error('ERR', e.message); process.exit(1); });
