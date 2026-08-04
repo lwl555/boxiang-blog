@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 建站工作台 · 薄想工作室</title>
+<meta name="description" content="薄想工作室免费 AI 建站工作台：跟 AI 对话生成任意类型的网站，一键发布上线。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
+<link rel="stylesheet" href="css/studio.css?v=20260807">
+</head>
+<body>
+
+<!-- 顶部工具栏 -->
+<header class="st-top">
+  <div class="st-top-in">
+    <a href="index.html" class="st-logo">← 薄想<span class="dot">✦</span></a>
+    <div class="st-title-group">
+      <input id="stName" placeholder="给网站起个名字（比如：小林的花店）" maxlength="30" autocomplete="off">
+      <select id="stType" title="网站类型">
+        <option value="自动判断">🌐 类型自动判断</option>
+        <option value="个人主页">个人主页</option>
+        <option value="作品集">作品集 / 案例站</option>
+        <option value="企业官网">企业官网</option>
+        <option value="小店展示">店铺 / 电商页</option>
+        <option value="博客">博客 / 资讯</option>
+        <option value="活动落地页">活动落地页</option>
+        <option value="工具页">在线工具页</option>
+        <option value="其他">其他类型</option>
+      </select>
+      <select id="stTheme" title="主题配色">
+        <option value="朱砂">🎨 朱砂 · 温润中国红</option>
+        <option value="墨绿">🎨 墨绿 · 沉静草木绿</option>
+        <option value="琥珀">🎨 琥珀 · 暖阳蜂蜜黄</option>
+        <option value="玫瑰褐">🎨 玫瑰褐 · 复古砖红</option>
+      </select>
+    </div>
+    <div class="st-actions">
+      <button class="st-btn ghost" id="stClear">↺ 重新开始</button>
+      <button class="st-btn accent" id="stPublish">🚀 发布网站</button>
+    </div>
+  </div>
+</header>
+
+<main class="st-main">
+  <!-- 左侧：AI 对话 -->
+  <aside class="st-chat glass">
+    <div class="chat-head">
+      <span class="chat-ai">✦ AI 建站助手</span>
+      <span class="model-badge" id="stModelBadge">💬 文本模式</span>
+    </div>
+    <div class="chat-list" id="chatList"></div>
+
+    <div class="chat-tools" id="stTools">
+      <button class="tool-btn active" data-mode="text" title="跟 AI 对话生成/修改网站">💬 文本</button>
+      <button class="tool-btn" data-mode="image" title="生成图片插入页面">🖼️ 图像</button>
+      <button class="tool-btn" data-mode="video" title="生成视频插入页面">🎬 视频</button>
+    </div>
+    <div class="chat-input">
+      <textarea id="chatInput" rows="1" placeholder="跟 AI 说你想做什么网站…"></textarea>
+      <button class="send-btn" id="chatSend">发送</button>
+    </div>
+    <p class="chat-hint" id="chatHint">💬 文本：直接生成/修改整站 · 🖼️ 图像：生成配图插入页面 · 🎬 视频：生成视频插入页面</p>
+  </aside>
+
+  <!-- 右侧：实时预览 -->
+  <section class="st-preview glass">
+    <div class="preview-head">
+      <span class="pv-status" id="stStatus">👀 实时预览</span>
+      <span class="preview-url" id="stPreviewUrl">还没发布 · 发布后这里显示网址</span>
+      <div class="pv-actions">
+        <button class="mini-btn" id="stCopyCode">📋 复制代码</button>
+        <button class="mini-btn" id="stDownload">⬇️ 下载</button>
+      </div>
+    </div>
+    <div class="preview-frame"><iframe id="stFrame" title="网站预览"></iframe></div>
+  </section>
+</main>
+
+<!-- 发布弹窗 -->
+<div class="modal" id="pubModal" hidden>
+  <div class="modal-backdrop" id="pubBackdrop"></div>
+  <div class="modal-box">
+    <button class="modal-close" id="pubClose">✕</button>
+    <div id="pubBody"></div>
+  </div>
+</div>
+
+<!-- 工具弹窗：图像/视频生成 -->
+<div class="modal" id="toolModal" hidden>
+  <div class="modal-backdrop" id="toolBackdrop"></div>
+  <div class="modal-box tool-box">
+    <button class="modal-close" id="toolClose">✕</button>
+    <h2 id="toolTitle">🖼️ 生成一张图片</h2>
+    <p class="tool-tip" id="toolTip">描述你想要的画面，生成后会插入到页面顶部。</p>
+    <textarea id="toolPrompt" rows="3" placeholder="比如：一间开满鲜花的巷口小店，暖黄色灯光，电影感"></textarea>
+    <div class="tool-ratio" id="toolRatio">
+      <button class="ratio-btn" data-ratio="16:9">16:9 横图</button>
+      <button class="ratio-btn active" data-ratio="1:1">1:1 方图</button>
+      <button class="ratio-btn" data-ratio="9:16">9:16 竖图</button>
+    </div>
+    <div class="tool-actions">
+      <span class="tool-progress" id="toolProgress"></span>
+      <button class="st-btn accent" id="toolRun">生成</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js?v=20260807"></script>
+<script src="js/agnes.js?v=20260807"></script>
+<script src="js/studio.js?v=20260807"></script>
+</body>
+</html>
