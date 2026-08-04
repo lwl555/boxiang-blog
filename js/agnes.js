@@ -93,9 +93,10 @@ window.Agnes = (function () {
     const body = {
       model: MODELS.text,
       messages: messages,
-      stream: !!opts.stream
+      stream: !!opts.stream,
+      max_tokens: opts.maxTokens || 16384
     };
-    if (opts.maxTokens) body.max_tokens = opts.maxTokens;
+    if (opts.temperature !== undefined) body.temperature = opts.temperature;
     if (opts.temperature !== undefined) body.temperature = opts.temperature;
 
     const timeout = opts.timeout || 240000;
