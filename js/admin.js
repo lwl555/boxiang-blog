@@ -177,7 +177,7 @@
   });
 
   // ===== 建站审核 =====
-  const SITE_STATUS = { pending: '待审核', published: '已上线', rejected: '已拒绝' };
+  const SITE_STATUS = { pending: '待审核', published: '已上线', rejected: '已拒绝', offline: '已下架' };
   let siteRows = [];
 
   async function loadSites() {
@@ -212,6 +212,7 @@
           ${s.status === 'pending' ? `<button class="mini-btn ok" data-approve="${s.id}">✅ 通过审核</button>` : ''}
           ${s.status === 'published' ? `<button class="mini-btn ok" data-publish-site="${s.id}">🚀 ${s.deployed_at ? '重新上线' : '立即上线'}</button>` : ''}
           ${s.status === 'published' ? `<button class="mini-btn" data-offline="${s.id}">⏬ 下架</button>` : ''}
+          ${s.status === 'offline' ? `<button class="mini-btn ok" data-republish="${s.id}">🔁 重新上架</button>` : ''}
           ${s.status !== 'rejected' ? `<button class="mini-btn" data-reject="${s.id}">❌ 拒绝</button>` : ''}
           <button class="mini-btn" data-preview="${s.id}">👁 预览代码</button>
           <button class="mini-btn danger" data-del-site="${s.id}">删除</button>
@@ -270,8 +271,27 @@
             else delMsg = '（未配置部署令牌，线上文件未移除）';
           } catch (e) { delMsg = '（线上文件移除失败：' + e.message + '）'; }
         }
-        const { error } = await sb.from(T.sites).update({ status: 'rejected' }).eq('id', b.dataset.offline);
+        const { error } = await sb.from(T.sites).update({ status: 'offline' }).eq('id', b.dataset.offline);
         if (error) alert('操作失败：' + error.message); else { alert('已下架' + delMsg); loadSites(); }
+      });
+    });
+    list.querySelectorAll('[data-republish]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        const s = siteRows.find((x) => x.id === +b.dataset.republish);
+        if (!s) return;
+        if (!confirm('确认重新上架？网站会重新发布到线上。')) return;
+        let token = null;
+        try { token = await getDeployToken(); } catch (e) { alert('读取部署令牌失败：' + e.message); return; }
+        if (!token) { alert('请先到「站点设置」填写 GitHub 部署令牌'); document.querySelector('.tab[data-tab="config"]').click(); return; }
+        b.disabled = true; const oldT = b.textContent; b.textContent = '上架中…';
+        try {
+          await deploySiteToGithub(token, s);
+          const { error } = await sb.from(T.sites).update({ status: 'published', deployed_at: new Date().toISOString() }).eq('id', s.id);
+          if (error) throw new Error(error.message);
+          alert('✅ 重新上架成功！访问：https://lwl555.github.io/boxiang-blog/sites/' + s.slug + '/');
+        } catch (e) { alert('上架失败：' + e.message); }
+        b.disabled = false; b.textContent = oldT;
+        loadSites();
       });
     });
     list.querySelectorAll('[data-preview]').forEach((b) => {
