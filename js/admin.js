@@ -206,9 +206,11 @@
           ${s.contact ? `<span>📞 ${s.contact}</span>` : ''}
           <span>🕐 ${fmt(s.created_at)}</span>
           ${feats ? `<span>✨ ${feats}</span>` : ''}
+          ${s.status === 'published' ? `<span class="dep-flag ${s.deployed_at ? 'on' : ''}">${s.deployed_at ? '🚀 已上线 ' + fmt(s.deployed_at) : '⏳ 待上线'}</span>` : ''}
         </div>
         <div class="order-actions">
-          ${s.status === 'pending' ? `<button class="mini-btn ok" data-approve="${s.id}">✅ 通过并上线</button>` : ''}
+          ${s.status === 'pending' ? `<button class="mini-btn ok" data-approve="${s.id}">✅ 通过审核</button>` : ''}
+          ${s.status === 'published' ? `<button class="mini-btn ok" data-publish-site="${s.id}">🚀 ${s.deployed_at ? '重新上线' : '立即上线'}</button>` : ''}
           ${s.status === 'published' ? `<button class="mini-btn" data-offline="${s.id}">⏬ 下架</button>` : ''}
           ${s.status !== 'rejected' ? `<button class="mini-btn" data-reject="${s.id}">❌ 拒绝</button>` : ''}
           <button class="mini-btn" data-preview="${s.id}">👁 预览代码</button>
@@ -219,11 +221,11 @@
 
     list.querySelectorAll('[data-approve]').forEach((b) => {
       b.addEventListener('click', async () => {
-        if (!confirm('确认通过？通过后前台会展示该网站。')) return;
+        if (!confirm('确认通过？通过后点击「🚀 立即上线」把网站发布到线上。')) return;
         const { error } = await sb.from(T.sites)
           .update({ status: 'published', published_at: new Date().toISOString() })
           .eq('id', b.dataset.approve);
-        if (error) alert('操作失败：' + error.message); else { alert('✅ 已上线！自动部署流水线会在 5 分钟内把网站发布到线上'); loadSites(); }
+        if (error) alert('操作失败：' + error.message); else { alert('✅ 已通过审核！点击「🚀 立即上线」发布到线上'); loadSites(); }
       });
     });
     list.querySelectorAll('[data-reject]').forEach((b) => {
@@ -233,11 +235,43 @@
         if (error) alert('操作失败：' + error.message); else loadSites();
       });
     });
+    list.querySelectorAll('[data-publish-site]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        const s = siteRows.find((x) => x.id === +b.dataset.publishSite);
+        if (!s) return;
+        let token = null;
+        try { token = await getDeployToken(); }
+        catch (e) { alert('读取部署令牌失败：' + e.message); return; }
+        if (!token) {
+          alert('请先到「站点设置」填写 GitHub 部署令牌');
+          document.querySelector('.tab[data-tab="config"]').click();
+          return;
+        }
+        b.disabled = true; const old = b.textContent; b.textContent = '🚀 上线中…';
+        try {
+          await deploySiteToGithub(token, s);
+          const { error } = await sb.from(T.sites).update({ deployed_at: new Date().toISOString() }).eq('id', s.id);
+          if (error) throw new Error(error.message);
+          alert('✅ 上线成功！访问：https://lwl555.github.io/boxiang-blog/sites/' + s.slug + '/');
+        } catch (e) { alert('上线失败：' + e.message); }
+        b.disabled = false; b.textContent = old;
+        loadSites();
+      });
+    });
     list.querySelectorAll('[data-offline]').forEach((b) => {
       b.addEventListener('click', async () => {
-        if (!confirm('确认下架？下架后前台不再展示该网站。')) return;
+        if (!confirm('确认下架？下架后前台不再展示，线上文件也会立即移除。')) return;
+        const s = siteRows.find((x) => x.id === +b.dataset.offline);
+        let delMsg = '';
+        if (s) {
+          try {
+            const token = await getDeployToken();
+            if (token) await removeSiteFile(token, s.slug);
+            else delMsg = '（未配置部署令牌，线上文件未移除）';
+          } catch (e) { delMsg = '（线上文件移除失败：' + e.message + '）'; }
+        }
         const { error } = await sb.from(T.sites).update({ status: 'rejected' }).eq('id', b.dataset.offline);
-        if (error) alert('操作失败：' + error.message); else { alert('已下架，部署流水线稍后会自动移除线上文件'); loadSites(); }
+        if (error) alert('操作失败：' + error.message); else { alert('已下架' + delMsg); loadSites(); }
       });
     });
     list.querySelectorAll('[data-preview]').forEach((b) => {
@@ -270,6 +304,54 @@
     } catch (e) { alert('复制失败'); }
   });
 
+  // ===== 立即上线（GitHub Pages 部署） =====
+  function utf8ToB64(str) {
+    let bin = '';
+    for (const b of new TextEncoder().encode(str)) bin += String.fromCharCode(b);
+    return btoa(bin);
+  }
+  async function ghApi(token, method, url, body) {
+    const r = await fetch(url, {
+      method,
+      headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    return r;
+  }
+  async function getDeployToken() {
+    const { data, error } = await sb.from(T.config).select('value').eq('key', 'ghp_deploy').limit(1);
+    if (error) throw new Error(error.message);
+    return (data && data[0] && data[0].value || '').trim() || null;
+  }
+  async function ghErr(r) {
+    let msg = 'HTTP ' + r.status;
+    try { const j = await r.json(); if (j && j.message) msg = j.message; } catch (e) {}
+    return msg;
+  }
+  async function deploySiteToGithub(token, s) {
+    const html = (s.content_html && s.content_html.trim()) ? s.content_html : window.BXSiteGen.generateSiteHtml(s);
+    const relPath = 'sites/' + s.slug + '/index.html';
+    const api = 'https://api.github.com/repos/lwl555/boxiang-blog/contents/' + encodeURIComponent(relPath);
+    const r0 = await ghApi(token, 'GET', api);
+    let sha = null;
+    if (r0.ok) sha = (await r0.json()).sha;
+    const body = { message: '发布免费网站 ' + relPath, content: utf8ToB64(html) };
+    if (sha) body.sha = sha;
+    const r = await ghApi(token, 'PUT', api, body);
+    if (!r.ok) throw new Error(await ghErr(r));
+    return relPath;
+  }
+  async function removeSiteFile(token, slug) {
+    const relPath = 'sites/' + slug + '/index.html';
+    const api = 'https://api.github.com/repos/lwl555/boxiang-blog/contents/' + encodeURIComponent(relPath);
+    const r0 = await ghApi(token, 'GET', api);
+    if (!r0.ok) return 'skip';
+    const info = await r0.json();
+    const r = await ghApi(token, 'DELETE', api, { message: '下架网站 ' + relPath, sha: info.sha });
+    if (!r.ok) throw new Error(await ghErr(r));
+    return relPath;
+  }
+
   // ===== 站点设置 =====
   const CONFIG_DEFS = [
     ['nickname', '昵称', '薄想', '关于区块显示的名字'],
@@ -280,6 +362,7 @@
     ['hero_title', '首页大标题', '把想法，做成会发光 的作品', '首页主标题，用两个空格分行的位置可换行'],
     ['hero_sub', '首页副标题', '网站开发 · 视频创作 · AI 绘画 · 设计落地', '主标题下方一句话'],
     ['agnes_api_key', 'Agnes AI 密钥', '', 'Agnes AI 平台（platform.agnes-ai.cn 注册后创建）的 API Key，填写后游客才可使用 AI 建站工作台（文本/图像/视频三个免费模型）'],
+    ['ghp_deploy', 'GitHub 部署令牌', '', '「立即上线」专用：GitHub → Settings → Developer settings → Personal access tokens (classic) 创建，勾选 repo 权限（ghp_ 开头），用于把已审核网站推送到 lwl555/boxiang-blog 的 GitHub Pages'],
     ['services', '服务列表(JSON)', '[{"icon":"🌐","title":"网站开发","desc":"个人主页、博客、商城、企业官网，从设计到上线一条龙。"},{"icon":"🎬","title":"视频创作","desc":"剪辑、包装、AI 视频生成，让你的内容更出彩。"},{"icon":"🎨","title":"AI 绘画","desc":"插画、海报、三视图、道具设定，AI 快速出图。"},{"icon":"🚀","title":"其他定制","desc":"脚本写作、公众号排版、自动化工具，有需求尽管说。"}]', 'JSON 数组，每条含 icon/title/desc']
   ];
 
@@ -297,7 +380,7 @@
       const v = (map[k] ?? def).replace(/"/g, '&quot;');
       return `
       <label>${label}
-        <input type="text" data-key="${k}" data-orig="${v}" value="${v}" maxlength="2000">
+        <input type="${k === 'ghp_deploy' ? 'password' : 'text'}" data-key="${k}" data-orig="${v}" value="${v}" maxlength="2000" ${k === 'ghp_deploy' ? 'autocomplete="off"' : ''}>
         ${hint ? `<span class="hint">${hint}</span>` : ''}
       </label>`;
     }).join('');
