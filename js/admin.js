@@ -44,8 +44,9 @@
     t.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach((x) => x.classList.remove('active'));
       t.classList.add('active');
-      ['orders', 'posts', 'config'].forEach((k) => { $('tab-' + k).hidden = k !== t.dataset.tab; });
+      ['orders', 'posts', 'sites', 'config'].forEach((k) => { $('tab-' + k).hidden = k !== t.dataset.tab; });
       if (t.dataset.tab === 'posts') loadPosts();
+      if (t.dataset.tab === 'sites') loadSites();
       if (t.dataset.tab === 'config') loadConfigForm();
     });
   });
@@ -175,6 +176,92 @@
     loadPosts();
   });
 
+  // ===== 建站审核 =====
+  const SITE_STATUS = { pending: '待审核', published: '已上线', rejected: '已拒绝' };
+  let siteRows = [];
+
+  async function loadSites() {
+    const list = $('siteList');
+    list.innerHTML = '<div class="empty-tip">加载中…</div>';
+    const { data, error } = await sb.from(T.sites).select('*').order('created_at', { ascending: false });
+    if (error) { list.innerHTML = '<div class="empty-tip">加载失败：' + error.message + '</div>'; return; }
+    siteRows = data || [];
+    const filter = $('siteFilter').value;
+    const rows = filter ? siteRows.filter((s) => s.status === filter) : siteRows;
+    if (!rows.length) { list.innerHTML = '<div class="empty-tip">暂无建站申请</div>'; return; }
+    list.innerHTML = rows.map((s) => {
+      const feats = Array.isArray(s.features) ? s.features.join(' / ') : '';
+      return `
+      <div class="site-admin-card glass">
+        <div class="site-admin-top">
+          <div>
+            <b>${s.title || '未命名'}</b>
+            <span class="s-purpose">${s.purpose || '其他'} · ${s.theme || ''}</span>
+          </div>
+          <span class="o-status ${s.status || 'pending'}">${SITE_STATUS[s.status] || '待审核'}</span>
+        </div>
+        <p class="site-admin-desc">${s.description || ''}</p>
+        <div class="site-admin-meta">
+          <span>🔗 /sites/${s.slug}/</span>
+          ${s.contact ? `<span>📞 ${s.contact}</span>` : ''}
+          <span>🕐 ${fmt(s.created_at)}</span>
+          ${feats ? `<span>✨ ${feats}</span>` : ''}
+        </div>
+        <div class="order-actions">
+          ${s.status === 'pending' ? `<button class="mini-btn ok" data-approve="${s.id}">✅ 通过并上线</button>` : ''}
+          ${s.status !== 'rejected' ? `<button class="mini-btn" data-reject="${s.id}">❌ 拒绝</button>` : ''}
+          <button class="mini-btn" data-preview="${s.id}">👁 预览代码</button>
+          <button class="mini-btn danger" data-del-site="${s.id}">删除</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    list.querySelectorAll('[data-approve]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        if (!confirm('确认通过？通过后前台会展示该网站。')) return;
+        const { error } = await sb.from(T.sites)
+          .update({ status: 'published', published_at: new Date().toISOString() })
+          .eq('id', b.dataset.approve);
+        if (error) alert('操作失败：' + error.message); else { alert('✅ 已上线！请通知 Codex 运行部署脚本生成网站文件（或稍后我统一处理）'); loadSites(); }
+      });
+    });
+    list.querySelectorAll('[data-reject]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        if (!confirm('确认拒绝该建站申请？')) return;
+        const { error } = await sb.from(T.sites).update({ status: 'rejected' }).eq('id', b.dataset.reject);
+        if (error) alert('操作失败：' + error.message); else loadSites();
+      });
+    });
+    list.querySelectorAll('[data-preview]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const s = siteRows.find((x) => x.id === +b.dataset.preview);
+        if (!s) return;
+        const code = window.BXSiteGen.generateSiteHtml(s);
+        $('scmTitle').textContent = s.title + ' · 网站代码';
+        $('scmCode').value = code;
+        $('siteCodeModal').hidden = false;
+      });
+    });
+    list.querySelectorAll('[data-del-site]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        if (!confirm('确定删除这条建站申请？')) return;
+        const { error } = await sb.from(T.sites).delete().eq('id', b.dataset.delSite);
+        if (error) alert('删除失败：' + error.message); else loadSites();
+      });
+    });
+  }
+  $('refreshSites').addEventListener('click', loadSites);
+  $('siteFilter').addEventListener('change', loadSites);
+  $('scmClose').addEventListener('click', () => { $('siteCodeModal').hidden = true; });
+  $('scmBackdrop').addEventListener('click', () => { $('siteCodeModal').hidden = true; });
+  $('scmCopy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('scmCode').value);
+      const b = $('scmCopy'); b.textContent = '已复制 ✓';
+      setTimeout(() => { b.textContent = '复制代码'; }, 1500);
+    } catch (e) { alert('复制失败'); }
+  });
+
   // ===== 站点设置 =====
   const CONFIG_DEFS = [
     ['nickname', '昵称', '薄想', '关于区块显示的名字'],
@@ -223,5 +310,5 @@
     if (failed) alert('保存失败：' + failed); else { btn.textContent = '已保存 ✓'; setTimeout(() => { btn.textContent = '保存设置'; }, 1500); }
   });
 
-  async function loadAll() { loadOrders(); loadPosts(); loadConfigForm(); }
+  async function loadAll() { loadOrders(); loadPosts(); loadSites(); loadConfigForm(); }
 })();
