@@ -144,6 +144,22 @@ body::before{
 .msg .bubble .sugg button:hover{border-color:var(--accent);color:var(--accent);transform:translateX(2px)}
 .msg .bubble .status{color:var(--soft);font-size:.8rem}
 .thinking{display:inline-flex;align-items:center;gap:8px;color:var(--soft);font-size:.86rem}
+/* ===== AI 思考过程展示 ===== */
+.think-wrap{display:flex;flex-direction:column;gap:6px}
+.think-head{
+  font-size:.76rem;font-weight:800;color:var(--amber);cursor:pointer;user-select:none;
+  display:flex;align-items:center;gap:6px;letter-spacing:.3px;
+}
+.think-head:hover{color:var(--accent)}
+.think-arrow{font-size:.68rem;opacity:.75;font-weight:600}
+.think-body{
+  font-size:.76rem;line-height:1.7;color:var(--soft);
+  background:rgba(201,138,22,.07);border:1px dashed rgba(201,138,22,.35);
+  border-radius:10px;padding:8px 10px;max-height:190px;overflow-y:auto;
+  white-space:pre-wrap;word-break:break-word;
+}
+.think-tip{font-size:.74rem;color:var(--soft)}
+.think-tip .dots{display:inline-flex;gap:4px;margin-left:6px}
 .thinking .dots{display:inline-flex;gap:4px}
 .thinking .dots i{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;animation:bxDot 1.2s infinite ease-in-out}
 .thinking .dots i:nth-child(2){animation-delay:.18s}
