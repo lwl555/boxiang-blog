@@ -13,17 +13,22 @@
 
   const SYSTEM_PROMPT = '你是一位顶级网页设计师与前端工程师，为「薄想工作室」的免费 AI 建站工作台服务。\n' +
     '用户会告诉你他想要什么样的网站，你必须只输出一个完整、可直接运行的 HTML 文档（以 <!DOCTYPE html> 开头，以 </html> 结尾），不要输出任何解释文字，不要用 Markdown 代码块包裹。\n' +
-    '硬性要求：\n' +
+    '【先理解，再设计】\n' +
+    '动笔前先在内心提炼用户需求的三个要点：网站类型、目标人群、核心卖点；据此决定板块结构、文案语气与内容细节。禁止套用通用模板，内容必须贴合用户描述的具体业务。多轮修改时，先回顾上一版已确定的信息，只按最新要求重写整站。\n' +
+    '【技术硬性要求】\n' +
     '1. 网站类型完全由用户需求决定：个人主页、作品集、企业官网、电商小店、博客、活动落地页、在线工具、导航页等都可以做，不要局限于个人名片。\n' +
-    '2. 视觉风格：东方美学 + 现代质感。背景用暖纸米色 #f5efe2，主强调色朱砂红 #c2402b，辅助强调色琥珀金 #c98a16，正文深褐 #33261d，次要文字 #6d5c4b。严禁使用蓝色、紫色、青色等科技感配色，严禁大面积白色极简（可用但必须搭配暖色质感）。\n' +
-    '3. 必须有明显的设计感：丝滑的滚动显现动画、细腻渐变光晕、玻璃拟态卡片、精致 hover 动效、装饰性线条或几何元素、恰到好处的衬线/粗黑标题。要让用户觉得这是精心设计的品牌官网，而不是模板。\n' +
-    '4. 所有 CSS 写在 <style> 标签内，所有 JS 写在 <script> 标签内，不要引用任何外部库或外部 CSS/JS 文件。配图可用 https://picsum.photos/seed/boxiang/900/600 这类占位图，也可用 emoji 或 CSS 渐变装饰代替。\n' +
-    '5. 响应式设计，移动端必须同样好看。\n' +
-    '6. 内容要具体、真实、完整：根据用户的描述展开合理的文案与板块（导航、Hero、关于、服务/产品、案例、价格、联系等，按网站类型取舍），避免空话套话。\n' +
-    '7. 联系区域放一个明显按钮，链接到 https://lwl555.github.io/boxiang-blog/#order（文案：向薄想工作室下单）。\n' +
-    '8. 页脚加一行小字：由 薄想工作室 免费生成。\n' +
-    '9. 后续对话中，用户会提出修改意见，你要根据上下文重写整个 HTML（保持之前的修改与内容）。\n' +
-    '10. 输出要完整，不要省略中间内容。';
+    '2. 单文件自包含：所有 CSS 写在 <style> 标签内，所有 JS 写在 <script> 标签内，禁止引用任何外部 CSS/JS/字体/图片/视频（包括 CDN、Google Fonts、picsum、unsplash 等一切外网资源）。\n' +
+    '3. 配图一律用内嵌方案代替真实图片：emoji、CSS 渐变、内联 SVG、data URI。需要照片感时，用「渐变底 + 大号 emoji + 光影层次」的卡片设计，保证断网也能完整显示。\n' +
+    '4. JavaScript 必须健壮：事件绑定放在 body 末尾或 DOMContentLoaded 内；任何 DOM 查询先判空；动画优先用 CSS 实现（transition、@keyframes、IntersectionObserver 可选）。\n' +
+    '5. 输出必须完整：禁止省略号、禁止「…略…」等占位符、禁止截断，结尾必须是 </html>。\n' +
+    '【视觉规范（必须严格遵守）】\n' +
+    '6. 风格：东方美学 + 现代质感。背景暖纸米色 #f5efe2，主强调色朱砂红 #c2402b，辅助强调色琥珀金 #c98a16，正文深褐 #33261d，次要文字 #6d5c4b。严禁蓝色、紫色、青色等科技感配色，严禁大面积白色极简（可用但必须搭配暖色质感）。\n' +
+    '7. 设计感：丝滑的滚动显现动画、细腻渐变光晕、玻璃拟态卡片、精致 hover 动效、装饰性线条或几何元素、恰到好处的衬线/粗黑标题、充足留白与清晰层级。要让人一眼觉得这是精心设计的品牌官网而不是模板。\n' +
+    '8. 响应式：移动端必须同样好看，导航折叠、字号自适应、卡片单列。\n' +
+    '9. 文案：内容具体真实，围绕用户业务展开（导航、Hero、关于、服务/产品、案例、价格、联系等按类型取舍），避免空话套话。\n' +
+    '10. 联系区域放一个明显按钮，链接到 https://lwl555.github.io/boxiang-blog/#order（文案：向薄想工作室下单）。\n' +
+    '11. 页脚加一行小字：由 薄想工作室 免费生成。\n' +
+    '12. 输出前自检：单页不少于 60 行；无任何外部依赖；无 JS 明显错误；</html> 完整闭合。';
 
   let messages = [
     { role: 'system', content: SYSTEM_PROMPT }
@@ -95,8 +100,65 @@
   }
 
   function preview(html) {
-    lastHtml = html;
-    $('stFrame').srcdoc = html;
+    let h = String(html || '');
+    const trimH = h.trim();
+    if (!/^<!DOCTYPE html/i.test(trimH) && !/^<html/i.test(trimH)) {
+      h = '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>生成页面</title>\n</head>\n<body>\n' + h + '\n</body>\n</html>';
+    }
+    if (!/<\/html>\s*$/i.test(h.trim())) h = h.replace(/\s*$/, '') + '\n</html>';
+    lastHtml = h;
+    $('stFrame').srcdoc = h;
+  }
+
+  // ===== 会话持久化（刷新不丢）=====
+  const STATE_KEY = 'bx_studio_state_v1';
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll('.tool-btn').forEach((x) => x.classList.toggle('active', x.dataset.mode === m));
+    $('stModelBadge').textContent = MODE_INFO[m].badge;
+    $('chatHint').textContent = MODE_INFO[m].hint;
+    $('chatInput').placeholder = m === 'text' ? '跟 AI 说你想做什么网站…' : (m === 'image' ? '描述想生成的图片…' : '描述想生成的视频…');
+  }
+  function saveState() {
+    try {
+      const msgs = messages.filter((m) => m.role !== 'system').slice(-12);
+      localStorage.setItem(STATE_KEY, JSON.stringify({
+        messages: msgs,
+        lastHtml: lastHtml || '',
+        name: $('stName').value,
+        type: $('stType').value,
+        theme: $('stTheme').value,
+        mode: mode
+      }));
+    } catch (e) { /* 存储满时忽略 */ }
+  }
+  function renderHistory(msgs) {
+    for (const m of msgs) {
+      if (m.role === 'user') {
+        addMsg('user', esc(m.content));
+      } else {
+        const s = String(m.content || '').replace(/\s+/g, ' ').slice(0, 100);
+        addMsg('bot', '<span class="status">✦ 之前生成的一版网站</span><div style="margin-top:6px;font-size:.84rem;color:var(--soft);word-break:break-all">' + esc(s) + (m.content && m.content.length > 100 ? '…' : '') + '</div>');
+      }
+    }
+  }
+  function restoreState() {
+    try {
+      const raw = localStorage.getItem(STATE_KEY);
+      if (!raw) return false;
+      const s = JSON.parse(raw);
+      if (s.name) $('stName').value = s.name;
+      if (s.type) $('stType').value = s.type;
+      if (s.theme) $('stTheme').value = s.theme;
+      if (s.mode && MODE_INFO[s.mode]) setMode(s.mode);
+      if (s.lastHtml) { preview(s.lastHtml); $('stStatus').textContent = '✅ 已恢复上次预览'; }
+      if (Array.isArray(s.messages) && s.messages.length) {
+        messages = [{ role: 'system', content: SYSTEM_PROMPT }].concat(s.messages);
+        renderHistory(s.messages);
+        return true;
+      }
+      return !!s.lastHtml;
+    } catch (e) { return false; }
   }
 
   // ===== 文本：生成/修改网站 =====
@@ -161,6 +223,7 @@
       messages.push({ role: 'assistant', content: full });
       bubbleText.textContent = '✅ 网站已生成！看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
       $('stStatus').textContent = '✅ 已生成 · 可继续对话修改';
+      saveState();
     } catch (e) {
       const msg = e && e.message ? e.message : '生成失败，请重试';
       addMsg('bot', '<span class="status">❌ ' + esc(msg) + '</span>');
@@ -205,6 +268,7 @@
         if (!url) throw new Error('没有拿到图片地址');
         const imgTag = '<img src="' + url + '" alt="' + esc(prompt.slice(0, 50)) + '" style="width:100%;height:auto;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.16);margin:22px 0;display:block">';
         if (lastHtml) preview(insertMedia(imgTag));
+        saveState();
         const b = addMsg('bot', '🖼️ 图片生成好了：<br><img class="img-inline" src="' + url + '" alt="生成的图片">');
         b.querySelector('img').addEventListener('click', () => {
           if (lastHtml && !lastHtml.includes(url)) {
@@ -241,6 +305,7 @@
             const url = v.metadata.url;
             const videoTag = '<video src="' + url + '" autoplay muted loop playsinline controls style="width:100%;max-height:420px;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.16);margin:22px 0;display:block;background:#000"></video>';
             if (lastHtml) preview(insertMedia(videoTag));
+            saveState();
             const b = addMsg('bot', '🎬 视频生成好了！<br><video class="img-inline" src="' + url + '" autoplay muted loop playsinline controls style="max-height:260px"></video>');
             b.querySelector('video').addEventListener('click', () => {
               if (lastHtml && !lastHtml.includes(url)) {
@@ -392,6 +457,7 @@
   });
   $('stClear').addEventListener('click', () => {
     if (!confirm('重新开始会清空当前对话和预览，确定？')) return;
+    try { localStorage.removeItem(STATE_KEY); } catch (e) {}
     messages = [{ role: 'system', content: SYSTEM_PROMPT }];
     lastHtml = '';
     chatList.innerHTML = '';
@@ -444,7 +510,7 @@
   $('pubBackdrop').addEventListener('click', () => { $('pubModal').hidden = true; });
 
   // ===== 初始化 =====
-  welcome();
+  if (!restoreState()) welcome();
   window.addEventListener('beforeunload', () => {
     if (videoTimer) clearInterval(videoTimer);
     if (aborter) aborter.abort();
