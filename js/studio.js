@@ -124,27 +124,37 @@
 
     generating = true;
     setBusy(true);
-    const statusEl = addStatus('✦ AI 正在为你搭建网站…');
+    const statusEl = addStatus('<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在思考，请稍候…</span>');
     aborter = new AbortController();
     try {
       let streamText = '';
+      let started = false;
       const bubble = document.createElement('div');
       bubble.className = 'msg bot';
       bubble.innerHTML = '<div class="avatar">✦</div><div class="bubble"></div>';
-      chatList.appendChild(bubble);
-      chatList.scrollTop = chatList.scrollHeight;
       const bubbleText = bubble.querySelector('.bubble');
-      statusEl.remove();
 
       const full = await window.Agnes.chat(messages, {
         stream: true,
         signal: aborter.signal,
         onDelta: (d) => {
+          if (!started) {
+            started = true;
+            statusEl.remove();
+            chatList.appendChild(bubble);
+            chatList.scrollTop = chatList.scrollHeight;
+          }
           streamText += d;
           bubbleText.textContent = streamText.slice(-600);
           chatList.scrollTop = chatList.scrollHeight;
         }
       });
+      if (!started) {
+        statusEl.remove();
+        chatList.appendChild(bubble);
+        bubbleText.textContent = full || '';
+        chatList.scrollTop = chatList.scrollHeight;
+      }
       const html = extractHtml(full);
       if (!html || html.length < 300) throw new Error('AI 没有返回有效的网页内容，请再试一次');
       preview(html);
@@ -190,7 +200,7 @@
     const prog = $('toolProgress');
     try {
       if (toolMode === 'image') {
-        prog.textContent = '🎨 AI 正在画画，约 10~30 秒…';
+        prog.innerHTML = '<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>🎨 AI 正在画画，约 10~30 秒…</span>';
         const url = await window.Agnes.generateImage(prompt, { ratio: toolRatio });
         if (!url) throw new Error('没有拿到图片地址');
         const imgTag = '<img src="' + url + '" alt="' + esc(prompt.slice(0, 50)) + '" style="width:100%;height:auto;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.16);margin:22px 0;display:block">';
@@ -206,7 +216,7 @@
         $('toolRun').textContent = '再生成一张';
         $('toolRun').disabled = false;
       } else {
-        prog.textContent = '🎬 正在创建视频任务…';
+        prog.innerHTML = '<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>🎬 正在创建视频任务…</span>';
         const videoId = await window.Agnes.createVideo(prompt, { num_frames: 121, frame_rate: 24 });
         if (!videoId) throw new Error('视频任务创建失败');
         await pollVideo(videoId, prompt, prog);
@@ -250,7 +260,7 @@
             resolve();
           } else {
             const pct = v.progress || Math.min(tries * 6, 90);
-            prog.textContent = '🎬 视频生成中… ' + pct + '%（约 1~3 分钟）';
+            prog.innerHTML = '<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>🎬 视频生成中… ' + pct + '%（约 1~3 分钟）</span>';
             if (tries > 80) {
               clearInterval(videoTimer);
               prog.textContent = '⏳ 生成时间较长，稍后刷新页面在预览里查看（已完成可点下方重试）';
