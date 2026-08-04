@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>免费 AI 建站 · 薄想工作室</title>
+<meta name="description" content="薄想工作室免费 AI 建站：跟 AI 聊几句，自动生成专属网站。文本/图像/视频三个免费模型，11+ 免费 API 一键接入，无需代码、无需服务器，一键发布上线。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
+<style>
+:root{--bg:#f5efe2;--panel:#fffdf6;--ink:#33261d;--soft:#6d5c4b;--line:rgba(51,38,29,.12);--accent:#c2402b;--accent-dark:#8a2f22;--amber:#c98a16;--ok:#2f5d4a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:
+    radial-gradient(1100px 550px at 90% -10%, rgba(201,138,22,.18), transparent 60%),
+    radial-gradient(900px 520px at -10% 115%, rgba(194,64,43,.14), transparent 55%),
+    var(--bg);
+  color:var(--ink);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  overflow-x:hidden;line-height:1.7;
+}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;z-index:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 22px}
+.grad{background:linear-gradient(120deg,#c2402b,#c98a16);-webkit-background-clip:text;background-clip:text;color:transparent}
+.glass{background:rgba(255,253,246,.82);backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:0 18px 50px rgba(51,38,29,.14)}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;border:none;border-radius:999px;cursor:pointer;
+  font-weight:900;font-size:1.02rem;padding:15px 38px;text-decoration:none;letter-spacing:.5px;
+  transition:transform .18s,box-shadow .18s;color:#fff;
+  background:linear-gradient(135deg,#d96a33,#c2402b 55%,#a8352a);
+  box-shadow:0 10px 26px rgba(194,64,43,.4);
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(194,64,43,.5)}
+.btn.ghost{background:transparent;color:var(--soft);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:hover{color:var(--accent);border-color:var(--accent)}
+/* 导航 */
+.nav{position:sticky;top:0;z-index:50;background:rgba(255,253,246,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1080px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:16px}
+.logo{font-weight:900;letter-spacing:1px;text-decoration:none;color:var(--ink);font-size:1rem}
+.logo .dot{color:var(--accent)}
+.nav-links{margin-left:auto;display:flex;gap:6px;align-items:center}
+.nav-links a{text-decoration:none;font-size:.86rem;font-weight:700;color:var(--soft);padding:8px 14px;border-radius:999px;transition:all .15s}
+.nav-links a:hover{color:var(--accent);background:rgba(194,64,43,.08)}
+.nav-links a.accent{color:#fff;background:linear-gradient(135deg,#d96a33,#c2402b);padding:9px 20px}
+/* Hero */
+.hero{text-align:center;padding:84px 0 40px}
+.hero-tag{display:inline-block;font-size:.8rem;font-weight:900;letter-spacing:2px;color:var(--accent);border:1px solid rgba(194,64,43,.35);background:rgba(194,64,43,.07);padding:7px 18px;border-radius:999px;margin-bottom:22px}
+.hero h1{font-size:clamp(2.1rem,6vw,3.4rem);line-height:1.25;letter-spacing:1px;font-weight:900}
+.hero p.sub{max-width:640px;margin:18px auto 0;color:var(--soft);font-size:1.02rem}
+.hero-actions{margin-top:34px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.hero-note{margin-top:16px;font-size:.78rem;color:var(--soft)}
+/* 区块 */
+.section{padding:56px 0}
+.sec-label{text-align:center;font-size:.76rem;font-weight:900;letter-spacing:2.5px;color:var(--amber);margin-bottom:8px}
+.sec-title{text-align:center;font-size:clamp(1.5rem,3.6vw,2.1rem);font-weight:900;letter-spacing:1px;margin-bottom:14px}
+.sec-desc{text-align:center;color:var(--soft);max-width:680px;margin:0 auto 34px;font-size:.94rem}
+/* 模型卡片 */
+.model-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.model-card{border-radius:22px;padding:28px 24px;text-align:center;transition:transform .2s,box-shadow .2s}
+.model-card:hover{transform:translateY(-5px);box-shadow:0 24px 54px rgba(51,38,29,.18)}
+.model-icon{font-size:2.4rem;margin-bottom:12px}
+.model-card h3{font-size:1.08rem;letter-spacing:.5px}
+.model-card p{font-size:.84rem;color:var(--soft);margin-top:8px}
+.model-card .tag{display:inline-block;margin-top:12px;font-size:.7rem;font-weight:900;color:var(--ok);background:rgba(47,93,74,.12);padding:4px 12px;border-radius:999px}
+/* 功能 */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.feat{border-radius:18px;padding:22px;display:flex;gap:14px;align-items:flex-start}
+.feat .fi{font-size:1.6rem;flex:none}
+.feat b{font-size:.95rem;display:block;margin-bottom:4px}
+.feat p{font-size:.8rem;color:var(--soft)}
+/* API 市场 */
+.api-cloud{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:860px;margin:0 auto}
+.api-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px;font-size:.82rem;font-weight:700;transition:all .15s}
+.api-chip:hover{border-color:var(--amber);transform:translateY(-2px)}
+.api-chip.free{color:var(--ok);font-size:.66rem;font-weight:900;background:rgba(47,93,74,.1);padding:3px 9px;border-radius:999px;margin-left:2px}
+/* 流程 */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;counter-reset:st}
+.step{border-radius:18px;padding:24px;text-align:center;position:relative}
+.step .num{width:38px;height:38px;line-height:38px;margin:0 auto 12px;border-radius:50%;background:linear-gradient(135deg,#c2402b,#8a2f22);color:#fff;font-weight:900;font-size:1rem;box-shadow:0 8px 18px rgba(194,64,43,.35)}
+.step b{font-size:.95rem}
+.step p{font-size:.8rem;color:var(--soft);margin-top:6px}
+/* CTA */
+.cta-box{border-radius:26px;padding:52px 30px;text-align:center;background:linear-gradient(135deg,#3a2a20,#241a13);color:#fff;position:relative;overflow:hidden}
+.cta-box::before{content:"✦";position:absolute;font-size:9rem;opacity:.06;top:-30px;right:10px;transform:rotate(15deg)}
+.cta-box h2{font-size:clamp(1.5rem,4vw,2.2rem);letter-spacing:1px;margin-bottom:10px}
+.cta-box p{color:rgba(255,255,255,.75);font-size:.92rem;margin-bottom:28px}
+.cta-box .btn{font-size:1.1rem;padding:17px 46px}
+/* 页脚 */
+.footer{text-align:center;padding:36px 0 44px;color:var(--soft);font-size:.82rem}
+.footer .fb{font-weight:900;color:var(--ink);font-size:.95rem;margin-bottom:6px}
+.footer .fb span{color:var(--accent)}
+/* 动画 */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.floating{animation:float 5s ease-in-out infinite}
+@media (max-width:720px){
+  .nav-links a:not(.accent){display:none}
+  .hero{padding:56px 0 30px}
+  .section{padding:40px 0}
+  .hero-actions .btn{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-in">
+    <a href="index.html" class="logo">薄想<span class="dot">✦</span></a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="index.html#works">作品</a>
+      <a href="index.html#order">立即接单</a>
+      <a href="studio.html" class="accent">🚀 立即开始</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Hero -->
+  <section class="hero">
+    <p class="hero-tag">✦ FREE AI WEBSITE BUILDER</p>
+    <h1>一句话，免费拥有<br><span class="grad">属于你的网站</span></h1>
+    <p class="sub">不用写代码、不用买服务器、不用懂设计。跟 AI 聊几句，它自动帮你做好网站、配好图片、接入想要的功能，一键发布上线。</p>
+    <div class="hero-actions">
+      <a href="studio.html" class="btn">🚀 立即开始创建 <span>→</span></a>
+      <a href="index.html#order" class="btn ghost">先找薄想聊聊需求</a>
+    </div>
+    <p class="hero-note">🆓 完全免费 · 永久挂在 lwl555.github.io 子域名下 · 不满意随时重做</p>
+  </section>
+
+  <!-- 三大模型 -->
+  <section class="section">
+    <p class="sec-label">THREE FREE AI MODELS</p>
+    <h2 class="sec-title">三个免费 AI 模型，一个工作台</h2>
+    <p class="sec-desc">文本模型负责整站设计与改版，图像模型自动生成配图，视频模型制作动态短片——AI 会根据你的网站需要自动调用。</p>
+    <div class="model-grid">
+      <div class="model-card glass floating">
+        <div class="model-icon">💬</div>
+        <h3>文本模型</h3>
+        <p>听懂你的需求，生成完整网站；多轮对话修改，越聊越像你想要的样子。每个网站一份独立记忆，刷新不丢。</p>
+        <span class="tag">对话即建站</span>
+      </div>
+      <div class="model-card glass">
+        <div class="model-icon">🖼️</div>
+        <h3>图像模型</h3>
+        <p>AI 判断页面哪里需要配图，自动生成产品图、场景图、插画，直接嵌入页面，不需要你动手。</p>
+        <span class="tag">自动配图</span>
+      </div>
+      <div class="model-card glass floating">
+        <div class="model-icon">🎬</div>
+        <h3>视频模型</h3>
+        <p>需要动态展示？生成 5 秒短片插入页面，产品展示、品牌宣传、氛围视频都能做。</p>
+        <span class="tag">动态短片</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 功能 -->
+  <section class="section">
+    <p class="sec-label">WORKBENCH</p>
+    <h2 class="sec-title">像聊天一样建网站</h2>
+    <p class="sec-desc">左边跟 AI 对话，右边实时预览。做的每一步都看得见。</p>
+    <div class="feat-grid">
+      <div class="feat glass"><span class="fi">📚</span><div><b>会话记忆合一</b><p>每个网站一份独立对话记忆，像聊天一样多会话切换，刷新、换设备都不丢。</p></div></div>
+      <div class="feat glass"><span class="fi">👀</span><div><b>实时预览</b><p>AI 每生成一版，右边立刻看到效果，不满意继续说，改到满意为止。</p></div></div>
+      <div class="feat glass"><span class="fi">📁</span><div><b>文件管理</b><p>生成的网站以文件夹形式展示：index.html、样式、脚本、素材一目了然，可查看、复制、下载。</p></div></div>
+      <div class="feat glass"><span class="fi">🧩</span><div><b>免费 API 市场</b><p>一言、天气、汇率、二维码等 14 个免费功能一键接入，AI 也会根据网站类型自动帮你接入。</p></div></div>
+      <div class="feat glass"><span class="fi">🚀</span><div><b>一键发布</b><p>发布后自动获得专属网址，站长审核通过立即上线，永久免费访问。</p></div></div>
+      <div class="feat glass"><span class="fi">🛡️</span><div><b>任何网页都能做</b><p>个人主页、企业官网、电商小店、博客、活动页、在线工具……不限于个人网站。</p></div></div>
+    </div>
+  </section>
+
+  <!-- API 市场 -->
+  <section class="section">
+    <p class="sec-label">FREE API MARKET</p>
+    <h2 class="sec-title">14 个免费功能，一键接入</h2>
+    <p class="sec-desc">全部实测可用：无需注册、不用 key、浏览器直接调用。AI 建站时按需自动接入，你也可以随时手动接入。</p>
+    <div class="api-cloud">
+      <span class="api-chip">💬 一言每日一句<span class="free">免费</span></span>
+      <span class="api-chip">📜 今日诗词<span class="free">免费</span></span>
+      <span class="api-chip">🌤 实时天气<span class="free">免费</span></span>
+      <span class="api-chip">📍 IP 访客定位<span class="free">免费</span></span>
+      <span class="api-chip">💱 实时汇率<span class="free">免费</span></span>
+      <span class="api-chip">🐶 随机狗图<span class="free">免费</span></span>
+      <span class="api-chip">🎭 随机头像<span class="free">免费</span></span>
+      <span class="api-chip">📱 二维码生成<span class="free">免费</span></span>
+      <span class="api-chip">🖼️ 随机美图<span class="free">免费</span></span>
+      <span class="api-chip">👤 随机用户信息<span class="free">免费</span></span>
+      <span class="api-chip">😂 英文冷笑话<span class="free">免费</span></span>
+      <span class="api-chip">🌏 在线翻译<span class="free">免费</span></span>
+      <span class="api-chip">🎂 年龄预测<span class="free">免费</span></span>
+      <span class="api-chip">👥 性别预测<span class="free">免费</span></span>
+    </div>
+  </section>
+
+  <!-- 流程 -->
+  <section class="section">
+    <p class="sec-label">HOW IT WORKS</p>
+    <h2 class="sec-title">四步，拥有你的网站</h2>
+    <div class="steps">
+      <div class="step glass"><div class="num">1</div><b>说出需求</b><p>「帮我做一个咖啡馆官网，要有菜单和故事」</p></div>
+      <div class="step glass"><div class="num">2</div><b>AI 生成 + 自动配图</b><p>文本模型写整站，图像模型补配图，需要时自动接入免费 API</p></div>
+      <div class="step glass"><div class="num">3</div><b>预览与修改</b><p>右边实时看效果，文件区查看全部代码，不满意继续说</p></div>
+      <div class="step glass"><div class="num">4</div><b>一键发布</b><p>生成专属网址，站长审核后立即上线，永久免费</p></div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section">
+    <div class="cta-box">
+      <h2>现在，轮到你建站了 ✨</h2>
+      <p>免费 · 无代码 · 3 分钟出成品 · 不满意随时重做</p>
+      <a href="studio.html" class="btn">🚀 立即开始创建 <span>→</span></a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p class="fb">薄想<span>✦</span>工作室</p>
+  <p>抖音：薄想30786753040 · 公众号：超有用的林</p>
+  <p style="margin-top:6px">© 2026 薄想工作室 · 用心做每一单 · <a href="index.html" style="color:var(--accent)">返回首页</a></p>
+</footer>
+
+</body>
+</html>
