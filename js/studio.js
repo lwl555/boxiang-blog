@@ -479,24 +479,38 @@
 
       if (intent.intent === 'chat') {
         messages.push({ role: 'user', content: fullQ });
+        if (statusEl.isConnected) {
+          statusEl.innerHTML = '<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在回复你…</span>';
+        }
         let reply = '';
         const bubble = document.createElement('div');
         bubble.className = 'msg bot';
         bubble.innerHTML = '<div class="avatar">✦</div><div class="bubble"></div>';
         const bubbleText = bubble.querySelector('.bubble');
-        const cont = await window.Agnes.chat([{ role: 'system', content: CHAT_PROMPT }].concat(compactForRequest().slice(1)), {
-          stream: true, signal: aborter.signal, maxTokens: 1024, timeout: 120000,
-          onDelta: (d) => {
-            if (!reply) { if (statusEl.isConnected) statusEl.remove(); chatList.appendChild(bubble); }
-            reply += d;
-            bubbleText.textContent = reply.slice(-900);
-            chatList.scrollTop = chatList.scrollHeight;
-          }
-        });
+        let cont = '';
+        try {
+          cont = await window.Agnes.chat([{ role: 'system', content: CHAT_PROMPT }].concat(compactForRequest().slice(1)), {
+            stream: true, signal: aborter.signal, maxTokens: 1024, timeout: 120000,
+            onDelta: (d) => {
+              if (!reply) { if (statusEl.isConnected) statusEl.remove(); chatList.appendChild(bubble); }
+              reply += d;
+              bubbleText.textContent = reply.slice(-900);
+              chatList.scrollTop = chatList.scrollHeight;
+            }
+          });
+        } catch (e) { cont = ''; } // 网络波动：交给下面的重试兜底，避免出现空 AI 图标
         if (statusEl.isConnected) statusEl.remove();
         if (!reply) chatList.appendChild(bubble);
-        const clean = /^<!DOCTYPE html|<html[\s>]/i.test(String(cont).trim()) ? '我是薄想 AI 建站助手～如果你需要生成网站，直接告诉我网站类型、风格和内容，我就帮你做出来！' : cont;
-        const safe = guardIdentity(clean);
+        let safe = guardIdentity(/^<!DOCTYPE html|<html[\s>]/i.test(String(cont).trim()) ? '我是薄想 AI 建站助手～如果你需要生成网站，直接告诉我网站类型、风格和内容，我就帮你做出来！' : cont);
+        if (!safe || !safe.trim()) {
+          // 空回复兜底：非流式重试一次，绝不显示"只有头像没有文字"的气泡
+          bubbleText.textContent = '✍️ 正在输入…';
+          try {
+            const retry = await window.Agnes.chat([{ role: 'system', content: CHAT_PROMPT }, { role: 'user', content: fullQ }], { stream: false, maxTokens: 1024, timeout: 60000, signal: aborter.signal });
+            safe = guardIdentity(String(retry || '').trim());
+          } catch (e2) { safe = ''; }
+        }
+        if (!safe || !safe.trim()) safe = '抱歉，我这边刚才走神了，请再说一次～';
         bubbleText.textContent = safe;
         chatList.scrollTop = chatList.scrollHeight;
         messages.push({ role: 'assistant', content: safe });
