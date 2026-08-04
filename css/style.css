@@ -358,3 +358,41 @@ textarea { resize: vertical; }
   .hero-actions .btn { width: min(320px, 100%); justify-content: center; }
   .builder-form { padding: 24px 18px; }
 }
+
+/* ===== AI 建站工作台入口卡 ===== */
+.studio-entry{
+  display:grid;grid-template-columns:1.2fr 1fr;gap:26px;align-items:center;
+  padding:38px 40px;border-radius:26px;
+  background:
+    radial-gradient(500px 260px at 92% 8%, rgba(201,138,22,.18), transparent 60%),
+    linear-gradient(135deg,#fffdf6,#f8efdd);
+}
+.studio-entry-left h3{font-size:1.5rem;letter-spacing:1px;margin-bottom:12px}
+.studio-entry-left p{color:var(--soft);line-height:1.9;font-size:.95rem;margin-bottom:18px}
+.studio-entry-left p b{color:var(--accent)}
+.entry-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.entry-tags span{
+  font-size:.76rem;font-weight:800;color:var(--ink);
+  background:rgba(194,64,43,.08);border:1px solid rgba(194,64,43,.18);
+  padding:6px 12px;border-radius:999px;
+}
+.entry-mock{
+  display:grid;grid-template-columns:1fr 1.25fr;gap:14px;
+  box-shadow:0 24px 60px rgba(51,38,29,.18);border-radius:18px;padding:14px;
+  background:#fbf6ea;border:1px solid rgba(51,38,29,.1);
+  transform:rotate(1.2deg);transition:transform .4s;
+}
+.studio-entry:hover .entry-mock{transform:rotate(0deg) translateY(-3px)}
+.mock-chat{display:flex;flex-direction:column;gap:9px;padding:10px;background:#fff;border-radius:12px}
+.mock-line{height:8px;border-radius:99px;background:rgba(51,38,29,.14)}
+.mock-line.w70{width:70%}.mock-line.w90{width:90%}.mock-line.w55{width:55%}.mock-line.w80{width:80%}
+.mock-line.accent{background:rgba(194,64,43,.4)}
+.mock-web{display:flex;flex-direction:column;gap:10px;padding:10px;background:#fff;border-radius:12px}
+.mock-nav{height:10px;border-radius:6px;background:rgba(51,38,29,.1);width:100%}
+.mock-hero{height:44px;border-radius:10px;background:linear-gradient(135deg,#f3d9c8,#e8c39a);width:100%}
+.mock-row{display:flex;gap:8px}
+.mock-row i{flex:1;height:26px;border-radius:8px;background:rgba(51,38,29,.07)}
+@media (max-width:860px){
+  .studio-entry{grid-template-columns:1fr;padding:26px 22px}
+  .entry-mock{transform:none}
+}
