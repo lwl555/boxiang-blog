@@ -1,157 +1,157 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 建站工作台 · 薄想工作室</title>
-<meta name="description" content="薄想工作室免费 AI 建站工作台：跟 AI 对话生成任意类型的网站，一键发布上线。">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
-<link rel="stylesheet" href="css/studio.css?v=20260807">
+<title>AI 寤虹珯宸ヤ綔鍙?路 钖勬兂宸ヤ綔瀹?/title>
+<meta name="description" content="钖勬兂宸ヤ綔瀹ゅ厤璐?AI 寤虹珯宸ヤ綔鍙帮細璺?AI 瀵硅瘽鐢熸垚浠绘剰绫诲瀷鐨勭綉绔欙紝涓€閿彂甯冧笂绾裤€?>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>鉁?/text></svg>">
+<link rel="stylesheet" href="css/studio.css?v=20260820">
 </head>
 <body>
 
-<!-- 顶部工具栏 -->
+<!-- 椤堕儴宸ュ叿鏍?-->
 <header class="st-top">
   <div class="st-top-in">
-    <a href="index.html" class="st-logo">← 薄想<span class="dot">✦</span></a>
-    <button class="st-btn ghost st-sessions-btn" id="stSessionsBtn" title="我的网站：每个网站一份独立记忆">📚 我的网站<span class="session-count" id="stSessionCount">0</span></button>
+    <a href="index.html" class="st-logo">鈫?钖勬兂<span class="dot">鉁?/span></a>
+    <button class="st-btn ghost st-sessions-btn" id="stSessionsBtn" title="鎴戠殑缃戠珯锛氭瘡涓綉绔欎竴浠界嫭绔嬭蹇?>馃摎 鎴戠殑缃戠珯<span class="session-count" id="stSessionCount">0</span></button>
     <div class="st-title-group">
-      <input id="stName" placeholder="给网站起个名字（比如：小林的花店）" maxlength="30" autocomplete="off">
-      <select id="stType" title="网站类型">
-        <option value="自动判断">🪄 类型自动判断</option>
-        <option value="个人主页">个人主页</option>
-        <option value="作品集">作品集 / 案例站</option>
-        <option value="企业官网">企业官网</option>
-        <option value="小店展示">店铺 / 电商页</option>
-        <option value="博客">博客 / 资讯</option>
-        <option value="活动落地页">活动落地页</option>
-        <option value="工具页">在线工具页</option>
-        <option value="其他">其他类型</option>
+      <input id="stName" placeholder="缁欑綉绔欒捣涓悕瀛楋紙姣斿锛氬皬鏋楃殑鑺卞簵锛? maxlength="30" autocomplete="off">
+      <select id="stType" title="缃戠珯绫诲瀷">
+        <option value="鑷姩鍒ゆ柇">馃獎 绫诲瀷鑷姩鍒ゆ柇</option>
+        <option value="涓汉涓婚〉">涓汉涓婚〉</option>
+        <option value="浣滃搧闆?>浣滃搧闆?/ 妗堜緥绔?/option>
+        <option value="浼佷笟瀹樼綉">浼佷笟瀹樼綉</option>
+        <option value="灏忓簵灞曠ず">搴楅摵 / 鐢靛晢椤?/option>
+        <option value="鍗氬">鍗氬 / 璧勮</option>
+        <option value="娲诲姩钀藉湴椤?>娲诲姩钀藉湴椤?/option>
+        <option value="宸ュ叿椤?>鍦ㄧ嚎宸ュ叿椤?/option>
+        <option value="鍏朵粬">鍏朵粬绫诲瀷</option>
       </select>
-      <select id="stTheme" title="主题配色">
-        <option value="朱砂">🎨 朱砂 · 温暖中国红</option>
-        <option value="墨绿">🎨 墨绿 · 沉静草木绿</option>
-        <option value="琥珀">🎨 琥珀 · 暖阳蜂蜜金</option>
-        <option value="玫瑰褐">🎨 玫瑰褐 · 复古砖红</option>
+      <select id="stTheme" title="涓婚閰嶈壊">
+        <option value="鏈辩爞">馃帹 鏈辩爞 路 娓╂殩涓浗绾?/option>
+        <option value="澧ㄧ豢">馃帹 澧ㄧ豢 路 娌夐潤鑽夋湪缁?/option>
+        <option value="鐞ョ弨">馃帹 鐞ョ弨 路 鏆栭槼铚傝湝閲?/option>
+        <option value="鐜懓瑜?>馃帹 鐜懓瑜?路 澶嶅彜鐮栫孩</option>
       </select>
     </div>
     <div class="st-actions">
-      <button class="st-btn ghost" id="stNewSite" title="新建一个网站，当前网站会自动保存">➕ 新建网站</button>
-      <button class="st-btn accent" id="stPublish">🚀 发布网站</button>
+      <button class="st-btn ghost" id="stNewSite" title="鏂板缓涓€涓綉绔欙紝褰撳墠缃戠珯浼氳嚜鍔ㄤ繚瀛?>鉃?鏂板缓缃戠珯</button>
+      <button class="st-btn accent" id="stPublish">馃殌 鍙戝竷缃戠珯</button>
     </div>
   </div>
 </header>
 
 <main class="st-main">
-  <!-- 左侧：AI 对话 -->
+  <!-- 宸︿晶锛欰I 瀵硅瘽 -->
   <aside class="st-chat glass">
     <div class="chat-head">
-      <span class="chat-ai">✦ AI 建站助手</span>
-      <span class="model-badge" id="stModelBadge">💬 文本模式</span>
+      <span class="chat-ai">鉁?AI 寤虹珯鍔╂墜</span>
+      <span class="model-badge" id="stModelBadge">馃挰 鏂囨湰妯″紡</span>
     </div>
     <div class="chat-list" id="chatList"></div>
 
     <div class="chat-tools" id="stTools">
-      <button class="tool-btn active" data-mode="text" title="跟 AI 对话生成/修改网站">💬 文本</button>
-      <button class="tool-btn" data-mode="image" title="生成图片插入页面">🖼️ 图像</button>
-      <button class="tool-btn" data-mode="video" title="生成视频插入页面">🎬 视频</button>
+      <button class="tool-btn active" data-mode="text" title="璺?AI 瀵硅瘽鐢熸垚/淇敼缃戠珯">馃挰 鏂囨湰</button>
+      <button class="tool-btn" data-mode="image" title="鐢熸垚鍥剧墖鎻掑叆椤甸潰">馃柤锔?鍥惧儚</button>
+      <button class="tool-btn" data-mode="video" title="鐢熸垚瑙嗛鎻掑叆椤甸潰">馃幀 瑙嗛</button>
     </div>
     <div class="chat-input">
-      <textarea id="chatInput" rows="1" placeholder="跟 AI 说你想做什么网站…"></textarea>
-      <button class="send-btn" id="chatSend">发送</button>
+      <textarea id="chatInput" rows="1" placeholder="璺?AI 璇翠綘鎯冲仛浠€涔堢綉绔欌€?></textarea>
+      <button class="send-btn" id="chatSend">鍙戦€?/button>
     </div>
-    <p class="chat-hint" id="chatHint">💬 文本：直接生成/修改整站 · 🖼️ 图像：生成配图插入页面 · 🎬 视频：生成视频插入页面</p>
+    <p class="chat-hint" id="chatHint">馃挰 鏂囨湰锛氱洿鎺ョ敓鎴?淇敼鏁寸珯 路 馃柤锔?鍥惧儚锛氱敓鎴愰厤鍥炬彃鍏ラ〉闈?路 馃幀 瑙嗛锛氱敓鎴愯棰戞彃鍏ラ〉闈?/p>
   </aside>
 
-  <!-- 右侧：预览 / 文件 / API -->
+  <!-- 鍙充晶锛氶瑙?/ 鏂囦欢 / API -->
   <section class="st-preview glass">
     <div class="preview-head">
       <div class="pv-tabs">
-        <button class="pv-tab active" id="stTabPreview">👀 预览</button>
-        <button class="pv-tab" id="stTabFiles">📁 文件</button>
-        <button class="pv-tab" id="stTabApis">🧩 免费API</button>
+        <button class="pv-tab active" id="stTabPreview">馃憖 棰勮</button>
+        <button class="pv-tab" id="stTabFiles">馃搧 鏂囦欢</button>
+        <button class="pv-tab" id="stTabApis">馃З 鍏嶈垂API</button>
       </div>
-      <span class="pv-status" id="stStatus">👀 实时预览</span>
-      <span class="preview-url" id="stPreviewUrl">还没发布 · 发布后这里显示网址</span>
+      <span class="pv-status" id="stStatus">馃憖 瀹炴椂棰勮</span>
+      <span class="preview-url" id="stPreviewUrl">杩樻病鍙戝竷 路 鍙戝竷鍚庤繖閲屾樉绀虹綉鍧€</span>
       <div class="pv-actions">
-        <button class="mini-btn" id="stReload">🔄 刷新预览</button>
-        <button class="mini-btn" id="stFull">⛶ 全屏</button>
-        <button class="mini-btn" id="stCopyCode">📋 复制代码</button>
-        <button class="mini-btn" id="stDownload">⬇️ 下载</button>
+        <button class="mini-btn" id="stReload">馃攧 鍒锋柊棰勮</button>
+        <button class="mini-btn" id="stFull">鉀?鍏ㄥ睆</button>
+        <button class="mini-btn" id="stCopyCode">馃搵 澶嶅埗浠ｇ爜</button>
+        <button class="mini-btn" id="stDownload">猬囷笍 涓嬭浇</button>
       </div>
     </div>
-    <div class="preview-frame" id="previewFrame"><iframe id="stFrame" title="网站预览"></iframe></div>
+    <div class="preview-frame" id="previewFrame"><iframe id="stFrame" title="缃戠珯棰勮"></iframe></div>
 
-    <!-- 文件区 -->
+    <!-- 鏂囦欢鍖?-->
     <div class="files-wrap" id="filesPanel" hidden>
       <div class="file-tree" id="fileTree"></div>
       <div class="file-view" id="fileView" hidden>
         <div class="file-view-head">
           <span class="file-title" id="fileTitle">index.html</span>
           <div class="file-actions">
-            <button class="mini-btn" id="fileCopy">📋 复制</button>
-            <button class="mini-btn" id="fileDownload">⬇️ 下载</button>
+            <button class="mini-btn" id="fileCopy">馃搵 澶嶅埗</button>
+            <button class="mini-btn" id="fileDownload">猬囷笍 涓嬭浇</button>
           </div>
         </div>
         <textarea id="fileCode" readonly spellcheck="false"></textarea>
       </div>
     </div>
 
-    <!-- API 市场 -->
+    <!-- API 甯傚満 -->
     <div class="apis-panel" id="apisPanel" hidden>
       <div class="apis-head">
-        <b>🧩 免费 API 一键接入</b>
-        <span class="apis-tip">已实测可用：无需注册、不用 key、浏览器直接调用。接入后 AI 会自动记住并保留。</span>
+        <b>馃З 鍏嶈垂 API 涓€閿帴鍏?/b>
+        <span class="apis-tip">宸插疄娴嬪彲鐢細鏃犻渶娉ㄥ唽銆佷笉鐢?key銆佹祻瑙堝櫒鐩存帴璋冪敤銆傛帴鍏ュ悗 AI 浼氳嚜鍔ㄨ浣忓苟淇濈暀銆?/span>
       </div>
       <div class="api-list" id="apiList"></div>
     </div>
   </section>
 </main>
 
-<!-- 我的网站弹窗 -->
+<!-- 鎴戠殑缃戠珯寮圭獥 -->
 <div class="modal" id="sessionModal" hidden>
   <div class="modal-backdrop" id="sessionBackdrop"></div>
   <div class="modal-box session-box">
-    <button class="modal-close" id="sessionClose">✕</button>
-    <h2>📚 我的网站（每个网站一份记忆）</h2>
-    <p class="session-hint">像聊天一样：每个网站一个独立对话，切换/刷新都不会丢。点「删除」只删本地记忆，已发布的网站不受影响。</p>
+    <button class="modal-close" id="sessionClose">鉁?/button>
+    <h2>馃摎 鎴戠殑缃戠珯锛堟瘡涓綉绔欎竴浠借蹇嗭級</h2>
+    <p class="session-hint">鍍忚亰澶╀竴鏍凤細姣忎釜缃戠珯涓€涓嫭绔嬪璇濓紝鍒囨崲/鍒锋柊閮戒笉浼氫涪銆傜偣銆屽垹闄ゃ€嶅彧鍒犳湰鍦拌蹇嗭紝宸插彂甯冪殑缃戠珯涓嶅彈褰卞搷銆?/p>
     <div class="session-list" id="sessionList"></div>
-    <button class="st-btn accent btn-block" id="sessionNew">➕ 新建网站</button>
+    <button class="st-btn accent btn-block" id="sessionNew">鉃?鏂板缓缃戠珯</button>
   </div>
 </div>
 
-<!-- 发布弹窗 -->
+<!-- 鍙戝竷寮圭獥 -->
 <div class="modal" id="pubModal" hidden>
   <div class="modal-backdrop" id="pubBackdrop"></div>
   <div class="modal-box">
-    <button class="modal-close" id="pubClose">✕</button>
+    <button class="modal-close" id="pubClose">鉁?/button>
     <div id="pubBody"></div>
   </div>
 </div>
 
-<!-- 工具弹窗：图像/视频生成 -->
+<!-- 宸ュ叿寮圭獥锛氬浘鍍?瑙嗛鐢熸垚 -->
 <div class="modal" id="toolModal" hidden>
   <div class="modal-backdrop" id="toolBackdrop"></div>
   <div class="modal-box tool-box">
-    <button class="modal-close" id="toolClose">✕</button>
-    <h2 id="toolTitle">🖼️ 生成一张图片</h2>
-    <p class="tool-tip" id="toolTip">描述你想要的画面，生成后会插入到页面顶部。</p>
-    <textarea id="toolPrompt" rows="3" placeholder="比如：一间开满鲜花的巷口小店，暖黄色灯光，电影感"></textarea>
+    <button class="modal-close" id="toolClose">鉁?/button>
+    <h2 id="toolTitle">馃柤锔?鐢熸垚涓€寮犲浘鐗?/h2>
+    <p class="tool-tip" id="toolTip">鎻忚堪浣犳兂瑕佺殑鐢婚潰锛岀敓鎴愬悗浼氭彃鍏ュ埌椤甸潰椤堕儴銆?/p>
+    <textarea id="toolPrompt" rows="3" placeholder="姣斿锛氫竴闂村紑婊￠矞鑺辩殑宸峰彛灏忓簵锛屾殩榛勮壊鐏厜锛岀數褰辨劅"></textarea>
     <div class="tool-ratio" id="toolRatio">
-      <button class="ratio-btn" data-ratio="16:9">16:9 横图</button>
-      <button class="ratio-btn active" data-ratio="1:1">1:1 方图</button>
-      <button class="ratio-btn" data-ratio="9:16">9:16 竖图</button>
+      <button class="ratio-btn" data-ratio="16:9">16:9 妯浘</button>
+      <button class="ratio-btn active" data-ratio="1:1">1:1 鏂瑰浘</button>
+      <button class="ratio-btn" data-ratio="9:16">9:16 绔栧浘</button>
     </div>
     <div class="tool-actions">
       <span class="tool-progress" id="toolProgress"></span>
-      <button class="st-btn accent" id="toolRun">生成</button>
+      <button class="st-btn accent" id="toolRun">鐢熸垚</button>
     </div>
   </div>
 </div>
 
 <script src="js/supabase.min.js?v=20260809"></script>
 <script src="js/config.js?v=20260809"></script>
-<script src="js/agnes.js?v=20260807"></script>
-<script src="js/studio.js?v=20260811"></script>
+<script src="js/agnes.js?v=20260820"></script>
+<script src="js/studio.js?v=20260820"></script>
 </body>
 </html>
