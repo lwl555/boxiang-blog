@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>平台技术栈 · 薄想 AI 建站</title>
+<meta name="description" content="薄想 AI 建站平台技术栈与运行逻辑：前端、AI、数据、免费API、部署链路全公开。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
+<style>
+:root{--bg:#f5efe2;--panel:#fffdf6;--ink:#33261d;--soft:#6d5c4b;--line:rgba(51,38,29,.12);--accent:#c2402b;--accent-dark:#8a2f22;--amber:#c98a16;--ok:#2f5d4a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:
+    radial-gradient(1100px 550px at 90% -10%, rgba(201,138,22,.16), transparent 60%),
+    radial-gradient(900px 520px at -10% 115%, rgba(194,64,43,.12), transparent 55%),
+    var(--bg);
+  color:var(--ink);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  line-height:1.75;overflow-x:hidden;
+}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;z-index:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:34px 20px 80px}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--soft);text-decoration:none;font-size:.88rem;font-weight:700;margin-bottom:22px}
+.back:hover{color:var(--accent)}
+header.hero{text-align:center;padding:26px 0 34px}
+.hero-tag{display:inline-block;font-size:.78rem;font-weight:900;letter-spacing:2px;color:var(--accent);border:1px solid rgba(194,64,43,.35);background:rgba(194,64,43,.07);padding:6px 16px;border-radius:999px;margin-bottom:16px}
+h1{font-size:clamp(1.7rem,4.5vw,2.5rem);letter-spacing:1px;font-weight:900}
+.grad{background:linear-gradient(120deg,#c2402b,#c98a16);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{max-width:640px;margin:14px auto 0;color:var(--soft);font-size:.98rem}
+.section{margin-top:34px}
+.sec-label{font-size:.72rem;font-weight:900;letter-spacing:2px;color:var(--amber)}
+.sec-title{font-size:1.35rem;font-weight:900;margin:6px 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.card{
+  background:rgba(255,253,246,.85);border:1px solid var(--line);border-radius:18px;
+  padding:18px 18px;box-shadow:0 14px 34px rgba(51,38,29,.08);
+  backdrop-filter:blur(10px);
+}
+.card h3{font-size:1rem;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.card h3 .ic{font-size:1.2rem}
+.card p{font-size:.86rem;color:var(--soft)}
+.card .tag{
+  display:inline-block;font-size:.7rem;font-weight:800;border-radius:999px;padding:2px 10px;margin:8px 6px 0 0;
+  border:1px solid rgba(194,64,43,.3);color:var(--accent);background:rgba(194,64,43,.06);
+}
+.card .tag.amber{border-color:rgba(201,138,22,.4);color:var(--amber);background:rgba(201,138,22,.08)}
+.card .tag.green{border-color:rgba(47,93,74,.4);color:var(--ok);background:rgba(47,93,74,.08)}
+.flow{display:flex;flex-direction:column;gap:0;margin-top:6px}
+.flow-step{display:flex;gap:14px;padding:12px 0;border-bottom:1px dashed var(--line)}
+.flow-step:last-child{border-bottom:none}
+.fnum{
+  flex:none;width:30px;height:30px;border-radius:10px;font-weight:900;font-size:.9rem;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#c2402b,#8a2f22);color:#fff;
+}
+.flow-step b{font-size:.92rem}
+.flow-step p{font-size:.83rem;color:var(--soft)}
+.note{
+  margin-top:30px;background:rgba(201,138,22,.08);border:1px dashed rgba(201,138,22,.4);
+  border-radius:16px;padding:16px 18px;font-size:.85rem;color:var(--soft);
+}
+.note b{color:var(--amber)}
+footer{margin-top:44px;text-align:center;font-size:.76rem;color:var(--soft)}
+@media (max-width:640px){
+  .wrap{padding:22px 14px 60px}
+  .grid{grid-template-columns:1fr}
+  .card{padding:15px 14px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="free-site.html">← 返回免费建站首页</a>
+  <header class="hero">
+    <p class="hero-tag">✦ PLATFORM TECH STACK</p>
+    <h1>薄想 AI 建站 · <span class="grad">平台技术栈</span></h1>
+    <p class="sub">你的网站是怎么被 AI 做出来、审核、上线、展示的？下面把整套运行逻辑和用到的技术全部公开。</p>
+  </header>
+
+  <section class="section">
+    <p class="sec-label">ARCHITECTURE</p>
+    <h2 class="sec-title">五层架构</h2>
+    <div class="grid">
+      <div class="card">
+        <h3><span class="ic">🖥️</span>前端展示层</h3>
+        <p>工作台、首页、后台全部是原生 HTML / CSS / JavaScript，零框架依赖，加载快、移动端适配好。</p>
+        <span class="tag">HTML5</span><span class="tag">CSS3</span><span class="tag">原生 JS</span><span class="tag amber">GitHub Pages 托管</span>
+      </div>
+      <div class="card">
+        <h3><span class="ic">🤖</span>AI 智能层</h3>
+        <p>文本 / 图像 / 视频三个免费 AI 模型：对话建站、自动配图、生成视频、意图分流、流式输出、思考过程可见。</p>
+        <span class="tag">Agnes 文本模型</span><span class="tag">Agnes 图像模型</span><span class="tag">Agnes 视频模型</span>
+      </div>
+      <div class="card">
+        <h3><span class="ic">🗄️</span>数据存储层</h3>
+        <p>建站申请、审核状态、后台设置都存数据库，免费版采用 Supabase（PostgreSQL + 身份认证 + REST API + 行级安全）。</p>
+        <span class="tag green">Supabase</span><span class="tag green">PostgreSQL</span><span class="tag green">REST API</span>
+      </div>
+      <div class="card">
+        <h3><span class="ic">🧩</span>免费功能层</h3>
+        <p>内置 18 个免费 API 市场：一言、诗词、天气、汇率、GitHub 名片、二维码、翻译等，AI 按需自动接入。</p>
+        <span class="tag amber">18+ 免费 API</span><span class="tag amber">一键接入</span>
+      </div>
+      <div class="card">
+        <h3><span class="ic">🚀</span>部署发布层</h3>
+        <p>发布后写入数据库 → 站长审核 → 通过 GitHub API 把网页文件写入仓库 → GitHub Pages 全球 CDN 自动部署，秒级生效。</p>
+        <span class="tag">GitHub API</span><span class="tag">GitHub Pages</span><span class="tag">子域名访问</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="sec-label">HOW IT WORKS</p>
+    <h2 class="sec-title">一个网站从 0 到上线的完整流程</h2>
+    <div class="card">
+      <div class="flow">
+        <div class="flow-step"><div class="fnum">1</div><div><b>跟 AI 对话</b><p>在「AI 建站工作台」告诉 AI 你想要什么网站。AI 先判断意图：闲聊就正常聊天，建站就开工。</p></div></div>
+        <div class="flow-step"><div class="fnum">2</div><div><b>AI 生成网站</b><p>文本模型流式生成完整 HTML 网页，思考过程实时可见；需要图片/视频时自动调用图像、视频模型生成并插入。</p></div></div>
+        <div class="flow-step"><div class="fnum">3</div><div><b>按需接入功能</b><p>AI 判断网站适合哪些免费功能（天气、汇率、留言、二维码…），自动在代码里打标记，系统完成接入。</p></div></div>
+        <div class="flow-step"><div class="fnum">4</div><div><b>实时预览与修改</b><p>右侧预览所见即所得，不满意继续跟 AI 说，支持全屏预览、查看代码文件、一键下载。</p></div></div>
+        <div class="flow-step"><div class="fnum">5</div><div><b>一键发布</b><p>填好网站名称点击发布，申请记录写入数据库，每个网站拥有独立 6 位短链地址。</p></div></div>
+        <div class="flow-step"><div class="fnum">6</div><div><b>站长审核上线</b><p>管理员在后台审核通过后点击「🚀 立即上线」，网页通过 GitHub API 写入仓库，GitHub Pages 自动部署。</p></div></div>
+        <div class="flow-step"><div class="fnum">7</div><div><b>全球访问</b><p>上线后访客通过 lwl555.github.io/boxiang-blog/sites/你的短链/ 访问，永久免费挂载；站长也可随时下架。</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="sec-label">FREE &amp; FAIR</p>
+    <h2 class="sec-title">免费与限制说明</h2>
+    <div class="note">
+      <b>完全免费：</b>AI 建站、免费 API、网站托管、子域名全部免费。<br>
+      <b>免费额度：</b>AI 调用、数据库、API 均基于各服务免费额度，高峰期可能需要排队。<br>
+      <b>数据说明：</b>免费版不提供服务器数据库给访客使用；网站内的表单、计数等轻量交互用浏览器本地存储实现。<br>
+      <b>审核机制：</b>发布后的网站经管理员审核后上线，不合规内容会被拒绝或下架。<br>
+      <b>页脚标注：</b>所有免费生成的网站底部均标注「由 薄想工作室 免费生成」。
+    </div>
+  </section>
+
+  <footer>由 薄想工作室 出品 · lwl555.github.io/boxiang-blog</footer>
+</div>
+</body>
+</html>
