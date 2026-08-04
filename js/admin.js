@@ -209,6 +209,7 @@
         </div>
         <div class="order-actions">
           ${s.status === 'pending' ? `<button class="mini-btn ok" data-approve="${s.id}">✅ 通过并上线</button>` : ''}
+          ${s.status === 'published' ? `<button class="mini-btn" data-offline="${s.id}">⏬ 下架</button>` : ''}
           ${s.status !== 'rejected' ? `<button class="mini-btn" data-reject="${s.id}">❌ 拒绝</button>` : ''}
           <button class="mini-btn" data-preview="${s.id}">👁 预览代码</button>
           <button class="mini-btn danger" data-del-site="${s.id}">删除</button>
@@ -222,7 +223,7 @@
         const { error } = await sb.from(T.sites)
           .update({ status: 'published', published_at: new Date().toISOString() })
           .eq('id', b.dataset.approve);
-        if (error) alert('操作失败：' + error.message); else { alert('✅ 已上线！请通知 Codex 运行部署脚本生成网站文件（或稍后我统一处理）'); loadSites(); }
+        if (error) alert('操作失败：' + error.message); else { alert('✅ 已上线！自动部署流水线会在 5 分钟内把网站发布到线上'); loadSites(); }
       });
     });
     list.querySelectorAll('[data-reject]').forEach((b) => {
@@ -232,11 +233,18 @@
         if (error) alert('操作失败：' + error.message); else loadSites();
       });
     });
+    list.querySelectorAll('[data-offline]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        if (!confirm('确认下架？下架后前台不再展示该网站。')) return;
+        const { error } = await sb.from(T.sites).update({ status: 'rejected' }).eq('id', b.dataset.offline);
+        if (error) alert('操作失败：' + error.message); else { alert('已下架，部署流水线稍后会自动移除线上文件'); loadSites(); }
+      });
+    });
     list.querySelectorAll('[data-preview]').forEach((b) => {
       b.addEventListener('click', () => {
         const s = siteRows.find((x) => x.id === +b.dataset.preview);
         if (!s) return;
-        const code = window.BXSiteGen.generateSiteHtml(s);
+        const code = (s.content_html && s.content_html.trim()) ? s.content_html : window.BXSiteGen.generateSiteHtml(s);
         $('scmTitle').textContent = s.title + ' · 网站代码';
         $('scmCode').value = code;
         $('siteCodeModal').hidden = false;
@@ -271,6 +279,7 @@
     ['hero_tag', '首页标签', '✦ 创意接单工作室', '首页顶部小标签'],
     ['hero_title', '首页大标题', '把想法，做成会发光 的作品', '首页主标题，用两个空格分行的位置可换行'],
     ['hero_sub', '首页副标题', '网站开发 · 视频创作 · AI 绘画 · 设计落地', '主标题下方一句话'],
+    ['agnes_api_key', 'Agnes AI 密钥', '', 'Agnes AI 平台（platform.agnes-ai.cn 注册后创建）的 API Key，填写后游客才可使用 AI 建站工作台（文本/图像/视频三个免费模型）'],
     ['services', '服务列表(JSON)', '[{"icon":"🌐","title":"网站开发","desc":"个人主页、博客、商城、企业官网，从设计到上线一条龙。"},{"icon":"🎬","title":"视频创作","desc":"剪辑、包装、AI 视频生成，让你的内容更出彩。"},{"icon":"🎨","title":"AI 绘画","desc":"插画、海报、三视图、道具设定，AI 快速出图。"},{"icon":"🚀","title":"其他定制","desc":"脚本写作、公众号排版、自动化工具，有需求尽管说。"}]', 'JSON 数组，每条含 icon/title/desc']
   ];
 
