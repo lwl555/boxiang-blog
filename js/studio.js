@@ -1204,6 +1204,31 @@
     setTimeout(() => { b.textContent = '🔄 刷新预览'; }, 1200);
   });
 
+  // ===== 全屏预览（移动同一 iframe，不重新加载，兼容手机）=====
+  const fullMask = document.createElement('div');
+  fullMask.className = 'fullscreen-mask';
+  fullMask.hidden = true;
+  fullMask.innerHTML = '<div class="fs-head"><b>👀 全屏预览</b><div class="fs-actions"><button class="mini-btn" id="fsReload">🔄 刷新</button><button class="mini-btn" id="fsClose">✕ 退出</button></div></div><div class="fs-frame"></div>';
+  document.body.appendChild(fullMask);
+  const fsFrame = fullMask.querySelector('.fs-frame');
+  function exitFull() {
+    $('previewFrame').appendChild($('stFrame'));
+    fullMask.hidden = true;
+    document.body.style.overflow = '';
+  }
+  $('stFull').addEventListener('click', () => {
+    if (!lastHtml) { alert('先让 AI 生成网站内容，再点全屏预览'); return; }
+    fsFrame.appendChild($('stFrame'));
+    fullMask.hidden = false;
+    document.body.style.overflow = 'hidden';
+  });
+  fullMask.querySelector('#fsClose').addEventListener('click', exitFull);
+  fullMask.querySelector('#fsReload').addEventListener('click', () => {
+    if (lastHtml) $('stFrame').srcdoc = repairHtml(lastHtml);
+  });
+  fullMask.addEventListener('click', (e) => { if (e.target === fullMask) exitFull(); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !fullMask.hidden) exitFull(); });
+
   // 复制 / 下载
   $('stCopyCode').addEventListener('click', async () => {
     if (!lastHtml) return;
