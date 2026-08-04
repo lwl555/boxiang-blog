@@ -297,6 +297,14 @@ body::before{
 .session-main b{font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .session-meta{font-size:.72rem;color:var(--soft)}
 .session-item .mini-btn.danger{flex:none;border-color:rgba(194,64,43,.35);color:var(--err)}
+.session-ops{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.session-open{
+  display:inline-block;margin-top:6px;font-size:.72rem;color:var(--green);font-weight:700;
+  text-decoration:none;border:1px dashed rgba(47,93,74,.4);border-radius:8px;padding:3px 8px;
+}
+.session-open:hover{border-color:var(--green);background:rgba(47,93,74,.06)}
+.mini-btn.link{border-color:rgba(47,93,74,.45);color:var(--green)}
+.mini-btn.link:hover{background:rgba(47,93,74,.08);color:var(--green)}
 
 /* 右侧 Tab */
 .pv-tabs{display:flex;gap:6px}
@@ -366,6 +374,22 @@ body::before{
 
 /* 移动端增强 */
 @media (max-width:900px){
+  .st-top{height:auto;padding:6px 0}
+  .st-top-in{padding:0 10px;gap:8px}
+  .st-actions{gap:6px}
+  .st-btn{padding:8px 12px;font-size:.8rem}
+  .st-title-group{gap:6px}
+  .st-title-group input{padding:7px 10px;font-size:.86rem;min-width:0}
+  .st-title-group select{padding:7px 6px;font-size:.8rem}
+  .st-main{padding:8px;gap:10px}
+  .chat-tools{gap:6px}
+  .chat-tools .tool-btn{padding:7px 8px;font-size:.76rem}
+  .chat-input textarea{font-size:.9rem}
+  .msg .bubble{font-size:.84rem;padding:9px 11px}
+  .chat-hint{font-size:.68rem}
+  .session-item{flex-wrap:wrap}
+  .session-main{flex:1 1 100%}
+  .session-ops{justify-content:flex-start;width:100%}
   .st-sessions-btn{padding:7px 10px;font-size:.74rem}
   .st-title-group select{min-width:0}
   .preview-head{gap:8px}
