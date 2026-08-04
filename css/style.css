@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿/* ===== 薄想接单博客 · 暖纸手作风 ===== */
 :root {
   --bg: #f5efe2;
@@ -17,10 +18,27 @@
   --radius: 14px;
   --shadow: 0 16px 40px rgba(80, 55, 30, .12);
   --serif: "Noto Serif SC", "Songti SC", "STSong", "SimSun", "Times New Roman", serif;
+=======
+/* ===== 薄想接单博客 · 深色 3D 风格 ===== */
+:root {
+  --bg: #0b0908;
+  --bg2: #14100d;
+  --panel: rgba(255, 255, 255, 0.04);
+  --panel-border: rgba(255, 210, 140, 0.16);
+  --gold: #f5a524;
+  --amber: #ffb454;
+  --orange: #ff6b35;
+  --rose: #e11d48;
+  --text: #f5ede4;
+  --muted: #a8a29e;
+  --radius: 18px;
+  --shadow: 0 20px 60px rgba(0,0,0,.45);
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
+<<<<<<< HEAD
   background:
     radial-gradient(1100px 760px at 88% -8%, rgba(217, 154, 43, .16), transparent 62%),
     radial-gradient(900px 640px at -8% 32%, rgba(47, 93, 74, .10), transparent 55%),
@@ -82,10 +100,81 @@ body {
   z-index: -1;
 }
 .hero-sub { color: var(--muted); font-size: clamp(1rem, 2vw, 1.22rem); margin: 24px 0 36px; }
+=======
+  background: var(--bg);
+  color: var(--text);
+  font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  overflow-x: hidden;
+  line-height: 1.7;
+}
+::selection { background: var(--gold); color: #1a1208; }
+
+/* 3D 背景 */
+#bg3d {
+  position: fixed; inset: 0; z-index: 0;
+  display: block; pointer-events: none;
+}
+.grain {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .5;
+  background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+/* 导航 */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  transition: background .3s, box-shadow .3s, backdrop-filter .3s;
+}
+.nav.scrolled {
+  background: rgba(11, 9, 8, .75);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 1px 0 var(--panel-border);
+}
+.nav-inner {
+  max-width: 1140px; margin: 0 auto; padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-size: 1.35rem; font-weight: 800; color: var(--text); text-decoration: none; letter-spacing: 1px; }
+.logo-dot { color: var(--gold); }
+.nav-links { display: flex; gap: 26px; align-items: center; }
+.nav-links a {
+  color: var(--muted); text-decoration: none; font-size: .95rem;
+  transition: color .25s; position: relative;
+}
+.nav-links a:hover { color: var(--amber); }
+.nav-links a.nav-cta {
+  color: #1a1208; background: linear-gradient(120deg, var(--gold), var(--orange));
+  padding: 8px 18px; border-radius: 999px; font-weight: 700;
+}
+.nav-links a.nav-cta:hover { color: #1a1208; transform: translateY(-1px); }
+.nav-toggle { display: none; background: none; border: 0; color: var(--text); font-size: 1.5rem; cursor: pointer; }
+
+/* Hero */
+.hero {
+  position: relative; z-index: 2;
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 120px 24px 80px;
+}
+.hero-content { max-width: 860px; }
+.hero-tag {
+  display: inline-block; color: var(--amber);
+  border: 1px solid var(--panel-border); background: var(--panel);
+  padding: 6px 16px; border-radius: 999px; font-size: .9rem; margin-bottom: 26px;
+  backdrop-filter: blur(8px);
+}
+.hero-title { font-size: clamp(2.4rem, 6vw, 4.6rem); font-weight: 900; line-height: 1.18; letter-spacing: 1px; }
+.grad {
+  background: linear-gradient(120deg, var(--gold) 0%, var(--orange) 55%, var(--rose) 110%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero-sub { color: var(--muted); font-size: clamp(1rem, 2vw, 1.25rem); margin: 22px 0 34px; }
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
 .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 .btn {
   display: inline-flex; align-items: center; gap: 10px;
   padding: 14px 30px; border-radius: 999px; font-size: 1rem; font-weight: 700;
+<<<<<<< HEAD
   text-decoration: none; transition: transform .25s, box-shadow .25s, background .25s; cursor: pointer; border: 0;
 }
 .btn-primary {
@@ -109,6 +198,30 @@ body {
 .scroll-hint {
   position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
   color: var(--muted); font-size: .85rem; letter-spacing: 3px;
+=======
+  text-decoration: none; transition: transform .25s, box-shadow .25s; cursor: pointer; border: 0;
+}
+.btn-primary {
+  color: #1a1208;
+  background: linear-gradient(120deg, var(--gold), var(--orange));
+  box-shadow: 0 10px 34px rgba(245, 165, 36, .35);
+}
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 44px rgba(245, 165, 36, .5); }
+.btn-ghost {
+  color: var(--text); background: var(--panel); border: 1px solid var(--panel-border);
+  backdrop-filter: blur(8px);
+}
+.btn-ghost:hover { transform: translateY(-3px); border-color: var(--amber); }
+.btn-block { width: 100%; justify-content: center; }
+.hero-meta {
+  margin-top: 40px; display: flex; gap: 26px; justify-content: center; flex-wrap: wrap;
+  color: var(--muted); font-size: .92rem;
+}
+.hero-meta b { color: var(--text); font-weight: 600; }
+.scroll-hint {
+  position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+  color: var(--muted); font-size: .85rem; letter-spacing: 2px;
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
   animation: bob 2s ease-in-out infinite;
 }
 .scroll-hint span { color: var(--gold); }
@@ -117,6 +230,7 @@ body {
 /* 通用区块 */
 .section { position: relative; z-index: 2; padding: 110px 24px; }
 .container { max-width: 1140px; margin: 0 auto; }
+<<<<<<< HEAD
 .sec-label { display: flex; align-items: center; gap: 12px; color: var(--gold); letter-spacing: 4px; font-size: .85rem; margin-bottom: 14px; }
 .sec-label::before { content: ""; width: 34px; height: 2px; background: var(--gold); flex-shrink: 0; }
 .sec-title { font-family: var(--serif); font-size: clamp(1.7rem, 3.6vw, 2.5rem); font-weight: 800; margin-bottom: 48px; letter-spacing: 1px; }
@@ -126,17 +240,33 @@ body {
   background: var(--panel);
   border: 1.5px solid var(--panel-border);
   border-radius: var(--radius);
+=======
+.sec-label { color: var(--gold); letter-spacing: 4px; font-size: .85rem; margin-bottom: 12px; }
+.sec-title { font-size: clamp(1.7rem, 3.6vw, 2.6rem); font-weight: 800; margin-bottom: 48px; }
+
+/* 玻璃卡片 */
+.glass {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(14px);
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
   box-shadow: var(--shadow);
 }
 
 /* 关于 */
 .about-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 26px; align-items: stretch; }
 .about-card { padding: 34px; }
+<<<<<<< HEAD
 .about-card p { color: var(--ink-soft); font-size: 1.02rem; margin-bottom: 26px; }
+=======
+.about-card p { color: var(--muted); font-size: 1.05rem; margin-bottom: 24px; }
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
 .about-contacts { display: flex; gap: 14px; flex-wrap: wrap; }
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 9px 18px; border-radius: 999px; font-size: .88rem;
+<<<<<<< HEAD
   color: var(--ink-soft); border: 1.5px dashed rgba(64, 48, 32, .3);
   background: rgba(255, 253, 247, .8); text-decoration: none; transition: .25s;
 }
@@ -145,6 +275,16 @@ body {
 .stat b {
   font-family: var(--serif); font-size: 2.3rem; font-weight: 900;
   background: linear-gradient(110deg, #c2402b, #d99a2b);
+=======
+  color: var(--amber); border: 1px solid var(--panel-border);
+  background: rgba(245, 165, 36, .06); text-decoration: none; transition: .25s;
+}
+.chip:hover { border-color: var(--gold); transform: translateY(-2px); }
+.stat-card { padding: 34px; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
+.stat b {
+  font-size: 2.4rem; font-weight: 900; color: var(--amber);
+  background: linear-gradient(120deg, var(--gold), var(--orange));
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .stat span { color: var(--muted); font-size: .92rem; margin-left: 8px; }
@@ -152,6 +292,7 @@ body {
 /* 服务 */
 .service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px; }
 .service-card { padding: 30px 26px; transition: transform .3s, border-color .3s; }
+<<<<<<< HEAD
 .service-card:hover { transform: translateY(-6px) rotate(-.4deg); border-color: rgba(194, 64, 43, .45); }
 .svc-icon {
   width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;
@@ -159,11 +300,17 @@ body {
   background: rgba(217, 154, 43, .14); border: 1px solid rgba(217, 154, 43, .3);
 }
 .service-card h3 { font-family: var(--serif); font-size: 1.12rem; margin-bottom: 10px; }
+=======
+.service-card:hover { transform: translateY(-6px); border-color: rgba(245, 165, 36, .5); }
+.svc-icon { font-size: 2.2rem; margin-bottom: 14px; }
+.service-card h3 { font-size: 1.15rem; margin-bottom: 10px; }
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
 .service-card p { color: var(--muted); font-size: .92rem; }
 
 /* 作品 */
 .work-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; }
 .work-card { overflow: hidden; cursor: pointer; transition: transform .3s, border-color .3s; }
+<<<<<<< HEAD
 .work-card:hover { transform: translateY(-6px); border-color: rgba(194, 64, 43, .45); }
 .work-cover { height: 170px; background: linear-gradient(135deg, #ecdcbd, #e3cba2); display: flex; align-items: center; justify-content: center; font-size: 3rem; border-bottom: 1px solid rgba(64, 48, 32, .1); }
 .work-body { padding: 20px 22px; }
@@ -171,20 +318,36 @@ body {
 .work-body p { color: var(--muted); font-size: .88rem; }
 .work-tags { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
 .work-tags span { font-size: .75rem; color: var(--gold); border: 1px dashed rgba(194, 64, 43, .4); border-radius: 999px; padding: 3px 10px; }
+=======
+.work-card:hover { transform: translateY(-6px); border-color: rgba(245, 165, 36, .5); }
+.work-cover { height: 170px; background: linear-gradient(135deg, #2a1c10, #1c1108); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+.work-body { padding: 20px 22px; }
+.work-body h3 { font-size: 1.05rem; margin-bottom: 8px; }
+.work-body p { color: var(--muted); font-size: .88rem; }
+.work-tags { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+.work-tags span { font-size: .75rem; color: var(--amber); border: 1px solid var(--panel-border); border-radius: 999px; padding: 3px 10px; }
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
 
 /* 博客列表 */
 .blog-list { display: flex; flex-direction: column; gap: 16px; }
 .blog-item {
   display: flex; align-items: center; justify-content: space-between; gap: 20px;
   padding: 22px 26px; cursor: pointer; transition: transform .3s, border-color .3s;
+<<<<<<< HEAD
   border-left: 5px solid rgba(47, 93, 74, .55);
 }
 .blog-item:hover { transform: translateX(6px); border-color: rgba(194, 64, 43, .5); }
 .blog-item h3 { font-family: var(--serif); font-size: 1.08rem; }
+=======
+}
+.blog-item:hover { transform: translateX(6px); border-color: rgba(245, 165, 36, .5); }
+.blog-item h3 { font-size: 1.08rem; }
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
 .blog-item .blog-date { color: var(--muted); font-size: .82rem; white-space: nowrap; }
 .empty-tip { color: var(--muted); padding: 30px; text-align: center; }
 
 /* 接单 */
+<<<<<<< HEAD
 .section-order { background: radial-gradient(ellipse at 50% 0%, rgba(217, 154, 43, .16), transparent 62%); }
 .order-wrap { max-width: 720px; margin: 0 auto; }
 .order-form { padding: 36px; display: flex; flex-direction: column; gap: 20px; background: rgba(255, 253, 247, .66); }
@@ -197,18 +360,39 @@ input, select, textarea {
   outline: none; transition: border-color .25s, box-shadow .25s; width: 100%;
 }
 input:focus, select:focus, textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(194, 64, 43, .1); }
+=======
+.section-order { background: radial-gradient(ellipse at 50% 0%, rgba(245,165,36,.08), transparent 60%); }
+.order-wrap { max-width: 720px; margin: 0 auto; }
+.order-form { padding: 36px; display: flex; flex-direction: column; gap: 20px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+label { display: flex; flex-direction: column; gap: 8px; font-size: .9rem; color: var(--muted); }
+label span { color: var(--rose); }
+input, select, textarea {
+  background: rgba(0,0,0,.35); border: 1px solid var(--panel-border); border-radius: 12px;
+  color: var(--text); padding: 12px 14px; font-size: .95rem; font-family: inherit;
+  outline: none; transition: border-color .25s; width: 100%;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--gold); }
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
 textarea { resize: vertical; }
 .form-tip { color: var(--muted); font-size: .82rem; text-align: center; }
 
 /* 页脚 */
+<<<<<<< HEAD
 .footer { position: relative; z-index: 2; border-top: 1.5px solid rgba(64, 48, 32, .14); padding: 40px 24px; }
 .footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .footer-logo { font-family: var(--serif); font-weight: 800; font-size: 1.1rem; margin-bottom: 6px; letter-spacing: 2px; }
+=======
+.footer { position: relative; z-index: 2; border-top: 1px solid var(--panel-border); padding: 40px 24px; }
+.footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.footer-logo { font-weight: 800; font-size: 1.1rem; margin-bottom: 6px; }
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
 .footer-tip, .footer-copy { color: var(--muted); font-size: .85rem; }
 
 /* 弹窗 */
 .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; }
 .modal[hidden] { display: none; }
+<<<<<<< HEAD
 .modal-backdrop { position: absolute; inset: 0; background: rgba(58, 44, 30, .45); backdrop-filter: blur(6px); }
 .modal-box {
   position: relative; width: min(720px, 100%); max-height: 84vh; overflow-y: auto;
@@ -220,6 +404,22 @@ textarea { resize: vertical; }
 .modal-box h2 { font-family: var(--serif); font-size: 1.5rem; margin-bottom: 8px; padding-right: 30px; }
 .modal-meta { color: var(--muted); font-size: .82rem; margin-bottom: 20px; }
 .modal-body { color: var(--ink-soft); }
+=======
+.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.72); backdrop-filter: blur(6px); }
+.modal-box {
+  position: relative; width: min(720px, 100%); max-height: 84vh; overflow-y: auto;
+  background: #16100c; border: 1px solid var(--panel-border); border-radius: var(--radius);
+  padding: 36px; box-shadow: var(--shadow);
+}
+.modal-close {
+  position: sticky; top: 0; float: right; background: none; border: 0; color: var(--muted);
+  font-size: 1.3rem; cursor: pointer; z-index: 2;
+}
+.modal-close:hover { color: var(--amber); }
+.modal-box h2 { font-size: 1.5rem; margin-bottom: 8px; padding-right: 30px; }
+.modal-meta { color: var(--muted); font-size: .82rem; margin-bottom: 20px; }
+.modal-body { color: var(--muted); }
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
 .modal-body p { margin-bottom: 14px; }
 .modal-body img { max-width: 100%; border-radius: 12px; margin: 10px 0; }
 
@@ -233,9 +433,15 @@ textarea { resize: vertical; }
   .form-row { grid-template-columns: 1fr; }
   .nav-links {
     position: fixed; top: 64px; right: 16px; left: 16px;
+<<<<<<< HEAD
     flex-direction: column; background: rgba(250, 247, 238, .97);
     border: 1px solid var(--panel-border); border-radius: var(--radius);
     padding: 20px; gap: 16px; display: none; box-shadow: var(--shadow);
+=======
+    flex-direction: column; background: rgba(11,9,8,.95);
+    border: 1px solid var(--panel-border); border-radius: var(--radius);
+    padding: 20px; gap: 16px; display: none;
+>>>>>>> 87328f3 (初始化：薄想接单博客（3D 风格前台 + 接单表单 + Supabase 后台）)
   }
   .nav-links.open { display: flex; }
   .nav-toggle { display: block; }
