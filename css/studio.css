@@ -371,3 +371,18 @@ body::before{
   .modal-box{width:100vw;max-height:100vh;border-radius:0;padding:22px 18px}
   .tool-actions{flex-wrap:wrap;gap:8px}
 }
+/* ===== v3.2：API 分组 / 文件目录分组 ===== */
+.api-list{display:flex;flex-direction:column;gap:16px}
+.api-group{display:flex;flex-direction:column;gap:10px}
+.api-group-name{
+  font-size:.76rem;font-weight:900;letter-spacing:1px;color:var(--amber);
+  display:flex;align-items:center;gap:8px;
+}
+.api-group-name::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.api-group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.file-dir{
+  font-size:.7rem;font-weight:900;color:var(--soft);letter-spacing:.5px;
+  padding:10px 10px 2px;display:flex;align-items:center;gap:5px;
+}
+.file-dir::after{content:"";flex:1;height:1px;background:var(--line)}
+.file-item.sub{padding-left:26px}
