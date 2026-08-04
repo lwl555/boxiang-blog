@@ -1,4 +1,4 @@
-// ===== 薄想 · AI 建站工作台 =====
+// ===== 薄想 · AI 建站工作台 v3（会话记忆 / 文件区 / 免费API / 断网自愈）=====
 (function () {
   const $ = (id) => document.getElementById(id);
   const BASE = 'https://lwl555.github.io/boxiang-blog';
@@ -30,16 +30,187 @@
     '11. 页脚加一行小字：由 薄想工作室 免费生成。\n' +
     '12. 输出前自检：单页不少于 60 行；无任何外部依赖；无 JS 明显错误；</html> 完整闭合。\n' +
     '13. 长度控制：整页控制在 400~700 行以内、总字符 12000 以内，宁可精简也不要写太长，确保一次输出完整、绝不截断。';
+  // ===== 会话存储（每个网站一份记忆，刷新不丢）=====
+  const SESSIONS_KEY = 'bx_studio_sessions_v2';
+  const CUR_KEY = 'bx_studio_cur_v2';
+  const MSG_PREFIX = 'bx_studio_msg_';
+  const LEGACY_KEY = 'bx_studio_state_v1';
 
-  let messages = [
-    { role: 'system', content: SYSTEM_PROMPT }
-  ];
+  let sessions = [];
+  let current = null;
+  let messages = [];
   let lastHtml = '';
   let mode = 'text';
   let generating = false;
   let aborter = null;
   let videoTimer = null;
 
+  function uid() { return 's_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function loadSessions() {
+    try { sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY)) || []; }
+    catch (e) { sessions = []; }
+  }
+  function saveSessions() { try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions)); } catch (e) {} }
+  function curId() { return localStorage.getItem(CUR_KEY) || ''; }
+  function setCurId(id) { try { localStorage.setItem(CUR_KEY, id); } catch (e) {} }
+  function loadMsgs(id) {
+    try { return JSON.parse(localStorage.getItem(MSG_PREFIX + id)) || { messages: [], lastHtml: '' }; }
+    catch (e) { return { messages: [], lastHtml: '' }; }
+  }
+  function saveMsgs(id, obj) { try { localStorage.setItem(MSG_PREFIX + id, JSON.stringify(obj)); } catch (e) {} }
+  function delMsgs(id) { try { localStorage.removeItem(MSG_PREFIX + id); } catch (e) {} }
+
+  function touchSession() {
+    if (current) { current.updated_at = new Date().toISOString(); saveSessions(); }
+  }
+  function persistCurrent() {
+    if (!current) return;
+    current.mode = mode;
+    touchSession();
+    const stored = messages
+      .filter((m) => m.role !== 'system')
+      .slice(-16)
+      .map((m) => {
+        if (m.role === 'assistant' && m.content && m.content.length > 2000) {
+          return { role: 'assistant', content: summarizeHtml(m.content), sys: m.sys };
+        }
+        return m;
+      });
+    saveMsgs(current.id, { messages: stored, lastHtml: lastHtml || '' });
+  }
+
+  function migrateLegacy() {
+    try {
+      const raw = localStorage.getItem(LEGACY_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      const id = uid();
+      sessions.unshift({
+        id: id,
+        name: s.name || '',
+        type: s.type || '自动判断',
+        theme: s.theme || '朱砂',
+        mode: (s.mode && MODE_INFO[s.mode]) ? s.mode : 'text',
+        published: false,
+        publishedSlug: '',
+        updated_at: new Date().toISOString(),
+        apis: []
+      });
+      saveMsgs(id, { messages: s.messages || [], lastHtml: s.lastHtml || '' });
+      setCurId(id);
+      localStorage.removeItem(LEGACY_KEY);
+      saveSessions();
+    } catch (e) { /* 忽略 */ }
+  }
+
+  // ===== 会话操作 =====
+  function newSession() {
+    const id = uid();
+    const s = {
+      id: id, name: '', type: '自动判断', theme: '朱砂', mode: 'text',
+      published: false, publishedSlug: '', updated_at: new Date().toISOString(), apis: []
+    };
+    sessions.unshift(s);
+    saveSessions();
+    setCurId(id);
+    switchTo(id);
+    return s;
+  }
+
+  function switchTo(id) {
+    persistCurrent();
+    current = sessions.find((x) => x.id === id) || null;
+    if (!current) { newSession(); return; }
+    setCurId(id);
+    const saved = loadMsgs(id);
+    messages = [{ role: 'system', content: SYSTEM_PROMPT }].concat(saved.messages || []);
+    lastHtml = saved.lastHtml || '';
+    mode = (current.mode && MODE_INFO[current.mode]) ? current.mode : 'text';
+    setMode(mode);
+    $('stName').value = current.name || '';
+    $('stType').value = current.type || '自动判断';
+    $('stTheme').value = current.theme || '朱砂';
+    chatList.innerHTML = '';
+    $('stFrame').srcdoc = '';
+    if (lastHtml) {
+      preview(lastHtml);
+      $('stStatus').textContent = '✅ 已恢复上次预览';
+    } else {
+      $('stStatus').textContent = '👀 实时预览';
+    }
+    $('stPreviewUrl').textContent = current.publishedSlug
+      ? '✅ 已发布：' + BASE + '/sites/' + current.publishedSlug + '/'
+      : '还没发布 · 发布后这里显示网址';
+    if (saved.messages && saved.messages.length) renderHistory(saved.messages);
+    else welcome();
+    renderSessions();
+    renderFiles();
+    renderApis();
+    $('stSessionCount').textContent = sessions.length;
+  }
+
+  function deleteSession(id) {
+    if (!confirm('删除这个网站的记忆？对话和代码都会清除（已发布的网站不受影响）。')) return;
+    sessions = sessions.filter((x) => x.id !== id);
+    delMsgs(id);
+    saveSessions();
+    if (curId() === id) {
+      localStorage.removeItem(CUR_KEY);
+      if (sessions.length) {
+        setCurId(sessions[0].id);
+        switchTo(sessions[0].id);
+      } else {
+        current = null; messages = []; lastHtml = '';
+        chatList.innerHTML = '';
+        $('stFrame').srcdoc = '';
+        $('stName').value = ''; $('stType').value = '自动判断'; $('stTheme').value = '朱砂';
+        $('stStatus').textContent = '👀 实时预览';
+        $('stPreviewUrl').textContent = '还没发布 · 发布后这里显示网址';
+        newSession();
+      }
+    } else {
+      renderSessions();
+      $('stSessionCount').textContent = sessions.length;
+    }
+  }
+
+  function renderSessions() {
+    const list = $('sessionList');
+    if (!list) return;
+    if (!sessions.length) {
+      list.innerHTML = '<div class="empty-tip">还没有网站记忆，点下面「新建网站」开始吧 ✨</div>';
+      return;
+    }
+    list.innerHTML = sessions.map((s) => {
+      const active = s.id === curId();
+      return '<div class="session-item' + (active ? ' active' : '') + '" data-sid="' + s.id + '">' +
+        '<div class="session-main">' +
+        '<b>' + esc(s.name || '未命名网站') + '</b>' +
+        '<span class="session-meta">' + esc(s.type || '自动判断') + ' · ' +
+        (s.published ? '✅ 已发布' : '🕐 未发布') + ' · ' + fmtTime(s.updated_at) +
+        (s.apis && s.apis.length ? ' · 🧩' + s.apis.length + '个API' : '') +
+        '</span></div>' +
+        '<button class="mini-btn danger" data-del="' + s.id + '">删除</button>' +
+        '</div>';
+    }).join('');
+    list.querySelectorAll('[data-sid]').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('[data-del]')) return;
+        switchTo(el.dataset.sid);
+        $('sessionModal').hidden = true;
+      });
+    });
+    list.querySelectorAll('[data-del]').forEach((b) => {
+      b.addEventListener('click', (e) => { e.stopPropagation(); deleteSession(b.dataset.del); });
+    });
+  }
+
+  function fmtTime(d) {
+    try {
+      const x = new Date(d);
+      return (x.getMonth() + 1) + '月' + x.getDate() + '日 ' + String(x.getHours()).padStart(2, '0') + ':' + String(x.getMinutes()).padStart(2, '0');
+    } catch (e) { return ''; }
+  }
   // ===== 消息渲染 =====
   const chatList = $('chatList');
 
@@ -54,8 +225,7 @@
   }
 
   function addStatus(text) {
-    const b = addMsg('bot', '<span class="status">' + text + '</span>');
-    return b;
+    return addMsg('bot', '<span class="status">' + text + '</span>');
   }
 
   function esc(s) {
@@ -79,7 +249,6 @@
         sendText();
       });
     });
-    // 检查 AI key
     window.Agnes.getKey().then((k) => {
       if (!k) {
         addMsg('bot', '<span class="status">⚠️ AI 服务正在配置中，站长马上就好～ 你可以先看看页面，稍后再来生成。</span>');
@@ -87,14 +256,25 @@
     });
   }
 
-  // ===== HTML 提取 =====
+  function renderHistory(msgs) {
+    for (const m of msgs) {
+      if (m.sys) continue;
+      if (m.role === 'user') {
+        addMsg('user', esc(m.content));
+      } else {
+        const s = String(m.content || '').replace(/\s+/g, ' ').slice(0, 100);
+        addMsg('bot', '<span class="status">✦ 之前生成的一版网站</span><div style="margin-top:6px;font-size:.84rem;color:var(--soft);word-break:break-all">' + esc(s) + (m.content && m.content.length > 100 ? '…' : '') + '</div>');
+      }
+    }
+  }
+
+  // ===== HTML 工具 =====
   function extractHtml(text) {
     if (!text) return '';
     let t = text.trim();
     const fence = t.match(/```(?:html)?\s*([\s\S]*?)```/i);
     if (fence) return fence[1].trim();
     if (/^<!DOCTYPE html/i.test(t) || /^<html/i.test(t)) return t;
-    // 尝试从包含 <html 的位置截取
     const idx = t.search(/<!DOCTYPE html|<html/i);
     if (idx >= 0) return t.slice(idx).trim();
     return t;
@@ -112,19 +292,56 @@
     if (!/<\/html>\s*$/i.test(s.trim())) s = s.replace(/\s*$/, '') + '\n</html>';
     return s;
   }
+
   function isCompleteHtml(h) {
     const s = String(h || '');
     return /<\/html>\s*$/i.test(s.trim()) &&
       ((s.match(/<style[\s>]/gi) || []).length) === ((s.match(/<\/style>/gi) || []).length) &&
       ((s.match(/<script[\s>]/gi) || []).length) === ((s.match(/<\/script>/gi) || []).length);
   }
+
   function preview(html) {
     lastHtml = repairHtml(html);
     $('stFrame').srcdoc = lastHtml;
   }
 
-  // ===== 会话持久化（刷新不丢）=====
-  const STATE_KEY = 'bx_studio_state_v1';
+  // ===== 上下文压缩（防止 AI 上下文爆炸 / 本地存储爆炸）=====
+  function summarizeHtml(html) {
+    const t = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '';
+    const h1 = (html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || [])[1] || '';
+    const secs = [];
+    const re = /<(?:h2|h3|section)[^>]*>([\s\S]*?)<\/(?:h2|h3|section)>/gi;
+    let m;
+    while ((m = re.exec(html)) && secs.length < 12) {
+      secs.push(m[1].replace(/<[^>]+>/g, '').trim().slice(0, 30));
+    }
+    return '【上一版网站摘要】标题：' + t + '；主标题：' + h1 + '；板块：' + (secs.join('、') || '无') + '；总代码 ' + html.length + ' 字符。改版时参考此摘要重写整站即可。';
+  }
+
+  function compactForRequest() {
+    const out = [messages[0]];
+    for (const m of messages.slice(-13)) {
+      if (m.role === 'system') continue;
+      if (m.role === 'assistant' && m.content && /<html/i.test(m.content)) {
+        out.push({ role: 'assistant', content: summarizeHtml(m.content) });
+      } else {
+        out.push({ role: m.role, content: m.content, sys: m.sys ? true : undefined });
+      }
+    }
+    return out;
+  }
+
+  function apiCtxText() {
+    if (!current || !current.apis || !current.apis.length) return '';
+    const lines = current.apis.map((a) => {
+      const def = FREE_APIS[a];
+      return def ? '【' + def.name + '】' + def.desc : a;
+    });
+    return '当前页面已接入的免费 API 功能：\n' + lines.join('\n') +
+      '\n（继续改版时请保留这些已接入的功能代码，除非用户明确要求移除；若用户要求调整位置或样式，按需求移动即可。）\n';
+  }
+
+  // ===== 模式切换 =====
   function setMode(m) {
     mode = m;
     document.querySelectorAll('.tool-btn').forEach((x) => x.classList.toggle('active', x.dataset.mode === m));
@@ -132,49 +349,7 @@
     $('chatHint').textContent = MODE_INFO[m].hint;
     $('chatInput').placeholder = m === 'text' ? '跟 AI 说你想做什么网站…' : (m === 'image' ? '描述想生成的图片…' : '描述想生成的视频…');
   }
-  function saveState() {
-    try {
-      const msgs = messages.filter((m) => m.role !== 'system').slice(-12);
-      localStorage.setItem(STATE_KEY, JSON.stringify({
-        messages: msgs,
-        lastHtml: lastHtml || '',
-        name: $('stName').value,
-        type: $('stType').value,
-        theme: $('stTheme').value,
-        mode: mode
-      }));
-    } catch (e) { /* 存储满时忽略 */ }
-  }
-  function renderHistory(msgs) {
-    for (const m of msgs) {
-      if (m.role === 'user') {
-        addMsg('user', esc(m.content));
-      } else {
-        const s = String(m.content || '').replace(/\s+/g, ' ').slice(0, 100);
-        addMsg('bot', '<span class="status">✦ 之前生成的一版网站</span><div style="margin-top:6px;font-size:.84rem;color:var(--soft);word-break:break-all">' + esc(s) + (m.content && m.content.length > 100 ? '…' : '') + '</div>');
-      }
-    }
-  }
-  function restoreState() {
-    try {
-      const raw = localStorage.getItem(STATE_KEY);
-      if (!raw) return false;
-      const s = JSON.parse(raw);
-      if (s.name) $('stName').value = s.name;
-      if (s.type) $('stType').value = s.type;
-      if (s.theme) $('stTheme').value = s.theme;
-      if (s.mode && MODE_INFO[s.mode]) setMode(s.mode);
-      if (s.lastHtml) { preview(s.lastHtml); $('stStatus').textContent = '✅ 已恢复上次预览'; }
-      if (Array.isArray(s.messages) && s.messages.length) {
-        messages = [{ role: 'system', content: SYSTEM_PROMPT }].concat(s.messages);
-        renderHistory(s.messages);
-        return true;
-      }
-      return !!s.lastHtml;
-    } catch (e) { return false; }
-  }
-
-  // ===== 文本：生成/修改网站 =====
+  // ===== 文本：生成/修改网站（带断网自动重试）=====
   async function sendText() {
     const input = $('chatInput');
     const q = input.value.trim();
@@ -183,18 +358,18 @@
     input.style.height = 'auto';
     addMsg('user', esc(q));
 
-    // 附加站点信息
     const name = $('stName').value.trim();
     const type = $('stType').value;
     const theme = $('stTheme').value;
-    let fullQ = q;
+    const ctx = [];
     if (name || type !== '自动判断' || theme !== '朱砂') {
-      const ctx = [];
       if (name) ctx.push('网站名字：' + name);
       if (type !== '自动判断') ctx.push('网站类型：' + type);
       ctx.push('主配色要求：' + theme + ' 系（对应色值：#f5efe2 纸米底 + 强调色，按主题调整）');
-      fullQ = '【站点信息】' + ctx.join('；') + '。\n【用户需求】' + q;
     }
+    const apiCtx = apiCtxText();
+    if (apiCtx) ctx.unshift(apiCtx.replace(/\n$/, ''));
+    const fullQ = (ctx.length ? '【站点信息】' + ctx.join('；') + '。\n' : '') + '【用户需求】' + q;
     messages.push({ role: 'user', content: fullQ });
 
     generating = true;
@@ -216,33 +391,44 @@
           streamText = '';
           started = false;
           bubbleText.textContent = '';
+          if (statusEl.isConnected) statusEl.remove();
           statusEl = addStatus('<span class="status">⚠️ 刚才的输出不完整（AI 截断了），正在自动继续补全第 ' + attempt + ' 次…</span>');
         }
         const chatMsgs = attempt === 0
-          ? messages
-          : messages.concat([
+          ? compactForRequest()
+          : compactForRequest().concat([
               { role: 'assistant', content: full },
               { role: 'user', content: '【继续写】你刚才输出的 HTML 因为长度限制被系统截断了。请接着你输出的最后位置继续写，补齐所有剩余内容。要求：不要重复任何已输出的内容；如果还有未完成的标签（如 footer、body、html）必须全部闭合；最终输出必须以 </body> 和 </html> 结尾。只输出续写部分，不要解释。' }
             ]);
-        const cont = await window.Agnes.chat(chatMsgs, {
-          stream: true,
-          signal: aborter.signal,
-          onDelta: (d) => {
-            if (!started) {
-              started = true;
-              statusEl.remove();
-              chatList.appendChild(bubble);
+        try {
+          const cont = await window.Agnes.chat(chatMsgs, {
+            stream: true,
+            signal: aborter.signal,
+            onDelta: (d) => {
+              if (!started) {
+                started = true;
+                statusEl.remove();
+                chatList.appendChild(bubble);
+                chatList.scrollTop = chatList.scrollHeight;
+              }
+              streamText += d;
+              bubbleText.textContent = streamText.slice(-600);
               chatList.scrollTop = chatList.scrollHeight;
             }
-            streamText += d;
-            bubbleText.textContent = streamText.slice(-600);
-            chatList.scrollTop = chatList.scrollHeight;
+          });
+          full = (attempt > 0 ? full.replace(/\s*$/, '') + '\n' : '') + cont;
+          full = full.split(String.fromCharCode(96)).join('').trim();
+          const html = extractHtml(full);
+          complete = !!html && html.length >= 300 && isCompleteHtml(html);
+        } catch (e2) {
+          const net = e2 && (e2.code === 'network' || e2.code === 'timeout' || /network|fetch|timeout|abort|连接|网络|中断/i.test(e2.message || ''));
+          if (net && attempt < 3) {
+            if (statusEl.isConnected) statusEl.remove();
+            statusEl = addStatus('<span class="status">⚠️ ' + esc(e2.message) + '，正在自动重试第 ' + (attempt + 2) + ' 次…</span>');
+            continue;
           }
-        });
-        full = (attempt > 0 ? full.replace(/\s*$/, '') + '\n' : '') + cont;
-        full = full.split(String.fromCharCode(96)).join('').trim();
-        const html = extractHtml(full);
-        complete = !!html && html.length >= 300 && isCompleteHtml(html);
+          throw e2;
+        }
       }
 
       if (statusEl.isConnected) statusEl.remove();
@@ -257,10 +443,9 @@
       messages.push({ role: 'assistant', content: full });
       bubbleText.textContent = complete
         ? '✅ 网站已生成！看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。'
-        : '✅ 网站已生成（AI 输出略有截断，已自动修补显示）。不满意就继续跟我说，我来帮你改。'
-      ;
+        : '✅ 网站已生成（AI 输出略有截断，已自动修补显示）。不满意就继续跟我说，我来帮你改。';
       $('stStatus').textContent = complete ? '✅ 已生成 · 可继续对话修改' : '⚠️ 已生成（部分修补）· 可继续对话修改';
-      saveState();
+      persistCurrent();
     } catch (e) {
       const msg = e && e.message ? e.message : '生成失败，请重试';
       addMsg('bot', '<span class="status">❌ ' + esc(msg) + '</span>');
@@ -305,7 +490,7 @@
         if (!url) throw new Error('没有拿到图片地址');
         const imgTag = '<img src="' + url + '" alt="' + esc(prompt.slice(0, 50)) + '" style="width:100%;height:auto;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.16);margin:22px 0;display:block">';
         if (lastHtml) preview(insertMedia(imgTag));
-        saveState();
+        persistCurrent();
         const b = addMsg('bot', '🖼️ 图片生成好了：<br><img class="img-inline" src="' + url + '" alt="生成的图片">');
         b.querySelector('img').addEventListener('click', () => {
           if (lastHtml && !lastHtml.includes(url)) {
@@ -323,7 +508,11 @@
         await pollVideo(videoId, prompt, prog);
       }
     } catch (e) {
-      prog.textContent = '❌ ' + (e && e.message ? e.message : '生成失败');
+      const raw = e && e.message ? e.message : '生成失败';
+      const friendly = (e && (e.code === 'network' || e.code === 'timeout'))
+        ? '网络不太稳定：' + raw + '（请检查网络后再试一次）'
+        : raw;
+      prog.textContent = '❌ ' + friendly;
       $('toolRun').disabled = false;
       $('toolRun').textContent = '重试';
     }
@@ -342,7 +531,7 @@
             const url = v.metadata.url;
             const videoTag = '<video src="' + url + '" autoplay muted loop playsinline controls style="width:100%;max-height:420px;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.16);margin:22px 0;display:block;background:#000"></video>';
             if (lastHtml) preview(insertMedia(videoTag));
-            saveState();
+            persistCurrent();
             const b = addMsg('bot', '🎬 视频生成好了！<br><video class="img-inline" src="' + url + '" autoplay muted loop playsinline controls style="max-height:260px"></video>');
             b.querySelector('video').addEventListener('click', () => {
               if (lastHtml && !lastHtml.includes(url)) {
@@ -385,7 +574,234 @@
     if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, tag + '</body>');
     return html + tag;
   }
+  // ===== 免费 API 市场（已实测：无需 key、支持 CORS）=====
+  const FLOAT_CSS = 'position:fixed;right:16px;bottom:16px;z-index:9999;max-width:280px;padding:12px 16px;border-radius:14px;background:rgba(30,20,15,.93);color:#fff;font-size:13px;line-height:1.6;box-shadow:0 10px 30px rgba(0,0,0,.35);font-family:inherit';
+  const CLOSE_CSS = 'position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:#c2402b;color:#fff;text-align:center;line-height:20px;font-size:12px;cursor:pointer';
+  function floatWidget(id, text) {
+    return '(function(){var d=document.createElement("div");d.style.cssText="' + FLOAT_CSS + '";d.id="' + id + '";var c=document.createElement("span");c.style.cssText="' + CLOSE_CSS + '";c.textContent="×";c.onclick=function(){d.remove()};d.appendChild(c);var t=document.createElement("div");d.appendChild(t);document.body.appendChild(d);t.textContent="' + text + '";return t;})();';
+  }
 
+  const FREE_APIS = {
+    hitokoto: {
+      name: '一言 · 每日一句',
+      icon: '💬',
+      desc: '随机返回一句温暖的话，自动显示在页面右下角，适合提升网站格调。无需注册、完全免费。',
+      sample: 'fetch("https://v1.hitokoto.cn/?c=k&encode=json").then(r=>r.json()).then(d=>console.log(d.hitokoto))',
+      script: function () {
+        return '<script>/* 一言 · 免费API */' + floatWidget('bx-api-hitokoto', '加载中…') +
+          'fetch("https://v1.hitokoto.cn/?c=k&encode=json").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-hitokoto");if(t&&t.lastChild&&j.hitokoto){t.lastChild.innerHTML="💬 “"+j.hitokoto+"”<br><span style=\"opacity:.7\">—— "+(j.from||"")+"</span>"}}).catch(function(){var t=document.getElementById("bx-api-hitokoto");if(t)t.lastChild.textContent="一言加载失败"});</' + 'script>';
+      }
+    },
+    jinrishici: {
+      name: '今日诗词',
+      icon: '📜',
+      desc: '随机返回一句古诗词（含作者出处），自动显示在页面右下角，很有文化味。免费无需 key。',
+      sample: 'fetch("https://v1.jinrishici.com/all.json").then(r=>r.json()).then(d=>console.log(d.content))',
+      script: function () {
+        return '<script>/* 今日诗词 · 免费API */' + floatWidget('bx-api-poem', '加载诗词…') +
+          'fetch("https://v1.jinrishici.com/all.json").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-poem");if(t&&t.lastChild&&j.content){t.lastChild.innerHTML="📜 “"+j.content+"”<br><span style=\"opacity:.7\">—— "+(j.author||"")+"《"+(j.origin||"")+"》</span>"}}).catch(function(){var t=document.getElementById("bx-api-poem");if(t)t.lastChild.textContent="诗词加载失败"});</' + 'script>';
+      }
+    },
+    weather: {
+      name: '天气 · 实时播报',
+      icon: '🌤',
+      desc: '按城市显示当前温度与天气，默认北京，改页面 body 的 data-city 属性即可换城市。免费无需 key。',
+      sample: 'fetch("https://wttr.in/Beijing?format=j1&lang=zh").then(r=>r.json()).then(d=>console.log(d.current_condition[0]))',
+      script: function () {
+        return '<script>/* 天气 · wttr.in 免费API（改 data-city 换城市） */' + floatWidget('bx-api-weather', '加载天气…') +
+          'var _city=document.body.getAttribute("data-city")||"Beijing";fetch("https://wttr.in/"+_city+"?format=j1&lang=zh").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-weather");var c=j&&j.current_condition&&j.current_condition[0];if(t&&t.lastChild&&c){var w=(c.lang_zh&&c.lang_zh[0]&&c.lang_zh[0].value)||(c.weatherDesc&&c.weatherDesc[0]&&c.weatherDesc[0].value)||"";t.lastChild.innerHTML="🌤 "+_city+" "+(c.temp_C||"-")+"°C "+(w||"")}}).catch(function(){var t=document.getElementById("bx-api-weather");if(t)t.lastChild.textContent="天气加载失败"});</' + 'script>';
+      }
+    },
+    ipwhois: {
+      name: 'IP 定位 · 访客城市',
+      icon: '📍',
+      desc: '自动识别访问者所在城市与运营商，显示在页面右下角，适合本地生活类网站。免费无需 key。',
+      sample: 'fetch("https://ipwho.is/").then(r=>r.json()).then(d=>console.log(d.city, d.connection.isp))',
+      script: function () {
+        return '<script>/* IP定位 · ipwho.is 免费API */' + floatWidget('bx-api-ip', '定位中…') +
+          'fetch("https://ipwho.is/").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-ip");if(t&&t.lastChild&&j&&j.success!==false){t.lastChild.innerHTML="📍 "+(j.city||"未知城市")+" · "+(j.region||"")+"<br><span style=\"opacity:.7\">"+(j.connection&&j.connection.isp||"")+"</span>"}else{var x=document.getElementById("bx-api-ip");if(x)x.lastChild.textContent="定位失败"}}).catch(function(){var t=document.getElementById("bx-api-ip");if(t)t.lastChild.textContent="定位加载失败"});</' + 'script>';
+      }
+    },
+    fx: {
+      name: '实时汇率',
+      icon: '💱',
+      desc: '显示美元/欧元兑人民币的实时汇率，自动显示在页面右下角，适合外贸、代购、留学类网站。免费无需 key。',
+      sample: 'fetch("https://open.er-api.com/v6/latest/CNY").then(r=>r.json()).then(d=>console.log(d.rates.USD))',
+      script: function () {
+        return '<script>/* 汇率 · open.er-api.com 免费API */' + floatWidget('bx-api-fx', '加载汇率…') +
+          'fetch("https://open.er-api.com/v6/latest/CNY").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-fx");if(t&&t.lastChild&&j&&j.rates){t.lastChild.innerHTML="💱 1 USD ≈ "+(j.rates.USD?j.rates.USD.toFixed(2):"-")+" CNY<br><span style=\"opacity:.7\">1 EUR ≈ "+(j.rates.EUR?j.rates.EUR.toFixed(2):"-")+" CNY</span>"}}).catch(function(){var t=document.getElementById("bx-api-fx");if(t)t.lastChild.textContent="汇率加载失败"});</' + 'script>';
+      }
+    }
+  };
+
+  function addApi(apiId) {
+    const def = FREE_APIS[apiId];
+    if (!def) return;
+    if (!current) { alert('请先新建一个网站'); return; }
+    if (current.apis.includes(apiId)) { alert('这个 API 已经接入过啦'); return; }
+    if (!lastHtml) { alert('先让 AI 生成网站内容，再接 API 效果更好'); return; }
+    if (!injectScript(def.script())) { alert('还没有网站代码，无法接入'); return; }
+    current.apis.push(apiId);
+    persistCurrent();
+    messages.push({ role: 'user', content: '（系统：用户已一键接入免费 API「' + def.name + '」，代码已插入页面 </body> 前。继续修改网站时请保留该功能，除非用户要求移除或移动位置。）', sys: true });
+    persistCurrent();
+    addMsg('bot', '<span class="status">🧩 已接入「' + def.name + '」：代码已插入页面并生效（右下角可看到效果）。AI 后续改版会自动保留，想移动位置直接跟 AI 说。</span>');
+    renderApis();
+    renderFiles();
+    $('stStatus').textContent = '✅ 已接入 ' + def.name;
+  }
+
+  function injectScript(tag) {
+    if (!lastHtml) return false;
+    lastHtml = repairHtml(lastHtml);
+    if (/<\/body>/i.test(lastHtml)) lastHtml = lastHtml.replace(/<\/body>/i, tag + '</body>');
+    else lastHtml += tag;
+    preview(lastHtml);
+    return true;
+  }
+
+  function renderApis() {
+    const panel = $('apiList');
+    if (!panel) return;
+    const ids = Object.keys(FREE_APIS);
+    panel.innerHTML = ids.map((id) => {
+      const def = FREE_APIS[id];
+      const on = !!(current && current.apis && current.apis.includes(id));
+      return '<div class="api-card' + (on ? ' on' : '') + '">' +
+        '<div class="api-head"><span class="api-icon">' + def.icon + '</span><b>' + esc(def.name) + '</b>' +
+        (on ? '<span class="api-tag">✅ 已接入</span>' : '') + '</div>' +
+        '<p>' + esc(def.desc) + '</p>' +
+        '<pre>' + esc(def.sample) + '</pre>' +
+        '<button class="st-btn ' + (on ? 'ghost' : 'accent') + ' api-add" data-api="' + id + '"' + (on ? ' disabled' : '') + '>' + (on ? '已接入' : '一键接入') + '</button>' +
+        '</div>';
+    }).join('');
+    panel.querySelectorAll('[data-api]').forEach((b) => {
+      b.addEventListener('click', () => addApi(b.dataset.api));
+    });
+  }
+
+  // ===== 文件区：查看当前网站的所有文件 =====
+  let filesCache = [];
+
+  function extractStyle(html) {
+    const out = [];
+    const re = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+    let m;
+    while ((m = re.exec(html))) out.push(m[1]);
+    return out.join('\n\n');
+  }
+
+  function extractScript(html) {
+    const out = [];
+    const re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
+    let m;
+    while ((m = re.exec(html))) out.push(m[1]);
+    return out.join('\n\n');
+  }
+
+  function extractAssets(html) {
+    const urls = [];
+    const re = /(?:src|href|poster)=["'](https?:\/\/[^"']+)["']/gi;
+    let m;
+    while ((m = re.exec(html))) urls.push(m[1]);
+    return Array.from(new Set(urls));
+  }
+
+  function buildReadme() {
+    const name = $('stName').value.trim() || '我的网站';
+    const type = $('stType').value === '自动判断' ? '自动判断' : $('stType').value;
+    const apis = (current && current.apis && current.apis.length)
+      ? current.apis.map((a) => '- ' + (FREE_APIS[a] ? FREE_APIS[a].name : a)).join('\n')
+      : '（无）';
+    return '# ' + name + '\n\n' +
+      '- 网站类型：' + type + '\n' +
+      '- 主题配色：' + $('stTheme').value + '\n' +
+      '- 生成时间：' + new Date().toLocaleString('zh-CN') + '\n' +
+      '- 已接入免费 API：\n' + apis + '\n\n' +
+      '由 薄想工作室 AI 建站工作台 免费生成。';
+  }
+
+  function buildFiles() {
+    const html = lastHtml || '';
+    filesCache = [{ path: 'index.html', name: 'index.html', content: html, type: 'html' }];
+    if (html) {
+      const css = extractStyle(html);
+      if (css.trim()) filesCache.push({ path: 'css/style.css', name: 'style.css', content: css.trim(), type: 'css' });
+      const js = extractScript(html);
+      if (js.trim()) filesCache.push({ path: 'js/script.js', name: 'script.js', content: js.trim(), type: 'js' });
+      extractAssets(html).forEach((u, i) => {
+        filesCache.push({ path: 'assets/asset-' + (i + 1), name: u, content: u, type: 'asset' });
+      });
+      filesCache.push({ path: 'README.md', name: 'README.md', content: buildReadme(), type: 'md' });
+    }
+    return filesCache;
+  }
+
+  function fileIcon(f) {
+    if (f.type === 'css') return '🎨';
+    if (f.type === 'js') return '⚙️';
+    if (f.type === 'md') return '📄';
+    if (f.type === 'asset') return '🖼️';
+    return '🌐';
+  }
+
+  function renderFiles() {
+    const tree = $('fileTree');
+    if (!tree) return;
+    const files = buildFiles();
+    if (!lastHtml) {
+      tree.innerHTML = '<div class="empty-tip">先让 AI 生成网站，这里会列出全部文件</div>';
+      $('fileView').hidden = true;
+      return;
+    }
+    tree.innerHTML = '<div class="file-folder">📁 ' + esc($('stName').value.trim() || '我的网站') + '</div>' +
+      files.map((f, i) => {
+        const short = f.path.split('/').pop();
+        return '<div class="file-item" data-fi="' + i + '">' +
+          '<span class="fi-icon">' + fileIcon(f) + '</span>' +
+          '<span class="fi-name">' + esc(short) + '</span>' +
+          (f.type === 'asset' ? '<span class="fi-sub">' + esc(f.name.slice(0, 30)) + '…</span>' : '<span class="fi-sub">' + fmtSize(f.content.length) + '</span>') +
+          '</div>';
+      }).join('');
+    tree.querySelectorAll('[data-fi]').forEach((el) => {
+      el.addEventListener('click', () => {
+        tree.querySelectorAll('.file-item').forEach((x) => x.classList.remove('active'));
+        el.classList.add('active');
+        const f = files[+el.dataset.fi];
+        $('fileTitle').textContent = f.path;
+        $('fileCode').value = f.content;
+        $('fileDownload').dataset.path = f.path;
+        $('fileCopy').dataset.path = f.path;
+        $('fileView').hidden = false;
+      });
+    });
+    const first = tree.querySelector('[data-fi="0"]');
+    if (first && $('fileView').hidden) {
+      first.classList.add('active');
+      $('fileTitle').textContent = files[0].path;
+      $('fileCode').value = files[0].content;
+      $('fileDownload').dataset.path = files[0].path;
+      $('fileCopy').dataset.path = files[0].path;
+      $('fileView').hidden = false;
+    }
+  }
+
+  function fmtSize(n) {
+    if (n < 1024) return n + ' B';
+    return (n / 1024).toFixed(1) + ' KB';
+  }
+
+  // ===== 右侧 Tab 切换 =====
+  function setRightTab(tab) {
+    $('stTabPreview').classList.toggle('active', tab === 'preview');
+    $('stTabFiles').classList.toggle('active', tab === 'files');
+    $('stTabApis').classList.toggle('active', tab === 'apis');
+    $('previewFrame').hidden = tab !== 'preview';
+    $('filesPanel').hidden = tab !== 'files';
+    $('apisPanel').hidden = tab !== 'apis';
+    if (tab === 'files') renderFiles();
+    if (tab === 'apis') renderApis();
+  }
   // ===== 发布 =====
   function makeSlug() {
     const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
@@ -421,7 +837,8 @@
     $('pubModal').hidden = false;
 
     try {
-      const purpose = $('stType').value === '自动判断' ? '其他' : $('stType').value;
+      const PURPOSE_MAP = { '个人主页': '个人名片', '作品集': '作品集', '企业官网': '其他', '小店展示': '小店展示', '博客': '博客', '活动落地页': '其他', '工具页': '其他', '其他': '其他', '自动判断': '其他' };
+      const purpose = PURPOSE_MAP[$('stType').value] || '其他';
       const theme = $('stTheme').value;
       const firstUser = messages.find((m) => m.role === 'user');
       const desc = (firstUser ? firstUser.content.replace(/【站点信息】[^。]*。?/, '').slice(0, 80) : title);
@@ -445,25 +862,28 @@
       if (!ok) throw new Error(lastErr);
 
       const url = BASE + '/sites/' + slug + '/';
-      $('stPreviewUrl').textContent = url;
+      if (current) {
+        current.published = true;
+        current.publishedSlug = slug;
+        current.name = title;
+        touchSession();
+        saveSessions();
+        renderSessions();
+      }
       body.innerHTML =
         '<div class="ok-mark">🎉</div>' +
         '<h2 style="text-align:center">发布成功！</h2>' +
+        '<p class="pub-tip">你的网站已提交上线，站长审核通过后即可访问：</p>' +
         '<a class="pub-url" href="' + url + '" target="_blank" rel="noopener">' + url + '</a>' +
-        '<p class="pub-tip">你的网站正在自动上线，<b>约 1~5 分钟</b>后即可访问（首次部署稍慢）。<br>' +
-        '以后想修改，重新来工作台生成后再次发布即可。有问题找站长：公众号「超有用的林」。</p>' +
+        '<p class="pub-tip"><b>提示：</b>发布的是当前这份代码，后续继续让 AI 修改后需要重新发布。</p>' +
         '<div class="pub-actions">' +
-        '<button class="st-btn accent" id="pubOpen">打开我的网站</button>' +
-        '<button class="st-btn ghost" id="pubCopy">复制网址</button>' +
+        '<button class="st-btn ghost" id="pubVisit" onclick="window.open(\'' + url + '\',\'_blank\')">🔗 打开网站</button>' +
+        '<button class="st-btn accent" id="pubCopy" onclick="navigator.clipboard.writeText(\'' + url + '\')">📋 复制网址</button>' +
         '</div>';
-      const openBtn = $('pubOpen');
-      const copyBtn = $('pubCopy');
-      openBtn.addEventListener('click', () => window.open(url, '_blank'));
-      copyBtn.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(url);
-          copyBtn.textContent = '已复制 ✓';
-        } catch (e) { window.prompt('复制网址：', url); }
+      const copyBtn = body.querySelector('#pubCopy');
+      if (copyBtn) copyBtn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(url); copyBtn.textContent = '已复制 ✓'; }
+        catch (e) { window.prompt('复制网址：', url); }
       });
       addMsg('bot', '<span class="status">🎉 发布成功！网址：' + url + '</span>');
     } catch (e) {
@@ -477,45 +897,6 @@
       btn.textContent = '🚀 发布网站';
     }
   }
-
-  // ===== 刷新预览 =====
-  $('stReload').addEventListener('click', () => {
-    if (!lastHtml) return;
-    $('stFrame').srcdoc = repairHtml(lastHtml);
-    const b = $('stReload'); b.textContent = 'U0001f504 已刷新';
-    setTimeout(() => { b.textContent = 'U0001f504 刷新预览'; }, 1200);
-  });
-
-  // ===== 复制 / 下载 / 清空 =====
-  $('stCopyCode').addEventListener('click', async () => {
-    if (!lastHtml) return;
-    try {
-      await navigator.clipboard.writeText(lastHtml);
-      const b = $('stCopyCode'); b.textContent = '已复制 ✓';
-      setTimeout(() => { b.textContent = '📋 复制代码'; }, 1600);
-    } catch (e) { alert('复制失败'); }
-  });
-  $('stDownload').addEventListener('click', () => {
-    if (!lastHtml) return;
-    const blob = new Blob([lastHtml], { type: 'text/html' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = ($('stName').value.trim() || 'my-site') + '.html';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-  });
-  $('stClear').addEventListener('click', () => {
-    if (!confirm('重新开始会清空当前对话和预览，确定？')) return;
-    try { localStorage.removeItem(STATE_KEY); } catch (e) {}
-    messages = [{ role: 'system', content: SYSTEM_PROMPT }];
-    lastHtml = '';
-    chatList.innerHTML = '';
-    $('stFrame').srcdoc = '';
-    $('stName').value = '';
-    $('stPreviewUrl').textContent = '还没发布 · 发布后这里显示网址';
-    $('stStatus').textContent = '👀 实时预览';
-    welcome();
-  });
 
   // ===== 事件绑定 =====
   $('chatSend').addEventListener('click', () => {
@@ -537,12 +918,81 @@
       document.querySelectorAll('.tool-btn').forEach((x) => x.classList.remove('active'));
       b.classList.add('active');
       mode = b.dataset.mode;
-      $('stModelBadge').textContent = MODE_INFO[mode].badge;
-      $('chatHint').textContent = MODE_INFO[mode].hint;
-      $('chatInput').placeholder = mode === 'text' ? '跟 AI 说你想做什么网站…' : (mode === 'image' ? '描述想生成的图片…' : '描述想生成的视频…');
+      setMode(mode);
+      touchSession();
     });
   });
   $('stPublish').addEventListener('click', publish);
+  $('stNewSite').addEventListener('click', () => {
+    persistCurrent();
+    newSession();
+    addMsg('bot', '<span class="status">✨ 已新建一个空白网站记忆，之前的网站在「📚 我的网站」里可以随时切回来。</span>');
+  });
+  $('stSessionsBtn').addEventListener('click', () => {
+    renderSessions();
+    $('sessionModal').hidden = false;
+  });
+  $('sessionClose').addEventListener('click', () => { $('sessionModal').hidden = true; });
+  $('sessionBackdrop').addEventListener('click', () => { $('sessionModal').hidden = true; });
+  $('sessionNew').addEventListener('click', () => {
+    persistCurrent();
+    newSession();
+    $('sessionModal').hidden = false;
+    renderSessions();
+  });
+
+  // 右侧 Tab
+  $('stTabPreview').addEventListener('click', () => setRightTab('preview'));
+  $('stTabFiles').addEventListener('click', () => setRightTab('files'));
+  $('stTabApis').addEventListener('click', () => setRightTab('apis'));
+
+  // 刷新预览
+  $('stReload').addEventListener('click', () => {
+    if (!lastHtml) return;
+    $('stFrame').srcdoc = repairHtml(lastHtml);
+    const b = $('stReload'); b.textContent = '🔄 已刷新';
+    setTimeout(() => { b.textContent = '🔄 刷新预览'; }, 1200);
+  });
+
+  // 复制 / 下载
+  $('stCopyCode').addEventListener('click', async () => {
+    if (!lastHtml) return;
+    try {
+      await navigator.clipboard.writeText(lastHtml);
+      const b = $('stCopyCode'); b.textContent = '已复制 ✓';
+      setTimeout(() => { b.textContent = '📋 复制代码'; }, 1600);
+    } catch (e) { alert('复制失败'); }
+  });
+  $('stDownload').addEventListener('click', () => {
+    if (!lastHtml) return;
+    const blob = new Blob([lastHtml], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = ($('stName').value.trim() || 'my-site') + '.html';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  });
+
+  // 文件区按钮
+  $('fileCopy').addEventListener('click', async () => {
+    const f = filesCache.find((x) => x.path === $('fileCopy').dataset.path);
+    if (!f) return;
+    try {
+      await navigator.clipboard.writeText(f.content);
+      const b = $('fileCopy'); b.textContent = '已复制 ✓';
+      setTimeout(() => { b.textContent = '📋 复制'; }, 1400);
+    } catch (e) { alert('复制失败'); }
+  });
+  $('fileDownload').addEventListener('click', () => {
+    const f = filesCache.find((x) => x.path === $('fileDownload').dataset.path);
+    if (!f) return;
+    const blob = new Blob([f.content], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = f.path.split('/').pop();
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  });
 
   // 工具弹窗
   document.querySelectorAll('.ratio-btn').forEach((b) => {
@@ -559,8 +1009,20 @@
   $('pubBackdrop').addEventListener('click', () => { $('pubModal').hidden = true; });
 
   // ===== 初始化 =====
-  if (!restoreState()) welcome();
+  loadSessions();
+  migrateLegacy();
+  if (!sessions.length) {
+    newSession();
+  } else {
+    const id = curId();
+    const found = id && sessions.find((x) => x.id === id);
+    switchTo(found ? found.id : sessions[0].id);
+  }
+  $('stSessionCount').textContent = sessions.length;
+  renderSessions();
+
   window.addEventListener('beforeunload', () => {
+    persistCurrent();
     if (videoTimer) clearInterval(videoTimer);
     if (aborter) aborter.abort();
   });
