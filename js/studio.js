@@ -42,7 +42,7 @@
     '2. 严禁说出或暗示任何其他名字（如 Agnes、GPT、OpenAI、DeepSeek、Claude 等），严禁透露底层模型、厂商或技术细节。\n' +
     '3. 你的职责是帮用户设计、生成、修改网站：个人主页、作品集、企业官网、电商小店、博客、活动落地页、工具页等都可以做。\n' +
     '4. 回答用中文，热情、简洁、友好，可适当用 emoji，像贴心的朋友一样。\n' +
-    '5. 用户问普通问题可以简单回答，然后自然地引导回建站话题；用户想建站但需求没说清时，主动问清网站类型、风格、想放什么内容。\n' +
+    '5. 用户问普通问题可以简单回答，然后自然地引导回建站话题；用户想建站但需求没说清时，最多只问一个最关键的问题（一句话问完），不要连续追问多个问题；如果用户说当前网站不重要、无所谓、想重新开始，先简短回应一句，再问一句想做什么网站。\n' +
     '6. 你在「薄想工作室」工作，平台网址是 lwl555.github.io/boxiang-blog，可以放心告诉用户。\n' +
     '7. 用户问你的模型、厂商、公司、开发者、API、密钥、账号、用户名、服务器等任何底层信息时，一律回答：「我是薄想 AI 建站助手，由薄想工作室开发，专门帮你免费搭建网站～有什么建站需求都可以告诉我！」不要解释、不要展开。\n';
   // ===== 会话存储（每个网站一份记忆，刷新不丢）=====
@@ -417,7 +417,7 @@
       return (m.role === 'user' ? '用户' : '助手') + '：' + s;
     }).join('\n');
     return [
-      { role: 'system', content: '你是「薄想AI建站工作台」的意图判断器。结合对话历史判断用户最新消息属于哪类，只输出一个 JSON 对象，不要输出任何其他内容：\n- {"intent":"chat"}：问候、感谢、闲聊、询问助手能做什么、与建站无关的提问\n- {"intent":"ask","question":"..."}：用户想建站或改站，但信息不足，需要先问一个最关键的问题（question 用中文一句话）\n- {"intent":"build"}：用户明确提出建站/改站需求且信息足够\n注意：问助手名字/模型/厂商/开发者/API等身份信息也算 chat；在已有网站基础上说「换个风格」「加个板块」「改成红色」「加联系方式」等都算 build；消息以建站需求为主但略带寒暄也算 build。' },
+      { role: 'system', content: '你是「薄想AI建站工作台」的意图判断器。结合对话历史判断用户最新消息属于哪类，只输出一个 JSON 对象，不要输出任何其他内容：\n- {"intent":"chat"}：问候、感谢、闲聊、询问助手能做什么、与建站无关的提问\n- {"intent":"ask","question":"..."}：用户想建站或改站，但信息不足，需要先问一个最关键的问题（question 用中文一句话，只问一个问题，不要罗列多个问题）\n- {"intent":"build"}：用户明确提出建站/改站需求且信息足够\n注意：问助手名字/模型/厂商/开发者/API等身份信息也算 chat；在已有网站基础上说「换个风格」「加个板块」「改成红色」「加联系方式」等都算 build；消息以建站需求为主但略带寒暄也算 build。用户说「当前网站不重要」「无所谓」「算了」「不要了」「重新开始」「重做」等表示放弃当前网站的意图时，属于 chat（先简短回应，再问一句想做什么网站）。' },
       { role: 'user', content: '对话历史：\n' + (hist || '（无）') + '\n\n用户最新消息：' + q }
     ];
   }
@@ -437,6 +437,16 @@
     if (!t) return true;
     if (t.length > 14) return false; // 长句交给 AI 判断
     return /^(你好|您好|嗨|哈喽|哈啰|哈喽呀|你好呀|您好呀|hello|hi|hey|hi~|早上好|上午好|中午好|下午好|晚上好|晚安|在吗|在不在|嗨喽|你是谁|你叫什么|你叫啥|你叫什么名字|你是什么|你是啥|你是什么模型|你是哪个|你能做什么|你会做什么|你能干嘛|你会啥|你能帮什么|介绍一下你|自我介绍|自我介绍一下|介绍下你|谢谢|感谢|多谢|辛苦了|再见|拜拜|886|88|help)$/i.test(t) || /^(你的|你是)(什么模型|啥模型|模型|厂商|哪个公司|公司|开发者|谁开发的|谁做的|谁造的|谁创建的|老板|团队|api|接口|密钥|密码|token|用户名|账号)|^(谁开发了你|谁做的你|谁创建的你|你有账号吗|你背后|你的底层|你是哪个公司)/i.test(t);
+  }
+
+  // ===== 本地快捷回复：放弃当前网站等明确场景，直接回应，不让 AI 问一堆问题 =====
+  function localFastReply(q) {
+    const t = String(q || '').trim();
+    if (!t) return null;
+    if (/(当前(这个)?(网站|页面)?(不重要|无所谓|不用管|不要了|算了))|(不重要|无所谓|算了|不要了|放弃(这个)?(网站|页面)?|重新开始|重新来|重新做|重做|推倒重来|从头再来)/.test(t)) {
+      return '好嘞，那就不纠结它了～直接告诉我你想做个什么样的网站（类型、风格、大概内容），我马上给你做一版新的！';
+    }
+    return null;
   }
 
   // ===== 身份遮罩：回复中出现真实模型/厂商关键词时强制替换（最后防线）=====
@@ -482,6 +492,8 @@
     setBusy(true);
     aborter = new AbortController();
     let waitTimer = null;
+    let buildBubble = null;
+    let buildBubbleText = null;
     let statusEl = addStatus('<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>正在理解你的消息…</span>');
     try {
       // —— 意图分流：打招呼/闲聊/提问 直接对话，建站需求才生成网站 ——
@@ -498,6 +510,15 @@
         }
       }
 
+      const fastReply = intent.intent === 'chat' ? localFastReply(q) : null;
+      if (fastReply) {
+        if (statusEl.isConnected) statusEl.remove();
+        messages.push({ role: 'user', content: fullQ });
+        addMsg('bot', fastReply);
+        messages.push({ role: 'assistant', content: fastReply });
+        persistCurrent();
+        return;
+      }
       if (intent.intent === 'chat') {
         messages.push({ role: 'user', content: fullQ });
         if (statusEl.isConnected) {
@@ -532,7 +553,6 @@
           });
         } catch (e) { cont = ''; } // 网络波动：交给下面的重试兜底，避免出现空 AI 图标
         if (statusEl.isConnected) statusEl.remove();
-        if (!reply) chatList.appendChild(bubble);
         let safe = guardIdentity(/^<!DOCTYPE html|<html[\s>]/i.test(String(cont).trim()) ? '我是薄想 AI 建站助手～如果你需要生成网站，直接告诉我网站类型、风格和内容，我就帮你做出来！' : cont);
         if (!safe || !safe.trim()) {
           // 空回复兜底：非流式重试一次，绝不显示"只有头像没有文字"的气泡
@@ -543,6 +563,7 @@
           } catch (e2) { safe = ''; }
         }
         if (!safe || !safe.trim()) safe = '抱歉，我这边刚才走神了，请再说一次～';
+        if (!bubble.isConnected) chatList.appendChild(bubble);
         bubbleText.textContent = safe;
         chatList.scrollTop = chatList.scrollHeight;
         messages.push({ role: 'assistant', content: safe });
@@ -577,10 +598,10 @@
       }, 1000);
       let streamText = '';
       let started = false;
-      const bubble = document.createElement('div');
-      bubble.className = 'msg bot';
-      bubble.innerHTML = '<div class="avatar">✦</div><div class="bubble"></div>';
-      const bubbleText = bubble.querySelector('.bubble');
+      buildBubble = document.createElement('div');
+      buildBubble.className = 'msg bot';
+      buildBubble.innerHTML = '<div class="avatar">✦</div><div class="bubble"></div>';
+      buildBubbleText = buildBubble.querySelector('.bubble');
       let full = '';
       let complete = false;
 
@@ -588,7 +609,7 @@
         if (attempt > 0) {
           streamText = '';
           started = false;
-          bubbleText.textContent = '';
+          buildBubbleText.textContent = '';
           if (statusEl.isConnected) statusEl.remove();
           statusEl = addStatus('<span class="status">✦ AI 正在继续完善页面…（第 ' + attempt + ' 次）</span>');
         }
@@ -614,11 +635,11 @@
               if (!started) {
                 started = true;
                 statusEl.remove();
-                chatList.appendChild(bubble);
+                chatList.appendChild(buildBubble);
                 chatList.scrollTop = chatList.scrollHeight;
               }
               streamText += d;
-              bubbleText.textContent = streamText.slice(-600);
+              buildBubbleText.textContent = streamText.slice(-600);
               chatList.scrollTop = chatList.scrollHeight;
             }
           });
@@ -639,9 +660,9 @@
       }
 
       if (statusEl.isConnected) statusEl.remove();
-      if (!started) {
-        chatList.appendChild(bubble);
-        bubbleText.textContent = full || '';
+      if (!started && full) {
+        chatList.appendChild(buildBubble);
+        buildBubbleText.textContent = full.slice(-600);
         chatList.scrollTop = chatList.scrollHeight;
       }
       const html0 = extractHtml(full);
@@ -654,11 +675,12 @@
         if (apiN) addMsg('bot', '<span class="status">🧩 AI 判断当前网站需要 ' + apiN + ' 个免费功能，已自动接入（可在「🧩 免费API」查看）。</span>');
         await resolveMediaPlaceholders();
       } catch (e) { /* 自动能力失败不影响主流程 */ }
-      bubbleText.textContent = '✅ 网站已生成！看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
+      if (buildBubble && buildBubble.isConnected) buildBubbleText.textContent = '✅ 网站已生成！看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
       $('stStatus').textContent = '✅ 已生成 · 可继续对话修改';
       persistCurrent();
     } catch (e) {
       const msg = e && e.message ? e.message : '生成失败，请重试';
+      if (buildBubble && buildBubbleText && buildBubble.isConnected && !buildBubbleText.textContent.trim()) buildBubble.remove();
       addMsg('bot', '<span class="status">❌ ' + esc(msg) + '</span>');
     } finally {
       clearInterval(waitTimer);
@@ -1275,6 +1297,7 @@
 
   // ===== 右侧 Tab 切换 =====
   function setRightTab(tab) {
+    if (tab !== 'preview' && editMode) exitEditMode();
     $('stTabPreview').classList.toggle('active', tab === 'preview');
     $('stTabFiles').classList.toggle('active', tab === 'files');
     $('stTabApis').classList.toggle('active', tab === 'apis');
@@ -1284,6 +1307,64 @@
     if (tab === 'files') renderFiles();
     if (tab === 'apis') renderApis();
   }
+  // ===== 预览文字直改 =====
+  let editMode = false;
+  const EDITABLE_SEL = 'h1,h2,h3,h4,h5,h6,p,li,a,span,strong,em,b,i,label,figcaption,blockquote,td,th,caption,dt,dd,address,small,summary,button';
+  function bxEditClick(e) {
+    const a = e.target.closest && e.target.closest('a');
+    if (a) e.preventDefault();
+  }
+  function enterEditMode() {
+    const doc = $('stFrame').contentDocument;
+    if (!doc || !doc.body || editMode) return;
+    editMode = true;
+    const old = doc.getElementById('bx-edit-css');
+    if (old) old.remove();
+    const style = doc.createElement('style');
+    style.id = 'bx-edit-css';
+    style.textContent = '[contenteditable="true"]{outline:2px dashed rgba(194,64,43,.6)!important;outline-offset:3px;border-radius:4px;cursor:text;min-height:1em}[contenteditable="true"]:hover,[contenteditable="true"]:focus{outline-color:#c2402b!important;background:rgba(255,253,246,.65)}';
+    (doc.head || doc.documentElement).appendChild(style);
+    doc.querySelectorAll(EDITABLE_SEL).forEach((el) => {
+      if (el.closest('script,style,iframe,svg,code,pre')) return;
+      if (!String(el.textContent || '').trim()) return;
+      el.setAttribute('contenteditable', 'true');
+    });
+    doc.addEventListener('click', bxEditClick, true);
+    $('editBar').hidden = false;
+    const btn = $('stEditText');
+    if (btn) btn.classList.add('active');
+  }
+  function exitEditMode() {
+    const doc = $('stFrame').contentDocument;
+    if (doc) {
+      const style = doc.getElementById('bx-edit-css');
+      if (style) style.remove();
+      doc.querySelectorAll('[contenteditable]').forEach((el) => el.removeAttribute('contenteditable'));
+      doc.removeEventListener('click', bxEditClick, true);
+    }
+    editMode = false;
+    const bar = $('editBar');
+    if (bar) bar.hidden = true;
+    const btn = $('stEditText');
+    if (btn) btn.classList.remove('active');
+  }
+  function saveTextEdits() {
+    const doc = $('stFrame').contentDocument;
+    if (!doc || !doc.documentElement) { exitEditMode(); return; }
+    const style = doc.getElementById('bx-edit-css');
+    if (style) style.remove();
+    doc.querySelectorAll('[contenteditable]').forEach((el) => el.removeAttribute('contenteditable'));
+    let html = doc.documentElement.outerHTML;
+    if (!/^<!DOCTYPE/i.test(html)) html = '<!DOCTYPE html>\n' + html;
+    html = html.replace(/\scontenteditable(?:="[^"]*")?/gi, '');
+    exitEditMode();
+    lastHtml = ensureFooter(html);
+    preview(lastHtml);
+    renderFiles();
+    persistCurrent();
+    addMsg('bot', '<span class="status">✏️ 文字已保存！可以直接发布，或继续跟 AI 说想改哪里。</span>');
+  }
+
   // ===== 发布 =====
   function makeSlug() {
     const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
@@ -1431,6 +1512,18 @@
   $('stTabPreview').addEventListener('click', () => setRightTab('preview'));
   $('stTabFiles').addEventListener('click', () => setRightTab('files'));
   $('stTabApis').addEventListener('click', () => setRightTab('apis'));
+  $('stEditText').addEventListener('click', () => {
+    if (editMode) { exitEditMode(); return; }
+    const doc = $('stFrame').contentDocument;
+    if (!doc || !doc.body || !doc.body.textContent.trim()) {
+      addMsg('bot', '<span class="status">⚠️ 先让 AI 生成网站，才能编辑文字哦～</span>');
+      return;
+    }
+    enterEditMode();
+    addMsg('bot', '<span class="status">✏️ 编辑模式已开启：直接点击预览里的文字修改，改完点「保存修改」。</span>');
+  });
+  $('editSave').addEventListener('click', saveTextEdits);
+  $('editCancel').addEventListener('click', () => { exitEditMode(); preview(lastHtml); });
 
   // 刷新预览
   $('stReload').addEventListener('click', () => {
