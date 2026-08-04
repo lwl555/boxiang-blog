@@ -480,8 +480,13 @@
       if (intent.intent === 'chat') {
         messages.push({ role: 'user', content: fullQ });
         if (statusEl.isConnected) {
-          statusEl.innerHTML = '<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在回复你…</span>';
+          statusEl.innerHTML = '<div class="think-wrap"><div class="think-head">🧠 AI 深度思考中… <span class="think-arrow">▾ 点击展开思考过程</span></div><div class="think-body" hidden></div><p class="think-tip">AI 正在回复你…</p></div>';
+          statusEl.addEventListener('click', () => {
+            const tb = statusEl.querySelector('.think-body');
+            if (tb) tb.hidden = !tb.hidden;
+          });
         }
+        let thinkChat = '';
         let reply = '';
         const bubble = document.createElement('div');
         bubble.className = 'msg bot';
@@ -491,6 +496,12 @@
         try {
           cont = await window.Agnes.chat([{ role: 'system', content: CHAT_PROMPT }].concat(compactForRequest().slice(1)), {
             stream: true, signal: aborter.signal, maxTokens: 1024, timeout: 120000,
+            onReasoning: (d) => {
+              thinkChat += d;
+              const tb = statusEl && statusEl.querySelector ? statusEl.querySelector('.think-body') : null;
+              if (tb) { tb.hidden = false; tb.textContent = thinkChat.slice(-2500); }
+              chatList.scrollTop = chatList.scrollHeight;
+            },
             onDelta: (d) => {
               if (!reply) { if (statusEl.isConnected) statusEl.remove(); chatList.appendChild(bubble); }
               reply += d;
@@ -526,15 +537,21 @@
         return;
       }
 
-      // —— 建站/改站：生成完整网站 ——
+      // —— 建站/改站：生成完整网站（带思考过程展示）——
       messages.push({ role: 'user', content: fullQ });
       if (statusEl.isConnected) statusEl.remove();
       const waitStart = Date.now();
-      statusEl = addStatus('<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在理解需求并生成网站，完整页面通常需要 30~90 秒，请耐心等待…</span>');
+      statusEl = addMsg('bot', '<div class="think-wrap"><div class="think-head">🧠 AI 深度思考中… <span class="think-arrow">▾ 点击展开思考过程</span></div><div class="think-body" hidden></div><p class="think-tip">AI 正在生成网站（已等待 0 秒），完整页面通常需要 30~90 秒，请耐心等待…</p></div>');
+      statusEl.addEventListener('click', () => {
+        const tb = statusEl.querySelector('.think-body');
+        if (tb) tb.hidden = !tb.hidden;
+      });
+      let thinkText = '';
       waitTimer = setInterval(() => {
         if (statusEl && statusEl.isConnected) {
           const sec = Math.round((Date.now() - waitStart) / 1000);
-          statusEl.innerHTML = '<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>AI 正在生成网站（已等待 ' + sec + ' 秒），完整页面通常需要 30~90 秒，请耐心等待…</span>';
+          const tip = statusEl.querySelector('.think-tip');
+          if (tip) tip.textContent = 'AI 正在生成网站（已等待 ' + sec + ' 秒），完整页面通常需要 30~90 秒，请耐心等待…';
         }
       }, 1000);
       let streamText = '';
@@ -566,6 +583,12 @@
             signal: aborter.signal,
             maxTokens: 16384,
             timeout: 420000,
+            onReasoning: (d) => {
+              thinkText += d;
+              const tb = statusEl && statusEl.querySelector ? statusEl.querySelector('.think-body') : null;
+              if (tb) { tb.hidden = false; tb.textContent = thinkText.slice(-2500); }
+              chatList.scrollTop = chatList.scrollHeight;
+            },
             onDelta: (d) => {
               if (!started) {
                 started = true;
