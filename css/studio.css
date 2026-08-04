@@ -264,3 +264,110 @@ body::before{
   .st-actions{width:100%;justify-content:flex-end}
   .chat-list{max-height:none}
 }
+/* ===== v3 新增：会话 / 文件 / API / 移动端 ===== */
+.empty-tip{color:var(--soft);font-size:.85rem;text-align:center;padding:26px 12px}
+.st-sessions-btn{position:relative;padding:8px 14px;font-size:.82rem;display:inline-flex;align-items:center;gap:6px}
+.session-count{
+  display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;
+  background:var(--accent);color:#fff;border-radius:999px;font-size:.68rem;font-weight:900;padding:0 5px;
+}
+.btn-block{width:100%}
+.session-box{width:min(520px,94vw)}
+.session-hint{font-size:.78rem;color:var(--soft);margin-bottom:12px;line-height:1.7}
+.session-list{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto;margin-bottom:14px}
+.session-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border:1px solid var(--line);border-radius:14px;padding:10px 14px;cursor:pointer;
+  background:#fff;transition:all .15s;
+}
+.session-item:hover{border-color:var(--amber);transform:translateX(2px)}
+.session-item.active{border-color:var(--accent);background:rgba(194,64,43,.06)}
+.session-main{display:flex;flex-direction:column;gap:3px;min-width:0}
+.session-main b{font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.session-meta{font-size:.72rem;color:var(--soft)}
+.session-item .mini-btn.danger{flex:none;border-color:rgba(194,64,43,.35);color:var(--err)}
+
+/* 右侧 Tab */
+.pv-tabs{display:flex;gap:6px}
+.pv-tab{
+  border:1px solid var(--line);background:#fff;border-radius:999px;
+  padding:6px 14px;font-size:.78rem;font-weight:800;color:var(--soft);cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+}
+.pv-tab:hover{border-color:var(--amber);color:var(--amber)}
+.pv-tab.active{background:linear-gradient(135deg,#c2402b,#8a2f22);color:#fff;border-color:transparent}
+
+/* 文件区 */
+.files-wrap{flex:1;min-height:0;display:flex;overflow:hidden}
+.file-tree{
+  width:240px;flex:none;border-right:1px solid var(--line);overflow-y:auto;
+  padding:10px 8px;background:rgba(250,243,228,.5);display:flex;flex-direction:column;gap:2px;
+}
+.file-folder{
+  font-size:.8rem;font-weight:900;padding:8px 10px;color:var(--accent);
+  border-bottom:1px dashed var(--line);margin-bottom:6px;
+}
+.file-item{
+  display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:10px;
+  font-size:.8rem;cursor:pointer;transition:all .12s;min-width:0;
+}
+.file-item:hover{background:rgba(201,138,22,.12)}
+.file-item.active{background:linear-gradient(135deg,rgba(194,64,43,.14),rgba(201,138,22,.16));color:var(--accent);font-weight:800}
+.fi-icon{flex:none}
+.fi-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fi-sub{flex:none;font-size:.66rem;color:var(--soft);margin-left:auto;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-view{flex:1;min-width:0;display:flex;flex-direction:column;background:#fff}
+.file-view-head{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 14px;border-bottom:1px solid var(--line);
+}
+.file-title{font-size:.8rem;font-weight:900;color:var(--accent);word-break:break-all}
+.file-actions{display:flex;gap:6px;flex:none}
+#fileCode{
+  flex:1;min-height:0;width:100%;border:none;outline:none;resize:none;
+  font-family:"Cascadia Code",Consolas,monospace;font-size:.78rem;line-height:1.6;
+  color:#2c2a26;background:#fffdf6;padding:12px 14px;
+}
+
+/* API 市场 */
+.apis-panel{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.apis-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.apis-head b{font-size:.92rem;letter-spacing:.5px}
+.apis-tip{font-size:.72rem;color:var(--soft)}
+.api-list{flex:1;overflow-y:auto;padding:14px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;align-content:start}
+.api-card{
+  border:1px solid var(--line);border-radius:16px;background:#fff;padding:14px;
+  display:flex;flex-direction:column;gap:8px;transition:all .15s;
+}
+.api-card:hover{box-shadow:0 10px 26px rgba(51,38,29,.12);transform:translateY(-2px)}
+.api-card.on{border-color:rgba(47,93,74,.45);background:rgba(47,93,74,.05)}
+.api-head{display:flex;align-items:center;gap:8px}
+.api-icon{font-size:1.3rem}
+.api-head b{font-size:.88rem}
+.api-tag{margin-left:auto;font-size:.68rem;font-weight:900;color:var(--ok);background:rgba(47,93,74,.12);padding:3px 9px;border-radius:999px}
+.api-card p{font-size:.76rem;color:var(--soft);line-height:1.7;flex:1}
+.api-card pre{
+  background:#faf3e4;border:1px solid var(--line);border-radius:10px;padding:8px 10px;
+  font-size:.68rem;line-height:1.5;overflow-x:auto;color:#4a3f35;white-space:pre-wrap;word-break:break-all;
+}
+.api-add{align-self:flex-start;padding:7px 16px;font-size:.76rem}
+.api-add:disabled{opacity:.55;cursor:not-allowed}
+
+/* 移动端增强 */
+@media (max-width:900px){
+  .st-sessions-btn{padding:7px 10px;font-size:.74rem}
+  .st-title-group select{min-width:0}
+  .preview-head{gap:8px}
+  .pv-tabs{width:100%}
+  .pv-tab{flex:1;text-align:center}
+  .pv-status,.preview-url{width:100%}
+  .pv-actions{width:100%;justify-content:flex-end;flex-wrap:wrap}
+  .files-wrap{flex-direction:column}
+  .file-tree{width:100%;max-height:132px;border-right:none;border-bottom:1px solid var(--line)}
+  .file-view{min-height:180px}
+  .api-list{grid-template-columns:1fr}
+  .session-box{width:100%;height:100%;max-height:none;border-radius:0}
+  .session-list{max-height:none;flex:1}
+  .modal-box{width:100vw;max-height:100vh;border-radius:0;padding:22px 18px}
+  .tool-actions{flex-wrap:wrap;gap:8px}
+}
