@@ -25,7 +25,7 @@
       <a href="#services">服务</a>
       <a href="#works">作品</a>
       <a href="#blog">博客</a>
-      <a href="#builder" class="nav-accent">免费建站</a>
+      <a href="studio.html" class="nav-accent">免费建站</a>
       <a href="#order" class="nav-cta">立即接单</a>
     </nav>
     <button class="nav-toggle" id="navToggle" aria-label="菜单">☰</button>
@@ -40,7 +40,7 @@
       <h1 class="hero-title reveal" id="heroTitle">把想法，做成<br><span class="grad brush">会发光</span>的作品</h1>
       <p class="hero-sub reveal" id="heroSub">网站开发 · 视频创作 · AI 绘画 · 设计落地</p>
       <div class="hero-actions reveal">
-        <a href="#builder" class="btn btn-accent">✨ 免费建站 <span class="arrow">→</span></a>
+        <a href="studio.html" class="btn btn-accent">✨ 免费建站 <span class="arrow">→</span></a>
         <a href="#order" class="btn btn-primary">开始接单 <span class="arrow">→</span></a>
         <a href="#works" class="btn btn-ghost">看看作品</a>
       </div>
@@ -105,87 +105,43 @@
     </div>
   </section>
 
-  <!-- 免费建站 -->
+    <!-- 免费建站 -->
   <section class="section section-builder" id="builder">
     <div class="container">
       <p class="sec-label reveal">免费建站 · FREE BUILDER</p>
-      <h2 class="sec-title reveal">像点外卖一样，<span class="grad">拥有自己的网站</span></h2>
-      <p class="sec-desc reveal">不用写代码、不用买服务器。填几句话，AI 帮你自动生成一整个网站，审核通过后免费上线，永久挂在 lwl555.github.io 下，随时可改。</p>
+      <h2 class="sec-title reveal">跟 AI 聊几句，<span class="grad">网站自动生成</span></h2>
+      <p class="sec-desc reveal">像秒哒一样的工作台：左边跟 AI 对话，右边实时预览。个人主页、企业官网、小店、博客、活动页……什么类型的网页都能做，一键发布免费上线，永久挂在 lwl555.github.io 下。</p>
 
       <div class="builder-wrap reveal">
-        <form id="siteForm" class="glass builder-form">
-          <div class="form-row">
-            <label>网站名称 <span>*</span>
-              <input type="text" id="sTitle" placeholder="比如：小林的花店" required maxlength="30">
-            </label>
-            <label>用途 <span>*</span>
-              <select id="sPurpose" required>
-                <option value="个人名片">个人名片</option>
-                <option value="作品集">作品集</option>
-                <option value="小店展示">小店展示</option>
-                <option value="博客">博客</option>
-                <option value="其他">其他</option>
-              </select>
-            </label>
+        <div class="studio-entry glass">
+          <div class="studio-entry-left">
+            <h3>✨ AI 建站工作台</h3>
+            <p>三个免费 AI 模型随时待命：<b>文本</b>生成整站、<b>图像</b>配图插画、<b>视频</b>动态短片。不用写代码、不用买服务器。</p>
+            <div class="entry-tags">
+              <span>💬 文本生成</span><span>🖼️ AI 配图</span><span>🎬 AI 视频</span><span>🚀 一键发布</span>
+            </div>
+            <a href="studio.html" class="btn btn-accent">🚀 免费制作我的网站 <span class="arrow">→</span></a>
           </div>
-          <label>一句话介绍你的网站 <span>*</span>
-            <input type="text" id="sDesc" placeholder="比如：一家开在巷口的鲜花店，主营鲜花礼盒与花艺课程" required maxlength="80">
-          </label>
-          <label>联系你的方式 <span>*</span>
-            <input type="text" id="sContact" placeholder="微信号 / 手机号 / 邮箱，访客通过它联系你" required maxlength="60">
-          </label>
-
-          <div class="builder-label">选择配色 <span>*</span></div>
-          <div class="theme-picker" id="themePicker">
-            <label class="theme-card theme-cinnabar selected">
-              <input type="radio" name="theme" value="朱砂" checked>
-              <span class="swatch"></span><b>朱砂</b><i>温润中国红</i>
-            </label>
-            <label class="theme-card theme-green">
-              <input type="radio" name="theme" value="墨绿">
-              <span class="swatch"></span><b>墨绿</b><i>沉静草木绿</i>
-            </label>
-            <label class="theme-card theme-amber">
-              <input type="radio" name="theme" value="琥珀">
-              <span class="swatch"></span><b>琥珀</b><i>暖阳蜂蜜黄</i>
-            </label>
-            <label class="theme-card theme-rose">
-              <input type="radio" name="theme" value="玫瑰褐">
-              <span class="swatch"></span><b>玫瑰褐</b><i>复古砖红</i>
-            </label>
-          </div>
-
-          <div class="builder-label">想要的功能（可多选）</div>
-          <div class="feature-chips" id="featureChips">
-            <label class="chip-check"><input type="checkbox" value="作品展示" checked><span>🖼️ 作品展示</span></label>
-            <label class="chip-check"><input type="checkbox" value="服务项目"><span>🧰 服务项目</span></label>
-            <label class="chip-check"><input type="checkbox" value="在线联系"><span>📮 在线联系</span></label>
-            <label class="chip-check"><input type="checkbox" value="社交链接"><span>🔗 社交链接</span></label>
-            <label class="chip-check"><input type="checkbox" value="价格清单"><span>💰 价格清单</span></label>
-            <label class="chip-check"><input type="checkbox" value="访客留言"><span>💬 访客留言</span></label>
-          </div>
-
-          <button type="submit" class="btn btn-accent btn-block" id="siteBtn">🚀 一键生成我的网站 <span class="arrow">→</span></button>
-          <p class="form-tip" id="siteTip">免费额度：同一设备最多 3 个，全站每天 100 个。审核通过后自动上线。</p>
-        </form>
-
-        <!-- 预览 -->
-        <div class="builder-preview glass" id="sitePreviewWrap">
-          <div class="preview-head">
-            <span>👀 实时预览</span>
-            <span class="preview-url" id="previewUrl">bx-xxxxxx</span>
-          </div>
-          <div class="preview-frame"><iframe id="sitePreview" title="网站预览"></iframe></div>
-          <div class="preview-actions" id="previewActions" hidden>
-            <button class="btn btn-ghost" id="copyCodeBtn">📋 复制代码</button>
-            <button class="btn btn-ghost" id="downloadCodeBtn">⬇️ 下载 HTML</button>
+          <div class="studio-entry-right" aria-hidden="true">
+            <div class="entry-mock">
+              <div class="mock-chat">
+                <span class="mock-line w70"></span>
+                <span class="mock-line w90 accent"></span>
+                <span class="mock-line w55"></span>
+                <span class="mock-line w80 accent"></span>
+              </div>
+              <div class="mock-web">
+                <span class="mock-nav"></span>
+                <span class="mock-hero"></span>
+                <span class="mock-row"><i></i><i></i><i></i></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </section>
-
-  <!-- 最近上线 -->
+<!-- 最近上线 -->
   <section class="section" id="sites">
     <div class="container">
       <p class="sec-label reveal">免费网站 · FREE SITES</p>
@@ -293,6 +249,6 @@
 <script src="js/three-scene.js?v=20260806"></script>
 <script src="js/main.js?v=20260806"></script>
 <script src="js/sitegen.js?v=20260806"></script>
-<script src="js/builder.js?v=20260806"></script>
+<script src="js/sites-list.js?v=20260807"></script>
 </body>
 </html>
