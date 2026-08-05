@@ -33,8 +33,9 @@
     '14. 【配图占位符】如果页面需要真实图片（产品图、场景图、插画、头像等），用 <img src=\"BXIMG:详细画面描述\" alt=\"描述\"> 占位（src 以 BXIMG: 开头，描述 30 字以内，写明主体/环境/光线/风格），系统会自动调用图像模型生成真实图片并替换。整个页面最多 3 个 BXIMG 占位。\n' +
     '15. 【视频占位符】如果确实需要动态视频展示，用 <video src=\"BXVIDEO:画面描述\" controls poster=\"BXVIDEO:封面描述\"></video> 占位（最多 1 个），系统会自动生成并插入。不确定就优先用图片/动画。\n' +
     '16. 【免费 API 自动接入】如果网站业务适合以下免费功能，在 </body> 前放一个注释标记 <!--BXAPI:功能id-->（一个功能最多一个标记），系统会自动接入并生效：hitokoto 一言（博客/主页金句）、jinrishici 今日诗词（文艺/国风）、weather 天气（本地生活/旅行，默认北京）、ipwhois IP定位（同城/本地服务）、fx 实时汇率（外贸/代购）、dog 随机狗图（宠物/休闲）、photo 随机美图（摄影/生活）、qrcode 二维码（线下引流）、translate 在线翻译（工具/学习）、avatar 随机头像（个人主页）、person 随机用户（演示/社区）、joke 冷笑话（娱乐）、agify 年龄预测（趣味）、genderize 性别预测（趣味）、ghzen GitHub开发格言（程序员主页）、ghcard GitHub名片（程序员主页，默认展示 lwl555，可改 body data-github）、sunrise 日出日落（摄影/旅行/户外）、rain 未来24小时降雨提醒（户外/活动）。用户明确要求接入或移除某个功能时，按用户要求执行。\n' +
-    '17. 【轻量数据】免费版不提供服务器数据库。需要留言、预约、收藏、计数等功能时，用浏览器本地存储 localStorage 实现（单访客本地保存），或提供 mailto: 联系链接。不要假装有后端接口。\n' +
-    '18. 【理解用户】动笔前先推断用户的行业、目标人群、想传达的情绪（温暖/专业/活泼/高端），据此统一文案语气、板块取舍与配色深浅；改版时只按用户最新要求调整，不要擅自改掉已确认的信息。';
+    '17. 【简易后端·新能力】本平台支持给网站接入简易后端：留言、预约登记、订单收集、报名、反馈等表单功能都可以做！直接在页面里写标准 <form> 表单，输入框 name 建议用：name（姓名）、contact（联系方式）、content（留言/需求内容）。系统会自动把提交数据安全存储到云端，并在表单下方自动显示数据保存提示。每个网站数据上限 100 条，足够日常使用；不要实现登录、复杂数据库等重后端功能。\n' +
+    '18. 【理解用户】动笔前先推断用户的行业、目标人群、想传达的情绪（温暖/专业/活泼/高端），据此统一文案语气、板块取舍与配色深浅；改版时只按用户最新要求调整，不要擅自改掉已确认的信息。\n' +
+    '19. 【改版说明·强制性】每次生成或修改完网站，必须在 </html> 前加一行注释：<!-- BX-NOTES:用大白话写这次做了什么（2~3句话，面向不懂技术的用户，说明改了什么、解决了什么问题、效果如何，例如「把按钮修好了，现在点一下就能直接跳转微信」）-->。系统会把这段注释显示给用户看。';
   // ===== 对话人设：闲聊/提问时 AI 的身份（只认「薄想 AI 建站助手」）=====
   const CHAT_PROMPT = '你是「薄想 AI 建站助手」，是「薄想工作室」官方免费 AI 建站平台的 AI 助手。\n' +
     '【身份铁律·必须严格遵守】\n' +
@@ -44,7 +45,8 @@
     '4. 回答用中文，热情、简洁、友好，可适当用 emoji，像贴心的朋友一样。\n' +
     '5. 用户问普通问题可以简单回答，然后自然地引导回建站话题；用户想建站但需求没说清时，最多只问一个最关键的问题（一句话问完），不要连续追问多个问题；如果用户说当前网站不重要、无所谓、想重新开始，先简短回应一句，再问一句想做什么网站。\n' +
     '6. 你在「薄想工作室」工作，平台网址是 lwl555.github.io/boxiang-blog，可以放心告诉用户。\n' +
-    '7. 用户问你的模型、厂商、公司、开发者、API、密钥、账号、用户名、服务器等任何底层信息时，一律回答：「我是薄想 AI 建站助手，由薄想工作室开发，专门帮你免费搭建网站～有什么建站需求都可以告诉我！」不要解释、不要展开。\n';
+    '7. 用户问你的模型、厂商、公司、开发者、API、密钥、账号、用户名、服务器等任何底层信息时，一律回答：「我是薄想 AI 建站助手，由薄想工作室开发，专门帮你免费搭建网站～有什么建站需求都可以告诉我！」不要解释、不要展开。\n' +
+    '8. 回复要说人话、像朋友聊天：用大白话，不用专业术语；用户说「修复这个问题」时，要说清楚修了什么、为什么有问题、现在效果如何（例如「按钮之前点了没反应，现在可以正常跳转微信了」）；禁止只回「已完成」「搞定」这类敷衍话。\n';
   // ===== 会话存储（每个网站一份记忆，刷新不丢）=====
   const SESSIONS_KEY = 'bx_studio_sessions_v2';
   const CUR_KEY = 'bx_studio_cur_v2';
@@ -157,6 +159,8 @@
       ? '🕐 已提交 · 等待站长上线'
       : '还没发布 · 发布后需站长上线才能访问，网址会显示在这里';
     if (current.publishedSlug) refreshSiteStatus(current.publishedSlug);
+    const bb = $('stBackendBadge');
+    if (bb) bb.hidden = !(current && current.backend);
     if (saved.messages && saved.messages.length) renderHistory(saved.messages);
     else welcome();
     renderSessions();
@@ -215,12 +219,13 @@
         '<b>' + esc(s.name || '未命名网站') + '</b>' +
         '<span class="session-meta">' + esc(s.type || '自动判断') + ' · ' +
         (s.published ? '🕐 已提交' : '🕐 未发布') + ' · ' + fmtTime(s.updated_at) +
-        (s.apis && s.apis.length ? ' · 🧩' + s.apis.length + '个API' : '') +
+        (s.apis && s.apis.length ? ' · 🧩' + s.apis.length + '个API' : '') + (s.backend ? ' · 🔧 简易后台' : '') +
         '</span>' +
         (url ? '<a class="session-open" href="' + url + '" target="_blank" rel="noopener" hidden>🌐 查看已上线网站</a>' : '') +
         '</div>' +
         '<div class="session-ops">' +
         (url ? '<a class="mini-btn link" href="' + url + '" target="_blank" rel="noopener" hidden>🌐 打开</a>' : '') +
+        (s.backend && url ? '<a class="mini-btn link" href="' + BASE + '/sites/' + s.backend.slug + '/admin.html?token=' + s.backend.token + '" target="_blank" rel="noopener" hidden>📊 数据管理</a>' : '') +
         '<button class="mini-btn" data-rename="' + s.id + '">✏️ 改名</button>' +
         '<button class="mini-btn danger" data-del="' + s.id + '">删除</button>' +
         '</div>' +
@@ -369,7 +374,10 @@
 
   function preview(html) {
     lastHtml = repairHtml(html);
-    $('stFrame').srcdoc = lastHtml;
+    const backend = current && current.backend ? current.backend : null;
+    $('stFrame').srcdoc = backend && backend.slug
+      ? injectBackend(lastHtml, backend.slug, backend.token, false)
+      : injectBackend(lastHtml, '', '', true);
   }
 
   // ===== 上下文压缩（防止 AI 上下文爆炸 / 本地存储爆炸）=====
@@ -677,7 +685,10 @@
       }
       const html0 = extractHtml(full);
       if (!html0 || html0.length < 80) throw new Error('AI 没有返回有效的网页内容，请再试一次');
-      const html = ensureFooter(html0);
+      let bxNotes = '';
+      const nm = html0.match(/<!--\s*BX-NOTES:\s*([\s\S]*?)\s*-->/i);
+      if (nm && nm[1].trim()) bxNotes = nm[1].trim();
+      const html = ensureFooter(bxNotes ? html0.replace(/<!--\s*BX-NOTES:[\s\S]*?-->/i, '') : html0);
       preview(html);
       messages.push({ role: 'assistant', content: full });
       try {
@@ -697,7 +708,7 @@
         }
         const parts = [h1m.replace(/<[^>]+>/g, '').trim(), ...secs].filter(Boolean);
         if (parts.length) summary = ' 已包含：' + parts.join('、') + '。';
-        buildBubbleText.textContent = '✅ 网站已生成！' + summary + '\n看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
+        buildBubbleText.textContent = '✅ 网站已生成！' + (bxNotes ? '\n' + bxNotes : summary) + '\n看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
       }
       $('stStatus').textContent = '✅ 已生成 · 可继续对话修改';
       persistCurrent();
@@ -1388,6 +1399,39 @@
     addMsg('bot', '<span class="status">✏️ 文字已保存！可以直接发布，或继续跟 AI 说想改哪里。</span>');
   }
 
+  // ===== 简易后端：表单数据自动存储（每站上限100条）=====
+  const BACKEND_MAX_ROWS = 100;
+  function backendScriptHtml(slug, token, preview) {
+    const cfg = {
+      slug: slug || '', token: token || '', preview: !!preview,
+      url: window.SUPABASE_URL + '/rest/v1/site_data',
+      key: window.SUPABASE_ANON_KEY
+    };
+    return '<script>window.BX_BACKEND=' + JSON.stringify(cfg) + ';(function(){var C=window.BX_BACKEND;' +
+      'function ready(fn){if(document.readyState!=="loading"){fn();}else{document.addEventListener("DOMContentLoaded",fn);}}' +
+      'ready(function(){document.querySelectorAll("form").forEach(function(f){var h=document.createElement("p");h.style.cssText="margin:10px 0 0;font-size:12px;color:#8a6d3b;text-align:center";h.textContent=C.preview?"🔧 预览模式：发布上线后表单即可正常提交数据（自动保存，上限100条）":"🔒 提交后数据会安全保存（平台自动存储，上限100条）";f.appendChild(h);});});' +
+      'document.addEventListener("submit",function(ev){var f=ev.target;if(!f||f.tagName!=="FORM"||!C.url)return;' +
+      'if(C.preview){ev.preventDefault();alert("🔧 预览模式不能提交，发布上线后表单即可正常使用");return;}' +
+      'ev.preventDefault();var fd=new FormData(f);var a=[];fd.forEach(function(v,k){a.push([String(k).toLowerCase(),String(v)]);});' +
+      'function gv(keys){for(var i=0;i<a.length;i++){for(var j=0;j<keys.length;j++){if(a[i][0].indexOf(keys[j])>=0)return a[i][1];}}return "";}' +
+      'var name=gv(["name","姓名","称呼"]).slice(0,50);var contact=gv(["contact","email","phone","微信","电话","邮箱","手机","qq"]).slice(0,80);' +
+      'var content=gv(["content","message","留言","需求","msg","备注","内容","说明"]).slice(0,500);' +
+      'if(!String(content||"").trim()){var parts=[];a.forEach(function(x){parts.push(x[0]+":"+x[1].slice(0,60));});content=parts.join("；").slice(0,400);}' +
+      'var btn=f.querySelector("[type=submit],button");if(btn){btn.disabled=true;btn.textContent="提交中…";}' +
+      'fetch(C.url,{method:"POST",headers:{"Content-Type":"application/json","apikey":C.key,"Authorization":"Bearer "+C.key},body:JSON.stringify({slug:C.slug,name:name,contact:contact,content:content})})' +
+      '.then(function(r){if(btn){btn.disabled=false;btn.textContent="提交";}if(r.ok){alert("✅ 提交成功！信息已保存，站长会尽快联系你～");f.reset();}else{return r.text().then(function(t){alert("⚠️ 提交失败："+String(t||"").slice(0,120));});}})' +
+      '.catch(function(){if(btn){btn.disabled=false;btn.textContent="提交";}alert("⚠️ 网络异常，请稍后再试");});});})();</script>';
+  }
+  function injectBackend(html, slug, token, preview) {
+    if (!/<form[\s>]/i.test(html) || !/<\/body>/i.test(html)) return html;
+    return html.replace(/<\/body>/i, backendScriptHtml(slug, token, preview) + '\n</body>');
+  }
+  function buildBackendAdminHtml(slug, token, siteTitle) {
+    const url = window.SUPABASE_URL;
+    const key = window.SUPABASE_ANON_KEY;
+    return '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>数据管理 · ' + esc(siteTitle || '我的网站') + '</title>\n<style>\n:root{--bg:#f5efe2;--panel:#fffdf6;--ink:#33261d;--soft:#6d5c4b;--accent:#c2402b;--amber:#c98a16}\n*{margin:0;padding:0;box-sizing:border-box}\nbody{background:var(--bg);color:var(--ink);font-family:\"PingFang SC\",\"Microsoft YaHei\",system-ui,sans-serif;padding:26px 16px 60px;line-height:1.7}\n.wrap{max-width:860px;margin:0 auto}\nh1{font-size:1.3rem;font-weight:900;margin-bottom:4px}\n.sub{color:var(--soft);font-size:.86rem;margin-bottom:20px}\n.badge{display:inline-block;background:rgba(201,138,22,.12);color:var(--amber);border:1px solid rgba(201,138,22,.4);border-radius:999px;padding:3px 12px;font-size:.76rem;font-weight:800;margin-bottom:14px}\n.card{background:var(--panel);border:1px solid rgba(51,38,29,.1);border-radius:16px;padding:18px;box-shadow:0 14px 34px rgba(51,38,29,.08)}\n.tip{font-size:.8rem;color:var(--soft);margin-bottom:14px}\n.empty{text-align:center;color:var(--soft);padding:36px 0;font-size:.9rem}\ntable{width:100%;border-collapse:collapse;font-size:.84rem}\nth,td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(51,38,29,.08);vertical-align:top}\nth{font-weight:800;color:var(--soft);font-size:.76rem;white-space:nowrap}\ntd.time{white-space:nowrap;color:var(--soft);font-size:.76rem}\n.err{background:rgba(194,64,43,.07);border:1px dashed rgba(194,64,43,.4);color:var(--accent);border-radius:12px;padding:14px;font-size:.85rem;margin-bottom:14px}\n.back{display:inline-block;margin-top:22px;color:var(--soft);font-size:.82rem;text-decoration:none}\n.back:hover{color:var(--accent)}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n<span class=\"badge\">🔧 简易后台 · 数据上限100条</span>\n<h1>📊 数据管理 · ' + esc(siteTitle || '我的网站') + '</h1>\n<p class=\"sub\">这里显示访客通过网站表单提交的内容（留言 / 预约 / 订单等）。</p>\n<div class=\"card\">\n<p class=\"tip\" id=\"tip\">加载中…</p>\n<div id=\"list\"><div class=\"empty\">正在读取数据…</div></div>\n</div>\n<a class=\"back\" href=\"index.html\">← 返回网站首页</a>\n</div>\n<script>\nvar SLUG=' + JSON.stringify(String(slug || '')) + ';var TOKEN=' + JSON.stringify(String(token || '')) + ';\nvar URL=' + JSON.stringify(url) + ';var KEY=' + JSON.stringify(key) + ';\nvar tip=document.getElementById(\"tip\"),list=document.getElementById(\"list\");\nfetch(URL+\"/rest/v1/rpc/get_site_data\",{method:\"POST\",headers:{\"Content-Type\":\"application/json\",\"apikey\":KEY,\"Authorization\":\"Bearer \"+KEY},body:JSON.stringify({p_slug:SLUG,p_token:TOKEN})})\n.then(function(r){if(!r.ok){return r.text().then(function(t){if(/Could not find the function|404/.test(t)){tip.textContent=\"⚠️ 数据服务还没开通：请联系站长在平台后台运行升级脚本(upgrade-v5.sql)。\";list.innerHTML=\"\";}else if(/令牌无效/.test(t)){tip.textContent=\"⚠️ 访问令牌无效：请从建站工作台重新获取数据管理链接。\";list.innerHTML=\"\";}else{tip.textContent=\"⚠️ 读取失败：\"+t.slice(0,120);list.innerHTML=\"\";}});}\nreturn r.json();})\n.then(function(rows){if(!rows)return;if(!rows.length){tip.textContent=\"📭 还没有收到任何提交，去网站上试试表单吧。\";list.innerHTML=\"\";return;}\ntip.textContent=\"✅ 共 \"+rows.length+\" 条提交（最新在前，最多显示200条）\";\nvar h=\"<table><thead><tr><th>姓名</th><th>联系方式</th><th>内容</th><th>时间</th></tr></thead><tbody>\";\nrows.forEach(function(d){var t=(d.created_at||\"\").replace(\"T\",\" \").slice(0,16);h+=\"<tr><td>\"+(d.name||\"-\")+\"</td><td>\"+(d.contact||\"-\")+\"</td><td>\"+(d.content||\"\")+\"</td><td class=\\\"time\\\">\"+t+\"</td></tr>\";});\nh+=\"</tbody></table>\";list.innerHTML=h;})\n.catch(function(e){tip.textContent=\"⚠️ 网络异常：\"+e.message;list.innerHTML=\"\";});\n</script>\n</body>\n</html>';
+  }
+
   // ===== 发布 =====
   function makeSlug() {
     const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
@@ -1428,10 +1472,10 @@
       const theme = $('stTheme').value;
       const firstUser = messages.find((m) => m.role === 'user');
       const desc = (firstUser ? firstUser.content.replace(/【站点信息】[^。]*。?/, '').slice(0, 80) : title);
-      let ok = false, lastErr = '', slug = '';
+      let ok = false, lastErr = '', slug = '', siteId = null;
       for (let i = 0; i < 3 && !ok; i++) {
         slug = makeSlug();
-        const { error } = await sb.from(T.sites).insert({
+        const { data: insRow, error } = await sb.from(T.sites).insert({
           title: title,
           slug: slug,
           description: desc,
@@ -1442,12 +1486,32 @@
           client_id: getClientId(),
           status: 'published',
           content_html: ensureFooter(lastHtml)
-        });
-        if (!error) ok = true; else lastErr = error.message || '网络异常';
+        }).select('id').single();
+        if (!error) { ok = true; siteId = insRow ? insRow.id : null; }
+        else lastErr = error.message || '网络异常';
       }
       if (!ok) throw new Error(lastErr);
 
       const url = BASE + '/sites/' + slug + '/';
+      let backendTip = '';
+      if (/<form[\s>]/i.test(lastHtml)) {
+        try {
+          const token = 't_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+          const siteHtml = injectBackend(ensureFooter(lastHtml), slug, token, false);
+          const adminHtml = buildBackendAdminHtml(slug, token, title);
+          await sb.rpc('setup_site_backend', { p_slug: slug, p_token: token, p_content_html: siteHtml, p_backend_html: adminHtml, p_client_id: getClientId(), p_max_rows: BACKEND_MAX_ROWS });
+          if (current) {
+            current.backend = { slug: slug, token: token };
+            touchSession();
+            saveSessions();
+          }
+          const bb = $('stBackendBadge');
+          if (bb) bb.hidden = false;
+          backendTip = '🔧 你的网站已接入<b>简易后台</b>：访客提交的表单数据会自动保存（上限 ' + BACKEND_MAX_ROWS + ' 条）。站长上线后，点「我的网站 → 📊 数据管理」即可查看。';
+        } catch (be) {
+          backendTip = '⚠️ 网站已发布，但简易后台接入失败：' + esc(be.message || '') + '。请在 Supabase → SQL Editor 运行 upgrade-v5.sql 升级脚本后，重新发布一次。';
+        }
+      }
       if (current) {
         current.published = true;
         current.publishedSlug = slug;
@@ -1463,6 +1527,7 @@
         '<p class="pub-tip">你的网站已提交给站长，站长点「立即上线」后即可访问：</p>' +
         '<a class="pub-url" href="' + url + '" target="_blank" rel="noopener">' + url + '</a>' +
         '<p class="pub-status-line">🕐 当前状态：待站长上线 · 站长点「立即上线」后即可访问</p>' +
+        (backendTip ? '<p class="pub-status-line" style="color:var(--ok)">' + backendTip + '</p>' : '') +
         '<p class="pub-tip"><b>提示：</b>发布的是当前这份代码，后续继续让 AI 修改后需要重新发布。</p>' +
         '<div class="pub-actions">' +
         '<button class="st-btn ghost" id="pubDone">👍 知道了</button>' +
