@@ -205,6 +205,7 @@ body::before{
   padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;
 }
 .pv-status{font-weight:800;font-size:.86rem;letter-spacing:.5px}
+.pv-badge{font-size:.74rem;font-weight:800;color:#8f6210;background:rgba(201,138,22,.14);border:1px solid rgba(201,138,22,.45);padding:3px 10px;border-radius:999px;white-space:nowrap}
 .preview-url{
   flex:1;font-size:.8rem;color:var(--green);font-weight:700;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
