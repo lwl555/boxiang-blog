@@ -448,3 +448,27 @@ body::before{
 }
 .file-dir::after{content:"";flex:1;height:1px;background:var(--line)}
 .file-item.sub{padding-left:26px}
+/* ===== 数据查看 / 版本历史 ===== */
+.session-tools{margin-bottom:12px}
+.data-box,.version-box{width:min(680px,94vw)}
+.data-body{max-height:62vh;overflow-y:auto}
+.data-count{font-size:.82rem;font-weight:800;color:var(--ok);margin-bottom:10px}
+.data-hint{font-size:.76rem;color:var(--soft);margin-top:10px;line-height:1.7}
+.data-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+.data-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.data-table th,.data-table td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.data-table th{font-size:.74rem;color:var(--soft);background:rgba(201,138,22,.08);font-weight:800;white-space:nowrap}
+.data-table td.time{white-space:nowrap;color:var(--soft);font-size:.74rem}
+.data-site-row{display:flex;align-items:center;gap:10px;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.data-site-row:hover{border-color:var(--amber)}
+.ds-main{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ds-main b{font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ds-count{font-size:.74rem;color:var(--soft)}
+.version-list{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto}
+.version-item{display:flex;align-items:center;gap:10px;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 14px}
+.version-item.cur{border-color:var(--amber);background:rgba(201,138,22,.07)}
+.version-item.cur b{color:var(--amber)}
+.ver-main{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ver-main b{font-size:.86rem}
+.ver-meta{font-size:.72rem;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:640px){.data-box,.version-box{width:100%;height:92vh;max-height:92vh;border-radius:16px}.data-body{max-height:none}}
