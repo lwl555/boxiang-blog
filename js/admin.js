@@ -306,9 +306,30 @@
     });
     list.querySelectorAll('[data-del-site]').forEach((b) => {
       b.addEventListener('click', async () => {
-        if (!confirm('确定删除这条建站申请？')) return;
-        const { error } = await sb.from(T.sites).delete().eq('id', b.dataset.delSite);
-        if (error) alert('删除失败：' + error.message); else loadSites();
+        const s = siteRows.find((x) => x.id === +b.dataset.delSite);
+        if (!s) return;
+        if (!confirm('确定删除「' + (s.title || '该网站') + '」？网站记录、访客提交的数据、后端令牌会一并删除。')) return;
+        const msgs = [];
+        try {
+          if (s.slug) {
+            const r1 = await sb.from(T.site_data).delete().eq('slug', s.slug);
+            if (r1.error && !/does not exist|Could not find/i.test(r1.error.message)) msgs.push('表单数据：' + r1.error.message);
+            const r2 = await sb.from(T.site_backend).delete().eq('slug', s.slug);
+            if (r2.error && !/does not exist|Could not find/i.test(r2.error.message)) {
+              msgs.push('后端令牌：' + r2.error.message + (/security|policy/i.test(r2.error.message) ? '（运行 upgrade-v6.sql 后即可）' : ''));
+            }
+          }
+          try {
+            const token = await getDeployToken();
+            if (token) await removeSiteFile(token, s.slug);
+          } catch (e) { msgs.push('线上文件未移除：' + e.message); }
+        } catch (e) { msgs.push('清理异常：' + e.message); }
+        const { error } = await sb.from(T.sites).delete().eq('id', s.id);
+        if (error) alert('删除失败：' + error.message);
+        else {
+          alert('已删除' + (msgs.length ? '（部分清理未完成：' + msgs.join('；') + '）' : '，网站记录、表单数据、后端令牌均已清除'));
+          loadSites();
+        }
       });
     });
   }
