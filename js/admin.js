@@ -359,17 +359,33 @@
     if (sha) body.sha = sha;
     const r = await ghApi(token, 'PUT', api, body);
     if (!r.ok) throw new Error(await ghErr(r));
+
+    if (s.backend_html && s.backend_html.trim()) {
+      const relAdmin = 'sites/' + s.slug + '/admin.html';
+      const api2 = 'https://api.github.com/repos/lwl555/boxiang-blog/contents/' + encodeURIComponent(relAdmin);
+      const r1 = await ghApi(token, 'GET', api2);
+      let sha2 = null;
+      if (r1.ok) sha2 = (await r1.json()).sha;
+      const body2 = { message: '发布后台管理页 ' + relAdmin, content: utf8ToB64(s.backend_html) };
+      if (sha2) body2.sha = sha2;
+      const r2 = await ghApi(token, 'PUT', api2, body2);
+      if (!r2.ok) throw new Error(await ghErr(r2));
+    }
     return relPath;
   }
   async function removeSiteFile(token, slug) {
-    const relPath = 'sites/' + slug + '/index.html';
-    const api = 'https://api.github.com/repos/lwl555/boxiang-blog/contents/' + encodeURIComponent(relPath);
-    const r0 = await ghApi(token, 'GET', api);
-    if (!r0.ok) return 'skip';
-    const info = await r0.json();
-    const r = await ghApi(token, 'DELETE', api, { message: '下架网站 ' + relPath, sha: info.sha });
-    if (!r.ok) throw new Error(await ghErr(r));
-    return relPath;
+    const done = [];
+    for (const file of ["index.html", "admin.html"]) {
+      const relPath = 'sites/' + slug + '/' + file;
+      const api = 'https://api.github.com/repos/lwl555/boxiang-blog/contents/' + encodeURIComponent(relPath);
+      const r0 = await ghApi(token, 'GET', api);
+      if (!r0.ok) continue;
+      const info = await r0.json();
+      const r = await ghApi(token, 'DELETE', api, { message: '下架网站 ' + relPath, sha: info.sha });
+      if (!r.ok) throw new Error(await ghErr(r));
+      done.push(relPath);
+    }
+    return done.length ? done.join(', ') : 'skip';
   }
 
   // ===== 站点设置 =====
