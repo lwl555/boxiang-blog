@@ -1,6 +1,190 @@
-const fs=require('fs');
-const crypto=require('crypto');
-const path=require('path');
-const file=process.argv[1];
-const content=fs.readFileSync(file,'base64');
-console.log(JSON.stringify({content}));
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 建站工作台 · 薄想工作室</title>
+<meta name="description" content="薄想工作室免费 AI 建站工作台：跟 AI 对话生成任意类型的网站，一键发布上线。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+<link rel="stylesheet" href="css/studio.css?v=20260830">
+</head>
+<body>
+
+<!-- 顶部工具栏 -->
+<header class="st-top">
+  <div class="st-top-in">
+    <a href="index.html" class="st-logo">← 薄想<span class="dot">✦</span></a>
+    <button class="st-btn ghost st-sessions-btn" id="stSessionsBtn" title="我的网站：每个网站一份独立记忆">📚 我的网站<span class="session-count" id="stSessionCount">0</span></button>
+    <div class="st-title-group">
+      <input id="stName" placeholder="给网站起个名字（比如：小林的花店）" maxlength="30" autocomplete="off">
+      <select id="stType" title="网站类型">
+        <option value="自动判断">🪄 类型自动判断</option>
+        <option value="个人主页">个人主页</option>
+        <option value="作品集">作品集 / 案例站</option>
+        <option value="企业官网">企业官网</option>
+        <option value="小店展示">店铺 / 电商页</option>
+        <option value="博客">博客 / 资讯</option>
+        <option value="活动落地页">活动落地页</option>
+        <option value="工具页">在线工具页</option>
+        <option value="其他">其他类型</option>
+      </select>
+      <select id="stTheme" title="主题配色">
+        <option value="朱砂">🎨 朱砂 · 温暖中国红</option>
+        <option value="墨绿">🎨 墨绿 · 沉静草木绿</option>
+        <option value="琥珀">🎨 琥珀 · 暖阳蜂蜜金</option>
+        <option value="玫瑰褐">🎨 玫瑰褐 · 复古砖红</option>
+      </select>
+    </div>
+    <div class="st-actions">
+      <button class="st-btn ghost" id="stNewSite" title="新建一个网站，当前网站会自动保存">➕ 新建网站</button>
+      <button class="st-btn accent" id="stPublish" title="点击发布：网站提交给站长，站长点「立即上线」后即可访问">🚀 发布网站</button>
+    </div>
+  </div>
+</header>
+
+<main class="st-main">
+  <!-- 左侧：AI 对话 -->
+  <aside class="st-chat glass">
+    <div class="chat-head">
+      <span class="chat-ai">✦ AI 建站助手</span>
+      <span class="model-badge" id="stModelBadge">💬 文本模式</span>
+    </div>
+    <div class="chat-list" id="chatList"></div>
+
+    <div class="chat-tools" id="stTools">
+      <button class="tool-btn active" data-mode="text" title="跟 AI 对话生成/修改网站">💬 文本</button>
+      <button class="tool-btn" data-mode="image" title="生成图片插入页面">🖼️ 图像</button>
+      <button class="tool-btn" data-mode="video" title="生成视频插入页面">🎬 视频</button>
+    </div>
+    <div class="chat-input">
+      <textarea id="chatInput" rows="1" placeholder="跟 AI 说你想做什么网站…"></textarea>
+      <button class="send-btn" id="chatSend">发送</button>
+    </div>
+    <p class="chat-hint" id="chatHint">💬 文本：直接生成/修改整站 · 🖼️ 图像：生成配图插入页面 · 🎬 视频：生成视频插入页面</p>
+  </aside>
+
+  <!-- 右侧：预览 / 文件 / API -->
+  <section class="st-preview glass">
+    <div class="preview-head">
+      <div class="pv-tabs">
+        <button class="pv-tab active" id="stTabPreview">👀 预览</button>
+        <button class="pv-tab" id="stTabFiles">📁 文件</button>
+        <button class="pv-tab" id="stTabApis">🧩 免费API</button>
+      </div>
+      <span class="pv-status" id="stStatus">👀 实时预览</span>
+      <span class="pv-badge" id="stBackendBadge" hidden>🔧 简易后台</span>
+      <span class="preview-url" id="stPreviewUrl">还没发布 · 发布后需站长上线才能访问，网址会显示在这里</span>
+      <div class="pv-actions">
+        <button class="mini-btn" id="stReload">🔄 刷新预览</button>
+        <button class="mini-btn" id="stFull">⛶ 全屏</button>
+        <button class="mini-btn" id="stEditText">✏️ 编辑文字</button>
+        <button class="mini-btn" id="stCopyCode">📋 复制代码</button>
+        <button class="mini-btn" id="stDownload">⬇️ 下载</button>
+      </div>
+    </div>
+    <div class="preview-frame" id="previewFrame"><iframe id="stFrame" title="网站预览"></iframe></div>
+
+    <!-- 预览文字编辑栏 -->
+    <div class="edit-bar" id="editBar" hidden>
+      <span>✏️ 点击预览里的文字直接修改，改完点保存</span>
+      <button class="mini-btn ok" id="editSave">💾 保存修改</button>
+      <button class="mini-btn" id="editCancel">取消</button>
+    </div>
+
+    <!-- 文件区 -->
+    <div class="files-wrap" id="filesPanel" hidden>
+      <div class="file-tree" id="fileTree"></div>
+      <div class="file-view" id="fileView" hidden>
+        <div class="file-view-head">
+          <span class="file-title" id="fileTitle">index.html</span>
+          <div class="file-actions">
+            <button class="mini-btn" id="fileCopy">📋 复制</button>
+            <button class="mini-btn" id="fileDownload">⬇️ 下载</button>
+          </div>
+        </div>
+        <textarea id="fileCode" readonly spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <!-- API 市场 -->
+    <div class="apis-panel" id="apisPanel" hidden>
+      <div class="apis-head">
+        <b>🧩 免费 API 一键接入</b>
+        <span class="apis-tip">已实测可用：无需注册、不用 key、浏览器直接调用。接入后 AI 会自动记住并保留。</span>
+      </div>
+      <div class="api-list" id="apiList"></div>
+    </div>
+  </section>
+</main>
+
+<!-- 我的网站弹窗 -->
+<div class="modal" id="sessionModal" hidden>
+  <div class="modal-backdrop" id="sessionBackdrop"></div>
+  <div class="modal-box session-box">
+    <button class="modal-close" id="sessionClose">✕</button>
+    <h2>📚 我的网站（每个网站一份记忆）</h2>
+    <p class="session-hint">像聊天一样：每个网站一个独立对话，切换/刷新都不会丢。点「删除」只删本地记忆，已发布的网站不受影响。</p>
+        <div class="session-tools">
+      <button class="st-btn ghost btn-block" id="sessionDataBtn">📊 数据总览 · 查看所有网站提交</button>
+    </div>
+    <div class="session-list" id="sessionList"></div>
+    <button class="st-btn accent btn-block" id="sessionNew">➕ 新建网站</button>
+  </div>
+</div>
+
+<!-- 发布弹窗 -->
+<div class="modal" id="pubModal" hidden>
+  <div class="modal-backdrop" id="pubBackdrop"></div>
+  <div class="modal-box">
+    <button class="modal-close" id="pubClose">✕</button>
+    <div id="pubBody"></div>
+  </div>
+</div>
+
+<!-- 数据查看弹窗 -->
+<div class="modal" id="dataModal" hidden>
+  <div class="modal-backdrop" id="dataBackdrop"></div>
+  <div class="modal-box data-box">
+    <button class="modal-close" id="dataClose">✕</button>
+    <h2 id="dataTitle">📊 数据管理</h2>
+    <div class="data-body" id="dataBody"></div>
+  </div>
+</div>
+
+<!-- 版本历史弹窗 -->
+<div class="modal" id="versionModal" hidden>
+  <div class="modal-backdrop" id="versionBackdrop"></div>
+  <div class="modal-box version-box">
+    <button class="modal-close" id="versionClose">✕</button>
+    <h2 id="versionTitle">🕘 版本历史</h2>
+    <p class="session-hint">每次 AI 生成或更新网站都会自动保存一个版本，不满意随时回退；回退后可以继续让 AI 修改。</p>
+    <div class="version-list" id="versionList"></div>
+  </div>
+</div>
+
+<!-- 工具弹窗：图像/视频生成 -->
+<div class="modal" id="toolModal" hidden>
+  <div class="modal-backdrop" id="toolBackdrop"></div>
+  <div class="modal-box tool-box">
+    <button class="modal-close" id="toolClose">✕</button>
+    <h2 id="toolTitle">🖼️ 生成一张图片</h2>
+    <p class="tool-tip" id="toolTip">描述你想要的画面，生成后会插入到页面顶部。</p>
+    <textarea id="toolPrompt" rows="3" placeholder="比如：一间开满鲜花的巷口小店，暖黄色灯光，电影感"></textarea>
+    <div class="tool-ratio" id="toolRatio">
+      <button class="ratio-btn" data-ratio="16:9">16:9 横图</button>
+      <button class="ratio-btn active" data-ratio="1:1">1:1 方图</button>
+      <button class="ratio-btn" data-ratio="9:16">9:16 竖图</button>
+    </div>
+    <div class="tool-actions">
+      <span class="tool-progress" id="toolProgress"></span>
+      <button class="st-btn accent" id="toolRun">生成</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/supabase.min.js?v=20260809"></script>
+<script src="js/config.js?v=20260809"></script>
+<script src="js/agnes.js?v=20260830"></script>
+<script src="js/studio.js?v=20260830"></script>
+</body>
+</html>
