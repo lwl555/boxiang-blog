@@ -1,0 +1,3396 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表单统计工具 · 薄想工作室</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f5efe2;--red:#c2402b;--gold:#c98a16;--brown:#33261d;--gray:#6d5c4b;--cream:#faf6ee;--card:#fff8f0;--line:#d4c4a8;--soft:#e8ddd0;--glass:rgba(245,239,226,0.85)}
+html{scroll-behavior:smooth}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--brown);line-height:1.7;min-height:100vh}
+/* 滚动条 */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+/* 导航 */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--glass);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:0 5%}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{font-size:1.2rem;font-weight:700;color:var(--brown);letter-spacing:2px}
+.nav-logo span{color:var(--red)}
+.nav-links{display:flex;gap:20px;align-items:center}
+.nav-links button{background:none;border:none;font-size:.9rem;color:var(--gray);cursor:pointer;padding:6px 12px;border-radius:8px;transition:all .2s}
+.nav-links button:hover{color:var(--red);background:rgba(194,64,43,.08)}
+.nav-links .btn-login{background:var(--red);color:#fff;font-weight:600}
+.nav-links .btn-login:hover{background:#a83522}
+.nav-links .btn-logout{color:var(--gray);border:1px solid var(--line)}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:8px}
+.hamburger span{display:block;width:22px;height:2px;background:var(--brown);transition:all .3s}
+
+/* 主区域 */
+.main{margin-top:60px;min-height:calc(100vh - 60px - 80px)}
+
+/* 页面切换 */
+.page{display:none;padding:40px 5% 60px}
+.page.active{display:block;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Hero */
+.hero{max-width:900px;margin:0 auto;text-align:center;padding:80px 20px 60px}
+.hero-badge{display:inline-block;background:linear-gradient(135deg,rgba(194,64,43,.12),rgba(201,138,22,.1));color:var(--red);font-size:.8rem;font-weight:600;padding:6px 18px;border-radius:20px;letter-spacing:2px;margin-bottom:24px;border:1px solid rgba(194,64,43,.2)}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;color:var(--brown);line-height:1.3;margin-bottom:16px;letter-spacing:1px}
+.hero h1 em{font-style:normal;color:var(--red)}
+.hero p{font-size:1.1rem;color:var(--gray);max-width:560px;margin:0 auto 36px;line-height:1.8}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .25s;border:none;text-decoration:none}
+.btn-primary{background:var(--red);color:#fff;box-shadow:0 4px 20px rgba(194,64,43,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(194,64,43,.4)}
+.btn-secondary{background:var(--cream);color:var(--brown);border:1.5px solid var(--line)}
+.btn-secondary:hover{border-color:var(--red);color:var(--red)}
+.btn-sm{padding:8px 18px;font-size:.85rem;border-radius:8px}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#d4a017);color:#fff;box-shadow:0 4px 16px rgba(201,138,22,.3)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(201,138,22,.4)}
+
+/* 卡片 */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;transition:all .3s}
+.card:hover{box-shadow:0 8px 32px rgba(51,38,29,.08);transform:translateY(-2px)}
+.card-glass{background:var(--glass);backdrop-filter:blur(12px);border:1px solid rgba(212,196,168,.5)}
+
+/* 特性网格 */
+.features{max-width:1000px;margin:0 auto 60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.feature-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:32px 24px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--gold));opacity:0;transition:opacity .3s}
+.feature-card:hover::before{opacity:1}
+.feature-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(51,38,29,.1)}
+.feature-icon{font-size:2.4rem;margin-bottom:14px;display:block}
+.feature-card h3{font-size:1.05rem;color:var(--brown);margin-bottom:8px}
+.feature-card p{font-size:.88rem;color:var(--gray);line-height:1.6}
+
+/* 表单列表 */
+.section-title{font-size:1.6rem;font-weight:700;color:var(--brown);margin-bottom:8px;letter-spacing:1px}
+.section-sub{color:var(--gray);font-size:.95rem;margin-bottom:28px}
+.form-list{max-width:800px;margin:0 auto;display:grid;gap:16px}
+.form-item{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;background:var(--card);border:1px solid var(--line);border-radius:14px;transition:all .3s;cursor:pointer;flex-wrap:wrap;gap:12px}
+.form-item:hover{border-color:var(--red);box-shadow:0 4px 20px rgba(194,64,43,.1);transform:translateX(4px)}
+.form-item-info h3{font-size:1.05rem;color:var(--brown);margin-bottom:4px}
+.form-item-info p{font-size:.82rem;color:var(--gray)}
+.form-item-meta{display:flex;gap:16px;font-size:.8rem;color:var(--gray)}
+.form-item-meta span{display:flex;align-items:center;gap:4px}
+.form-item .btn{flex-shrink:0}
+
+/* 空状态 */
+.empty{text-align:center;padding:60px 20px;color:var(--gray)}
+.empty-icon{font-size:3rem;margin-bottom:16px;opacity:.6}
+.empty p{font-size:.95rem}
+
+/* 模态框 */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(51,38,29,.5);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--cream);border-radius:20px;padding:36px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;position:relative;animation:scaleIn .3s;border:1px solid var(--line)}
+@keyframes scaleIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--gray);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{background:rgba(194,64,43,.1);color:var(--red)}
+.modal h2{font-size:1.3rem;color:var(--brown);margin-bottom:24px;padding-right:40px}
+
+/* 表单元素 */
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:.88rem;font-weight:600;color:var(--brown);margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;background:var(--bg);color:var(--brown);transition:all .2s;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(194,64,43,.1)}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-row{display:flex;gap:12px}
+.form-row .form-group{flex:1}
+.checkbox-group,.radio-group{display:grid;gap:10px}
+.checkbox-item,.radio-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;transition:all .2s;font-size:.92rem}
+.checkbox-item:hover,.radio-item:hover{border-color:var(--red);background:rgba(194,64,43,.03)}
+.checkbox-item input,.radio-item input{accent-color:var(--red);width:16px;height:16px}
+.add-question-btn{margin-top:12px;padding:10px;border:2px dashed var(--line);border-radius:10px;background:none;color:var(--gray);cursor:pointer;font-size:.9rem;width:100%;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.add-question-btn:hover{border-color:var(--red);color:var(--red)}
+.remove-q{background:none;border:none;color:var(--gray);cursor:pointer;font-size:1.1rem;padding:4px 8px;border-radius:6px;transition:all .2s}
+.remove-q:hover{color:var(--red);background:rgba(194,64,43,.1)}
+
+/* 登录 */
+.login-err{color:var(--red);font-size:.85rem;margin-top:8px;display:none}
+.login-err.show{display:block}
+
+/* 统计面板 */
+.stats-grid{max-width:900px;margin:0 auto 30px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center}
+.stat-num{font-size:1.8rem;font-weight:800;color:var(--red);line-height:1}
+.stat-label{font-size:.8rem;color:var(--gray);margin-top:6px}
+.stat-card.gold .stat-num{color:var(--gold)}
+.stat-card.brown .stat-num{color:var(--brown)}
+
+/* 统计结果 */
+.result-panel{max-width:900px;margin:0 auto}
+.result-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.result-header h2{font-size:1.4rem;flex:1}
+.result-header .badge{background:rgba(194,64,43,.1);color:var(--red);font-size:.8rem;padding:4px 12px;border-radius:20px;font-weight:600}
+.question-result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:16px}
+.question-result h4{font-size:1rem;color:var(--brown);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.question-result h4 .q-type{font-size:.75rem;background:var(--soft);color:var(--gray);padding:2px 8px;border-radius:6px;font-weight:400}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.bar-label{font-size:.85rem;color:var(--gray);width:120px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:24px;background:var(--soft);border-radius:12px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:12px;transition:width .8s ease;background:linear-gradient(90deg,var(--red),var(--gold));min-width:2px}
+.bar-count{font-size:.8rem;color:var(--gray);width:50px;flex-shrink:0}
+
+/* 数据表格 */
+.data-table-wrap{overflow-x:auto;margin-top:20px;border-radius:14px;border:1px solid var(--line)}
+.data-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.data-table th{background:var(--soft);color:var(--brown);font-weight:600;padding:12px 16px;text-align:left;white-space:nowrap}
+.data-table td{padding:10px 16px;border-top:1px solid var(--line);color:var(--gray);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.data-table tr:hover td{background:rgba(194,64,43,.03)}
+.data-table .del-btn{background:none;border:none;color:var(--gray);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px;transition:all .2s}
+.data-table .del-btn:hover{color:var(--red);background:rgba(194,64,43,.1)}
+
+/* 管理员面板 */
+.admin-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--soft);border-radius:12px;padding:4px;width:fit-content}
+.admin-tab{padding:8px 20px;border-radius:8px;font-size:.9rem;color:var(--gray);cursor:pointer;border:none;background:none;transition:all .2s;font-weight:500}
+.admin-tab.active{background:var(--card);color:var(--red);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.admin-panel{display:none}
+.admin-panel.active{display:block;animation:fadeUp .3s}
+
+/* 分割线装饰 */
+.divider{width:60px;height:3px;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:2px;margin:16px 0}
+.divider-center{margin-left:auto;margin-right:auto}
+
+/* 标签 */
+.tag{display:inline-block;padding:3px 10px;border-radius:6px;font-size:.75rem;font-weight:600}
+.tag-red{background:rgba(194,64,43,.1);color:var(--red)}
+.tag-gold{background:rgba(201,138,22,.12);color:var(--gold)}
+
+/* 按钮组 */
+.btn-group{display:flex;gap:10px;flex-wrap:wrap}
+.btn-danger{background:#fff;border:1.5px solid #e74c3c;color:#e74c3c}
+.btn-danger:hover{background:#e74c3c;color:#fff}
+
+/* 页脚 */
+.footer{text-align:center;padding:24px 20px;font-size:.8rem;color:var(--gray);border-top:1px solid var(--line);background:var(--cream)}
+.footer a{color:var(--red);text-decoration:none}
+
+/* 响应式 */
+@media(max-width:640px){
+  .nav-links{display:none;position:absolute;top:60px;left:0;right:0;background:var(--glass);backdrop-filter:blur(12px);flex-direction:column;padding:16px;gap:8px;border-bottom:1px solid var(--line)}
+  .nav-links.open{display:flex}
+  .hamburger{display:flex}
+  .hero{padding:50px 16px 40px}
+  .page{padding:24px 16px 40px}
+  .modal{padding:24px;border-radius:16px}
+  .form-row{flex-direction:column}
+  .bar-label{width:80px;font-size:.78rem}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .admin-tabs{width:100%;overflow-x:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">薄想<span>表单</span></div>
+    <button class="hamburger" onclick="toggleMenu()" aria-label="菜单">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <button onclick="showPage('home')">首页</button>
+      <button onclick="showPage('forms')">可用表单</button>
+      <button id="navAdminBtn" style="" onclick="showPage('admin')">管理后台</button>
+      <button id="navLoginBtn" class="btn-login" onclick="showPage('login')" style="display: none;">登录</button>
+      <button id="navLogoutBtn" style="" class="btn-logout" onclick="doLogout()">退出</button>
+    </div>
+  </div>
+</nav>
+
+<!-- 主内容 -->
+<div class="main">
+
+<!-- 首页 -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-badge">✦ 薄想工作室出品</div>
+    <h1>数据收集<br>变得<em>简单优雅</em></h1>
+    <p>零门槛创建调查表单，轻松收集每一份反馈。适合活动报名、问卷调研、信息登记等各类场景。</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary" onclick="showPage('forms')">📋 浏览表单</button>
+      <button class="btn btn-secondary" onclick="showPage('login')">🔐 管理员登录</button>
+    </div>
+  </div>
+  <div class="features">
+    <div class="feature-card">
+      <span class="feature-icon">⚡</span>
+      <h3>快速创建</h3>
+      <p>几步操作即可发布表单，支持单选、多选、填空等多种题型</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📊</span>
+      <h3>实时统计</h3>
+      <p>直观的数据可视化图表，回收情况一目了然</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔒</span>
+      <h3>安全存储</h3>
+      <p>数据本地加密保存，管理员可自主管理所有表单与回复</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📱</span>
+      <h3>移动端适配</h3>
+      <p>手机、平板、电脑均可流畅填写与查看</p>
+    </div>
+  </div>
+</div>
+
+<!-- 可用表单列表 -->
+<div class="page" id="page-forms">
+  <div style="max-width:800px;margin:0 auto">
+    <h2 class="section-title">📋 可用表单</h2>
+    <p class="section-sub">选择一份表单进行填写，数据将实时提交</p>
+    <div class="form-list" id="formList"></div>
+  </div>
+</div>
+
+<!-- 填写表单 -->
+<div class="page" id="page-fill">
+  <div style="max-width:640px;margin:0 auto">
+    <button class="btn btn-secondary btn-sm" onclick="showPage('forms')">← 返回</button>
+    <div class="card" style="margin-top:20px">
+      <div id="fillContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 表单结果 -->
+<div class="page" id="page-result">
+  <div style="max-width:800px;margin:0 auto">
+    <button class="btn btn-secondary btn-sm" onclick="showPage('forms')">← 返回</button>
+    <div id="resultContent" style="margin-top:20px"></div>
+  </div>
+</div>
+
+<!-- 登录 -->
+<div class="page" id="page-login">
+  <div style="max-width:400px;margin:0 auto">
+    <h2 class="section-title">🔐 管理员登录</h2>
+    <p class="section-sub">仅限授权管理员进入后台管理</p>
+    <div class="card" style="margin-top:20px">
+      <div class="form-group">
+        <label>账号</label>
+        <input type="text" id="loginUser" placeholder="请输入账号" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="loginPass" placeholder="请输入密码" autocomplete="current-password">
+      </div>
+      <div class="login-err" id="loginErr">账号或密码错误</div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="doLogin()">登 录</button>
+    </div>
+  </div>
+</div>
+
+<!-- 管理后台 -->
+<div class="page" id="page-admin">
+  <div style="max-width:900px;margin:0 auto">
+    <h2 class="section-title">⚙️ 管理后台</h2>
+    <p class="section-sub">管理所有表单与数据</p>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab(this,'tab-create')">发布表单</button>
+      <button class="admin-tab" onclick="switchAdminTab(this,'tab-list')">表单列表</button>
+      <button class="admin-tab" onclick="switchAdminTab(this,'tab-data')">数据查看</button>
+    </div>
+
+    <!-- 发布表单 -->
+    <div class="admin-panel active" id="tab-create">
+      <div class="card">
+        <h3 style="margin-bottom:20px;font-size:1.1rem">发布新表单</h3>
+        <div class="form-group">
+          <label>表单标题</label>
+          <input type="text" id="newFormTitle" placeholder="例如：2024年员工满意度调查">
+        </div>
+        <div class="form-group">
+          <label>表单描述（可选）</label>
+          <textarea id="newFormDesc" placeholder="简要说明表单用途..."></textarea>
+        </div>
+        <div id="questionsArea"><div class="card" id="qblock_0" style="margin-bottom: 14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-weight:600;font-size:.92rem;color:var(--brown)">题目 1</span>
+      <button class="remove-q" onclick="removeQuestion(0)" title="删除此题">🗑</button>
+    </div>
+    <div class="form-group">
+      <label>题目内容</label>
+      <input type="text" class="q-text" placeholder="请输入题目">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>题型</label>
+        <select class="q-type" onchange="toggleOptions(0)">
+          <option value="text">填空题</option>
+          <option value="radio">单选题</option>
+          <option value="checkbox">多选题</option>
+        </select>
+      </div>
+    </div>
+    <div class="q-options" id="qopts_0" style="display:none">
+      <div class="form-group">
+        <label>选项（每行一个）</label>
+        <textarea class="q-opts" rows="4" placeholder="选项A
+选项B
+选项C"></textarea>
+      </div>
+    </div>
+  </div></div>
+        <button class="add-question-btn" onclick="addQuestion()">＋ 添加题目</button>
+        <div style="margin-top:20px;display:flex;gap:12px">
+          <button class="btn btn-primary" onclick="publishForm()">🚀 发布表单</button>
+          <button class="btn btn-secondary" onclick="resetFormBuilder()">清空重填</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 表单列表 -->
+    <div class="admin-panel" id="tab-list">
+      <div id="adminFormList"></div>
+    </div>
+
+    <!-- 数据查看 -->
+    <div class="admin-panel" id="tab-data">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div id="adminDataContent"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- 登录模态（移动端快速入口） -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+    <h2>管理员登录</h2>
+    <div class="form-group">
+      <label>账号</label>
+      <input type="text" id="modalUser" placeholder="请输入账号">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input type="password" id="modalPass" placeholder="请输入密码">
+    </div>
+    <div class="login-err" id="modalErr">账号或密码错误</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="doModalLogin()">登 录</button>
+  </div>
+</div>
+
+<!-- 表单管理模态 -->
+<div class="modal-overlay" id="formModal">
+  <div class="modal" style="max-width:600px">
+    <button class="modal-close" onclick="closeModal('formModal')">✕</button>
+    <h2 id="formModalTitle">表单详情</h2>
+    <div id="formModalBody"></div>
+  </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="footer">
+  由 <a href="https://lwl555.github.io/boxiang-blog/#order">薄想工作室</a> 免费生成 · lwl555.github.io/boxiang-blog
+</footer>
+
+
+
+<script>
+// ===== 数据层 =====
+const ADMIN_USER = '18882632073';
+const ADMIN_PASS = '110110nm';
+const STORAGE_FORMS = 'bx_forms';
+const STORAGE_DATA = 'bx_form_data';
+const STORAGE_LOGIN = 'bx_login';
+
+function getForms() {
+  return JSON.parse(localStorage.getItem(STORAGE_FORMS) || '[]');
+}
+function saveForms(f) {
+  localStorage.setItem(STORAGE_FORMS, JSON.stringify(f));
+}
+function getFormData() {
+  return JSON.parse(localStorage.getItem(STORAGE_DATA) || '{}');
+}
+function saveFormData(d) {
+  localStorage.setItem(STORAGE_DATA, JSON.stringify(d));
+}
+function isLoggedIn() {
+  return sessionStorage.getItem(STORAGE_LOGIN) === '1';
+}
+function isAdmin() {
+  return isLoggedIn();
+}
+
+// ===== 导航 =====
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) { page.classList.add('active'); }
+  closeMenu();
+  if (id === 'forms') renderFormList();
+  if (id === 'admin') renderAdmin();
+  if (id === 'login') {
+    if (isAdmin()) { showPage('admin'); return; }
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginErr').classList.remove('show');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleMenu() {
+  document.getElementById('navLinks').classList.toggle('open');
+}
+function closeMenu() {
+  document.getElementById('navLinks').classList.remove('open');
+}
+
+function updateNav() {
+  const log = document.getElementById('navLoginBtn');
+  const out = document.getElementById('navLogoutBtn');
+  const admin = document.getElementById('navAdminBtn');
+  if (isAdmin()) {
+    log.style.display = 'none';
+    out.style.display = '';
+    admin.style.display = '';
+  } else {
+    log.style.display = '';
+    out.style.display = 'none';
+    admin.style.display = 'none';
+  }
+}
+
+// ===== 登录 =====
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    sessionStorage.setItem(STORAGE_LOGIN, '1');
+    updateNav();
+    showPage('admin');
+  } else {
+    document.getElementById('loginErr').classList.add('show');
+  }
+}
+function doModalLogin() {
+  const u = document.getElementById('modalUser').value.trim();
+  const p = document.getElementById('modalPass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    sessionStorage.setItem(STORAGE_LOGIN, '1');
+    updateNav();
+    closeModal('loginModal');
+    showPage('admin');
+  } else {
+    document.getElementById('modalErr').classList.add('show');
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem(STORAGE_LOGIN);
+  updateNav();
+  showPage('home');
+}
+
+// 回车登录
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('page-login').classList.contains('active')) doLogin();
+    if (document.getElementById('loginModal').classList.contains('active')) doModalLogin();
+  }
+});
+
+// ===== 表单列表（前端展示） =====
+function renderFormList() {
+  const forms = getForms();
+  const data = getFormData();
+  const el = document.getElementById('formList');
+  if (forms.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>目前还没有可用的表单，敬请期待</p></div>';
+    return;
+  }
+  el.innerHTML = forms.map(f => {
+    const count = (data[f.id] || []).length;
+    const qCount = f.questions ? f.questions.length : 0;
+    return `<div class="form-item" onclick="openForm('${f.id}')">
+      <div class="form-item-info">
+        <h3>${escHtml(f.title)}</h3>
+        <p>${escHtml(f.desc || '暂无描述')}</p>
+        <div class="form-item-meta">
+          <span>📝 ${qCount} 道题</span>
+          <span>📊 ${count} 份回复</span>
+          <span class="tag tag-red">${formatDate(f.createdAt)}</span>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm">填写表单</button>
+    </div>`;
+  }).join('');
+}
+
+// ===== 填写表单 =====
+let currentFillId = null;
+
+function openForm(id) {
+  const forms = getForms();
+  const f = forms.find(x => x.id === id);
+  if (!f) return;
+  currentFillId = id;
+  const el = document.getElementById('fillContent');
+  const qs = f.questions || [];
+  el.innerHTML = `
+    <h2 style="font-size:1.3rem;margin-bottom:6px">${escHtml(f.title)}</h2>
+    ${f.desc ? `<p style="color:var(--gray);font-size:.9rem;margin-bottom:24px">${escHtml(f.desc)}</p>` : ''}
+    <div class="divider"></div>
+    ${qs.map((q, i) => renderQuestion(q, i)).join('')}
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:24px" onclick="submitForm('${id}')">✅ 提交表单</button>
+  `;
+  showPage('fill');
+}
+
+function renderQuestion(q, i) {
+  const label = `<label style="display:block;font-size:.92rem;font-weight:600;color:var(--brown);margin-bottom:10px">${i + 1}. ${escHtml(q.text)} <span style="color:var(--red);font-weight:700">*</span></label>`;
+  if (q.type === 'radio') {
+    return `<div class="form-group">${label}<div class="radio-group">${q.options.map(o => `<label class="radio-item"><input type="radio" name="q_${i}" value="${escAttr(o)}"> ${escHtml(o)}</label>`).join('')}</div></div>`;
+  } else if (q.type === 'checkbox') {
+    return `<div class="form-group">${label}<div class="checkbox-group">${q.options.map(o => `<label class="checkbox-item"><input type="checkbox" name="q_${i}" value="${escAttr(o)}"> ${escHtml(o)}</label>`).join('')}</div></div>`;
+  } else {
+    return `<div class="form-group">${label}<input type="text" name="q_${i}" placeholder="请输入答案"></div>`;
+  }
+}
+
+function submitForm(id) {
+  const forms = getForms();
+  const f = forms.find(x => x.id === id);
+  if (!f) return;
+  const qs = f.questions || [];
+  const answers = [];
+  let valid = true;
+  qs.forEach((q, i) => {
+    if (q.type === 'radio') {
+      const sel = document.querySelector(`input[name="q_${i}"]:checked`);
+      answers.push(sel ? sel.value : '');
+      if (!sel) valid = false;
+    } else if (q.type === 'checkbox') {
+      const sel = document.querySelectorAll(`input[name="q_${i}"]:checked`);
+      answers.push(Array.from(sel).map(s => s.value));
+      if (sel.length === 0) valid = false;
+    } else {
+      const inp = document.querySelector(`input[name="q_${i}"]`);
+      const v = inp ? inp.value.trim() : '';
+      answers.push(v);
+      if (!v) valid = false;
+    }
+  });
+  if (!valid) { alert('请填写所有必填题目'); return; }
+  const data = getFormData();
+  if (!data[id]) data[id] = [];
+  data[id].push({ id: Date.now(), answers, time: new Date().toLocaleString('zh-CN') });
+  saveFormData(data);
+  alert('✅ 提交成功！感谢您的参与。');
+  openResult(id);
+}
+
+function openResult(id) {
+  const forms = getForms();
+  const f = forms.find(x => x.id === id);
+  if (!f) return;
+  const data = getFormData();
+  const rows = data[id] || [];
+  const qs = f.questions || [];
+  const el = document.getElementById('resultContent');
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:20px">
+      <h2 style="font-size:1.3rem;margin-bottom:6px">${escHtml(f.title)}</h2>
+      <div class="divider"></div>
+      <p style="color:var(--gray);font-size:.9rem;margin-top:12px">感谢参与！共收到 <strong style="color:var(--red)">${rows.length}</strong> 份回复。</p>
+    </div>
+    ${qs.map((q, i) => renderResultQuestion(q, i, rows)).join('')}
+  `;
+  showPage('result');
+}
+
+function renderResultQuestion(q, i, rows) {
+  const title = `<h4>${escHtml(q.text)} <span class="q-type">${q.type === 'radio' ? '单选' : q.type === 'checkbox' ? '多选' : '填空'}</span></h4>`;
+  if (q.type === 'radio' || q.type === 'checkbox') {
+    const max = Math.max(...q.options.map(opt => rows.filter(r => {
+      const v = r.answers[i];
+      return Array.isArray(v) ? v.includes(opt) : v === opt;
+    }).length));
+    const bars = q.options.map(opt => {
+      const cnt = rows.filter(r => {
+        const v = r.answers[i];
+        return Array.isArray(v) ? v.includes(opt) : v === opt;
+      }).length;
+      const pct = max > 0 ? Math.round(cnt / max * 100) : 0;
+      return `<div class="bar-row"><span class="bar-label">${escHtml(opt)}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="bar-count">${cnt}</span></div>`;
+    }).join('');
+    return `<div class="question-result">${title}${bars}</div>`;
+  } else {
+    const vals = rows.map(r => r.answers[i]).filter(v => v);
+    if (vals.length === 0) return `<div class="question-result">${title}<p style="color:var(--gray);font-size:.88rem">暂无回复</p></div>`;
+    return `<div class="question-result">${title}<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">${vals.map(v => `<span class="tag tag-gold">${escHtml(String(v))}</span>`).join('')}</div></div>`;
+  }
+}
+
+// ===== 管理后台 =====
+function switchAdminTab(btn, tabId) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+  if (tabId === 'tab-list') renderAdminList();
+  if (tabId === 'tab-data') renderAdminData();
+}
+
+function renderAdmin() {
+  if (!isAdmin()) { showPage('login'); return; }
+  initQuestionBuilder();
+}
+
+// ===== 表单构建器 =====
+let qIndex = 0;
+function initQuestionBuilder() {
+  qIndex = 0;
+  document.getElementById('questionsArea').innerHTML = '';
+  addQuestion();
+}
+function addQuestion() {
+  const i = qIndex++;
+  const area = document.getElementById('questionsArea');
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.style.marginBottom = '14px';
+  div.id = 'qblock_' + i;
+  div.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-weight:600;font-size:.92rem;color:var(--brown)">题目 ${i + 1}</span>
+      <button class="remove-q" onclick="removeQuestion(${i})" title="删除此题">🗑</button>
+    </div>
+    <div class="form-group">
+      <label>题目内容</label>
+      <input type="text" class="q-text" placeholder="请输入题目">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>题型</label>
+        <select class="q-type" onchange="toggleOptions(${i})">
+          <option value="text">填空题</option>
+          <option value="radio">单选题</option>
+          <option value="checkbox">多选题</option>
+        </select>
+      </div>
+    </div>
+    <div class="q-options" id="qopts_${i}" style="display:none">
+      <div class="form-group">
+        <label>选项（每行一个）</label>
+        <textarea class="q-opts" rows="4" placeholder="选项A&#10;选项B&#10;选项C"></textarea>
+      </div>
+    </div>
+  `;
+  area.appendChild(div);
+}
+function removeQuestion(i) {
+  const el = document.getElementById('qblock_' + i);
+  if (el) el.remove();
+}
+function toggleOptions(i) {
+  const type = document.querySelector('#qblock_' + i + ' .q-type').value;
+  document.getElementById('qopts_' + i).style.display = type === 'text' ? 'none' : 'block';
+}
+
+function publishForm() {
+  const title = document.getElementById('newFormTitle').value.trim();
+  const desc = document.getElementById('newFormDesc').value.trim();
+  if (!title) { alert('请输入表单标题'); return; }
+  const qBlocks = document.getElementById('questionsArea').children;
+  if (qBlocks.length === 0) { alert('请至少添加一道题目'); return; }
+  const questions = [];
+  for (const block of qBlocks) {
+    const text = block.querySelector('.q-text').value.trim();
+    const type = block.querySelector('.q-type').value;
+    if (!text) { alert('请填写所有题目内容'); return; }
+    const q = { text, type };
+    if (type !== 'text') {
+      const raw = block.querySelector('.q-opts').value.trim();
+      const opts = raw.split('\n').map(s => s.trim()).filter(s => s);
+      if (opts.length < 2) { alert('「' + text + '」至少需要两个选项'); return; }
+      q.options = opts;
+    }
+    questions.push(q);
+  }
+  const forms = getForms();
+  const newForm = {
+    id: 'form_' + Date.now(),
+    title, desc, questions,
+    createdAt: new Date().toISOString()
+  };
+  forms.push(newForm);
+  saveForms(forms);
+  alert('✅ 表单发布成功！');
+  document.getElementById('newFormTitle').value = '';
+  document.getElementById('newFormDesc').value = '';
+  initQuestionBuilder();
+  renderAdminList();
+  renderAdminData();
+}
+
+function resetFormBuilder() {
+  if (confirm('确定清空当前构建的表单？')) initQuestionBuilder();
+}
+
+// ===== 管理员 - 表单列表 =====
+function renderAdminList() {
+  const forms = getForms();
+  const data = getFormData();
+  const el = document.getElementById('adminFormList');
+  if (forms.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>还没有发布任何表单</p></div>';
+    return;
+  }
+  el.innerHTML = forms.map(f => {
+    const count = (data[f.id] || []).length;
+    return `<div class="form-item" style="cursor:default">
+      <div class="form-item-info">
+        <h3>${escHtml(f.title)}</h3>
+        <p>${f.questions ? f.questions.length + ' 道题' : ''} · ${count} 份回复</p>
+        <div class="form-item-meta"><span class="tag tag-red">${formatDate(f.createdAt)}</span></div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary btn-sm" onclick="viewAdminData('${f.id}')">📊 查看数据</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteForm('${f.id}')">🗑 删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteForm(id) {
+  if (!confirm('确定删除此表单及其所有数据？此操作不可撤销。')) return;
+  let forms = getForms();
+  forms = forms.filter(f => f.id !== id);
+  saveForms(forms);
+  const data = getFormData();
+  delete data[id];
+  saveFormData(data);
+  renderAdminList();
+  renderAdminData();
+}
+
+// ===== 管理员 - 数据统计 =====
+function renderAdminData() {
+  const forms = getForms();
+  const data = getFormData();
+  const totalForms = forms.length;
+  const totalResponses = Object.values(data).reduce((s, arr) => s + arr.length, 0);
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${totalForms}</div><div class="stat-label">表单总数</div></div>
+    <div class="stat-card gold"><div class="stat-num">${totalResponses}</div><div class="stat-label">总回复数</div></div>
+  `;
+  const el = document.getElementById('adminDataContent');
+  if (forms.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>暂无数据，请先发布表单</p></div>';
+    return;
+  }
+  el.innerHTML = '<h3 style="margin-bottom:16px;font-size:1.05rem">表单数据明细</h3>' +
+    forms.map(f => {
+      const rows = data[f.id] || [];
+      const qs = f.questions || [];
+      const headers = ['序号', '提交时间', ...qs.map((q, i) => 'Q' + (i + 1) + ': ' + q.text)];
+      const rowsHtml = rows.map((r, ri) => {
+        const cells = [ri + 1, r.time, ...r.answers.map(a => Array.isArray(a) ? a.join('、') : String(a))];
+        return `<tr><td>${ri + 1}</td><td>${r.time}</td>${cells.slice(3).map(c => `<td title="${escHtml(c)}">${escHtml(c)}</td>`).join('')}</td><td><button class="del-btn" onclick="deleteResponse('${f.id}',${ri})" title="删除此条">🗑</button></td>`;
+      }).join('');
+      return `<div class="card" style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <h4 style="font-size:1rem">${escHtml(f.title)} <span class="badge" style="background:rgba(194,64,43,.1);color:var(--red);font-size:.78rem;padding:2px 10px;border-radius:20px">${rows.length} 条</span></h4>
+          <div class="btn-group">
+            <button class="btn btn-secondary btn-sm" onclick="viewAdminData('${f.id}')">📊 图表统计</button>
+            <button class="btn btn-danger btn-sm" onclick="clearForm('${f.id}')">清空数据</button>
+          </div>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr>${headers.map(h => `<th>${escHtml(h)}</th>`).join('')}<th>操作</th></tr></thead>
+            <tbody>${rowsHtml || '<tr><td colspan="' + (headers.length + 1) + '" style="text-align:center;color:var(--gray)">暂无回复</td></tr>'}</tbody>
+          </table>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function viewAdminData(id) {
+  const forms = getForms();
+  const f = forms.find(x => x.id === id);
+  if (!f) return;
+  const data = getFormData();
+  const rows = data[id] || [];
+  const qs = f.questions || [];
+  const el = document.getElementById('formModalBody');
+  el.innerHTML = qs.map((q, i) => renderResultQuestion(q, i, rows)).join('') +
+    (rows.length > 0 ? `<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)"><button class="btn btn-secondary btn-sm" onclick="closeModal('formModal');showPage('admin');setTimeout(()=>document.getElementById('tab-data').classList.add('active'),100)">返回数据列表</button></div>` : '');
+  document.getElementById('formModalTitle').textContent = f.title + ' · 统计结果';
+  openModal('formModal');
+}
+
+function deleteResponse(formId, idx) {
+  if (!confirm('确定删除这条回复？')) return;
+  const data = getFormData();
+  if (data[formId]) {
+    data[formId].splice(idx, 1);
+    saveFormData(data);
+    renderAdminData();
+  }
+}
+function clearForm(formId) {
+  if (!confirm('确定清空此表单的所有数据？此操作不可撤销。')) return;
+  const data = getFormData();
+  delete data[formId];
+  saveFormData(data);
+  renderAdminData();
+  renderAdminList();
+}
+
+// ===== 模态框 =====
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
+});
+
+// ===== 工具函数 =====
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+function escAttr(s) {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// ===== 初始化 =====
+updateNav();
+initQuestionBuilder();
+
+// 演示数据（仅首次访问）
+if (getForms().length === 0) {
+  const demoForms = [{
+    id: 'form_demo_1',
+    title: '薄想工作室 · 用户满意度调查',
+    desc: '感谢您的参与！本问卷仅用于了解用户体验，预计耗时2分钟。',
+    createdAt: new Date().toISOString(),
+    questions: [
+      { text: '您对本次服务的整体满意度？', type: 'radio', options: ['非常满意', '满意', '一般', '不满意'] },
+      { text: '您是通过什么渠道了解我们的？', type: 'checkbox', options: ['搜索引擎', '社交媒体', '朋友推荐', '直接访问', '其他'] },
+      { text: '您希望我们增加哪些功能？', type: 'text' }
+    ]
+  }];
+  saveForms(demoForms);
+}
+</script>
+
+<script>/* 一言 · 免费API */(function(){var d=document.createElement("div");d.style.cssText="position:fixed;right:16px;bottom:16px;z-index:9999;max-width:280px;padding:12px 16px;border-radius:14px;background:rgba(30,20,15,.93);color:#fff;font-size:13px;line-height:1.6;box-shadow:0 10px 30px rgba(0,0,0,.35);font-family:inherit";d.id="bx-api-hitokoto";var c=document.createElement("span");c.style.cssText="position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:#c2402b;color:#fff;text-align:center;line-height:20px;font-size:12px;cursor:pointer";c.textContent="×";c.onclick=function(){d.remove()};d.appendChild(c);var t=document.createElement("div");d.appendChild(t);document.body.appendChild(d);t.textContent="加载中…";return t;})();fetch("https://v1.hitokoto.cn/?c=k&encode=json").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-hitokoto");if(t&&t.lastChild&&j.hitokoto){t.lastChild.innerHTML="💬 “"+j.hitokoto+"”<br><span style="opacity:.7">—— "+(j.from||"")+"</span>"}}).catch(function(){var t=document.getElementById("bx-api-hitokoto");if(t)t.lastChild.textContent="一言加载失败"});</script><script>window.BX_BACKEND={"slug":"","token":"","preview":true,"url":"https://wcnssyiqitugqfmcbdhe.supabase.co/rest/v1/site_data","key":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjbnNzeWlxaXR1Z3FmbWNiZGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MDEyNzUsImV4cCI6MjA5ODk3NzI3NX0.9EfbEr7BQhZtbOwHJ3IrkOy16kcaxlmzuJuV0A2Z8Eg"};(function(){var C=window.BX_BACKEND;function ready(fn){if(document.readyState!=="loading"){fn();}else{document.addEventListener("DOMContentLoaded",fn);}}ready(function(){document.querySelectorAll("form").forEach(function(f){var h=document.createElement("p");h.style.cssText="margin:10px 0 0;font-size:12px;color:#8a6d3b;text-align:center";h.textContent=C.preview?"🔧 预览模式：发布上线后表单即可正常提交数据（自动保存，上限100条）":"🔒 提交后数据会安全保存（平台自动存储，上限100条）";f.appendChild(h);});});document.addEventListener("submit",function(ev){var f=ev.target;if(!f||f.tagName!=="FORM"||!C.url)return;if(C.preview){ev.preventDefault();alert("🔧 预览模式不能提交，发布上线后表单即可正常使用");return;}ev.preventDefault();var fd=new FormData(f);var a=[];fd.forEach(function(v,k){a.push([String(k).toLowerCase(),String(v)]);});function gv(keys){for(var i=0;i<a.length;i++){for(var j=0;j<keys.length;j++){if(a[i][0].indexOf(keys[j])>=0)return a[i][1];}}return "";}var name=gv(["name","姓名","称呼"]).slice(0,50);var contact=gv(["contact","email","phone","微信","电话","邮箱","手机","qq"]).slice(0,80);var content=gv(["content","message","留言","需求","msg","备注","内容","说明"]).slice(0,500);if(!String(content||"").trim()){var parts=[];a.forEach(function(x){parts.push(x[0]+":"+x[1].slice(0,60));});content=parts.join("；").slice(0,400);}var btn=f.querySelector("[type=submit],button");if(btn){btn.disabled=true;btn.textContent="提交中…";}fetch(C.url,{method:"POST",headers:{"Content-Type":"application/json","apikey":C.key,"Authorization":"Bearer "+C.key},body:JSON.stringify({slug:C.slug,name:name,contact:contact,content:content})}).then(function(r){if(btn){btn.disabled=false;btn.textContent="提交";}if(r.ok){alert("✅ 提交成功！信息已保存，站长会尽快联系你～");f.reset();}else{return r.text().then(function(t){alert("⚠️ 提交失败："+String(t||"").slice(0,120));});}}).catch(function(){if(btn){btn.disabled=false;btn.textContent="提交";}alert("⚠️ 网络异常，请稍后再试");});});})();</script>
+
+
+
+
+
+```html
+
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表单统计工具 - 薄想工作室</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #f5efe2;
+            --primary: #c2402b;
+            --accent: #c98a16;
+            --text: #33261d;
+            --muted: #6d5c4b;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --shadow: 0 4px 24px rgba(51, 38, 29, 0.12);
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 头部导航 */
+        header {
+            background: linear-gradient(135deg, #fff 0%, var(--bg) 100%);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(194, 64, 43, 0.15);
+        }
+        
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 1px;
+        }
+        
+        .logo span {
+            color: var(--accent);
+        }
+        
+        nav {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: var(--muted);
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 15px;
+        }
+        
+        nav a:hover {
+            color: var(--primary);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 8px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #d44637 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(194, 64, 43, 0.35);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(194, 64, 43, 0.45);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent) 0%, #db9a1a 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(201, 138, 22, 0.35);
+        }
+        
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201, 138, 22, 0.45);
+        }
+        
+        /* 英雄区 */
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(194, 64, 43, 0.05) 0%, transparent 100%);
+        }
+        
+        .hero h1 {
+            font-size: clamp(32px, 6vw, 56px);
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .hero h1 span {
+            color: var(--primary);
+        }
+        
+        .hero p {
+            font-size: 18px;
+            color: var(--muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 28px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        
+        .stat-card .icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        
+        .stat-card h3 {
+            font-size: 32px;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+        
+        .stat-card p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
+        /* 表单列表 */
+        .section {
+            padding: 60px 0;
+        }
+        
+        .section-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        
+        .section-subtitle {
+            color: var(--muted);
+            margin-bottom: 32px;
+        }
+        
+        .forms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        
+        .form-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.3s;
+        }
+        
+        .form-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(51, 38, 29, 0.15);
+        }
+        
+        .form-card h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        
+        .form-card .desc {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 16px;
+            min-height: 44px;
+        }
+        
+        .form-card .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+        
+        .form-card .stats {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+        }
+        
+        .form-card .stats span {
+            background: rgba(194, 64, 43, 0.1);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .form-card .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        
+        .form-card .actions .btn {
+            flex: 1;
+            justify-content: center;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+        
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        /* 表单填写区 */
+        .form-view {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .form-header {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            text-align: center;
+        }
+        
+        .form-header h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+        
+        .form-header .desc {
+            color: var(--muted);
+        }
+        
+        .question-item {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        
+        .question-item .q-label {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .question-item .q-label .required {
+            color: var(--primary);
+        }
+        
+        .question-item input[type="text"],
+        .question-item textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(194, 64, 43, 0.2);
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: white;
+            font-family: inherit;
+        }
+        
+        .question-item input[type="text"]:focus,
+        .question-item textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(194, 64, 43, 0.1);
+        }
+        
+        .question-item textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .radio-group label, .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(245, 239, 226, 0.6);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .radio-group label:hover, .checkbox-group label:hover {
+            background: rgba(194, 64, 43, 0.08);
+        }
+        
+        .radio-group input[type="radio"], .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+        
+        .form-submit {
+            text-align: center;
+            margin-top: 32px;
+        }
+        
+        /* 管理面板 */
+        .admin-panel {
+            display: none;
+            padding: 40px 0;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-tabs .tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: white;
+            border: 2px solid transparent;
+        }
+        
+        .admin-tabs .tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .admin-tabs .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* 创建表单模态框 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(51, 38, 29, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 64px rgba(51, 38, 29, 0.3);
+            animation: modalIn 0.3s ease;
+        }
+        
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        .modal-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid rgba(194, 64, 43, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(194, 64, 43, 0.05) 0%, transparent 100%);
+        }
+        
+        .modal-header h2 {
+            font-size: 22px;
+            color: var(--text);
+        }
+        
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(194, 64, 43, 0.1);
+            color: var(--primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .modal-body {
+            padding: 28px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(109, 92, 75, 0.2);
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: var(--bg);
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(194, 64, 43, 0.1);
+        }
+        
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .question-builder {
+            border: 2px dashed rgba(194, 64, 43, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .question-item-builder {
+            background: rgba(245, 239, 226, 0.6);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .question-item-builder .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .question-item-builder .q-type {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .question-item-builder .q-remove {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .question-item-builder .q-remove:hover {
+            background: rgba(194, 64, 43, 0.1);
+            color: var(--primary);
+        }
+        
+        .option-item {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .option-item input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid rgba(109, 92, 75, 0.2);
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .option-item button {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+        }
+        
+        .option-item button:hover {
+            color: var(--primary);
+        }
+        
+        .modal-footer {
+            padding: 20px 28px;
+            border-top: 1px solid rgba(194, 64, 43, 0.15);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            background: rgba(245, 239, 226, 0.4);
+        }
+        
+        .modal-footer .btn {
+            min-width: 120px;
+            justify-content: center;
+        }
+        
+        /* 登录模态框 */
+        .login-form .icon {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        /* 数据展示区 */
+        .data-section {
+            display: none;
+        }
+        
+        .data-section.active {
+            display: block;
+        }
+        
+        .submissions-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        
+        .submissions-table th,
+        .submissions-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(194, 64, 43, 0.1);
+        }
+        
+        .submissions-table th {
+            background: rgba(194, 64, 43, 0.08);
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .submissions-table tr:hover {
+            background: rgba(194, 64, 43, 0.03);
+        }
+        
+        .submissions-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .reply-box {
+            background: rgba(245, 239, 226, 0.6);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        
+        .reply-box textarea {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 8px;
+            font-size: 14px;
+            resize: none;
+            min-height: 60px;
+        }
+        
+        .reply-box textarea:focus {
+            outline: none;
+        }
+        
+        .reply-box .reply-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        
+        .reply-box .reply-actions .btn {
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+        
+        .admin-reply {
+            background: rgba(194, 64, 43, 0.08);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-top: 8px;
+            font-size: 14px;
+            color: var(--primary);
+        }
+        
+        .admin-reply::before {
+            content: "管理员回复：";
+            font-weight: 600;
+        }
+        
+        /* 图表统计 */
+        .chart-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .chart-container h4 {
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+        
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .chart-bar .label {
+            width: 100px;
+            font-size: 14px;
+            color: var(--muted);
+            text-align: right;
+        }
+        
+        .chart-bar .bar {
+            flex: 1;
+            height: 24px;
+            background: rgba(194, 64, 43, 0.15);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .chart-bar .bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 12px;
+            transition: width 0.6s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .chart-bar .count {
+            width: 50px;
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 600;
+        }
+        
+        /* 页脚 */
+        footer {
+            background: var(--text);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+        
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        footer .logo {
+            color: white;
+            font-size: 20px;
+        }
+        
+        footer .logo span {
+            color: var(--accent);
+        }
+        
+        footer p {
+            font-size: 14px;
+        }
+        
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        .footer-bottom {
+            width: 100%;
+            text-align: center;
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Toast通知 */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .toast {
+            background: white;
+            border-radius: 12px;
+            padding: 14px 20px;
+            box-shadow: 0 8px 32px rgba(51, 38, 29, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            min-width: 280px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .toast.success {
+            border-left-color: #22c55e;
+        }
+        
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+        
+        .toast .icon {
+            font-size: 20px;
+        }
+        
+        .toast .message {
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100%); }
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            header .container {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            nav {
+                gap: 16px;
+            }
+            
+            .hero {
+                padding: 50px 0 40px;
+            }
+            
+            .hero h1 {
+                font-size: 28px;
+            }
+            
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .forms-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+            
+            .modal {
+                max-height: 95vh;
+                border-radius: 16px;
+            }
+            
+            .modal-header, .modal-footer {
+                padding: 16px 20px;
+            }
+            
+            .submissions-table {
+                font-size: 13px;
+            }
+            
+            .submissions-table th,
+            .submissions-table td {
+                padding: 10px 12px;
+            }
+            
+            footer .container {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+
+
+    <!-- 头部导航 -->
+    <header>
+        <div class="container">
+            <div class="logo">薄想<span>表单</span></div>
+            <nav id="mainNav">
+                <a href="#" onclick="showView('home')">首页</a>
+                <a href="#forms" onclick="scrollToForms()">全部表单</a>
+                <a href="#about">关于</a>
+                <button class="btn btn-primary" id="loginBtn" onclick="showLoginModal()">
+                    <span>🔐</span> 管理员登录
+                </button>
+                <button class="btn btn-secondary" id="logoutBtn" onclick="logout()" style="display:none">
+                    <span>退出</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- 英雄区 -->
+    <section class="hero" id="home">
+        <div class="container">
+            <h1>专业<span>表单统计</span>工具</h1>
+            <p>薄想工作室打造的一站式表单创建与管理平台，支持多种题型、数据统计、用户回复，让您的调研工作更轻松。</p>
+            <div class="hero-actions">
+                <button class="btn btn-primary" onclick="scrollToForms()">
+                    <span>📋</span> 浏览表单
+                </button>
+                <button class="btn btn-accent" id="createFormBtn" onclick="showCreateModal()" style="display:none">
+                    <span>✏️</span> 创建新表单
+                </button>
+            </div>
+            
+            <!-- 统计卡片 -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="icon">📊</div>
+                    <h3 id="statForms">0</h3>
+                    <p>已发布表单</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">📝</div>
+                    <h3 id="statSubmissions">0</h3>
+                    <p>总提交数</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">👥</div>
+                    <h3 id="statUsers">0</h3>
+                    <p>参与用户</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">💬</div>
+                    <h3 id="statReplies">0</h3>
+                    <p>管理员回复</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 表单列表区 -->
+    <section class="section" id="forms">
+        <div class="container">
+            <h2 class="section-title">📋 所有表单</h2>
+            <p class="section-subtitle">选择您想要填写或管理的表单</p>
+            <div class="forms-grid" id="formsGrid">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- 表单填写区 -->
+    <section class="section" id="formView" style="display:none">
+        <div class="container">
+            <div class="form-view">
+                <div class="form-header">
+                    <h1 id="viewFormTitle"></h1>
+                    <p class="desc" id="viewFormDesc"></p>
+                </div>
+                <form id="formFillForm" onsubmit="submitForm(event)">
+                    <div id="viewQuestions"></div>
+                    <div class="form-submit">
+                        <button type="submit" class="btn btn-primary" style="padding: 14px 48px; font-size: 16px">
+                            <span>✅</span> 提交表单
+                        </button>
+                    </div>
+                <p style="margin: 10px 0px 0px; font-size: 12px; color: rgb(138, 109, 59); text-align: center;">🔧 预览模式：发布上线后表单即可正常提交数据（自动保存，上限100条）</p></form>
+                <div style="text-align:center;margin-top:20px">
+                    <a href="#" onclick="backToForms()" style="color:var(--muted);font-size:14px">← 返回表单列表</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 管理面板 -->
+    <section class="section admin-panel" id="adminPanel">
+        <div class="container">
+            <div class="admin-header">
+                <div>
+                    <h2 class="section-title">👨‍💼 管理后台</h2>
+                    <p class="section-subtitle" id="adminWelcome">欢迎回来，管理员</p>
+                </div>
+                <button class="btn btn-primary" onclick="showCreateModal()">
+                    <span>✏️</span> 创建新表单
+                </button>
+            </div>
+            
+            <div class="admin-tabs">
+                <div class="tab active" onclick="showAdminTab('forms', this)">表单管理</div>
+                <div class="tab" onclick="showAdminTab('data', this)">数据统计</div>
+            </div>
+            
+            <!-- 表单管理 -->
+            <div class="data-section active" id="adminForms">
+                <div id="adminFormsList"></div>
+            </div>
+            
+            <!-- 数据统计 -->
+            <div class="data-section" id="adminData">
+                <div id="dataContent"></div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 关于区 -->
+    <section class="section" id="about" style="background:rgba(194,64,43,0.03)">
+        <div class="container" style="text-align:center;max-width:700px">
+            <h2 class="section-title">关于薄想工作室</h2>
+            <p style="color:var(--muted);margin:16px 0 32px">薄想工作室专注于为用户提供优质的在线工具与建站服务。我们的表单统计工具帮助您轻松收集数据、管理反馈，支持多种题型和实时统计。</p>
+            <button class="btn btn-primary" onclick="window.location.href='https://lwl555.github.io/boxiang-blog/#order'">
+                <span>📞</span> 联系薄想工作室
+            </button>
+        </div>
+    </section>
+    
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="logo">薄想<span>表单</span></div>
+            <p>© 2024 薄想工作室 · 专业表单统计工具</p>
+            <a href="https://lwl555.github.io/boxiang-blog/#order">向薄想工作室下单</a>
+        </div>
+        <div class="footer-bottom">
+            由 薄想工作室 免费生成 · lwl555.github.io/boxiang-blog
+        </div>
+    </footer>
+    
+    <!-- 登录模态框 -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-header">
+                <h2>🔐 管理员登录</h2>
+                <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="login-form">
+                    <div class="icon">👨‍💼</div>
+                    <div class="form-group">
+                        <label>账号</label>
+                        <input type="text" id="loginAccount" placeholder="请输入管理员账号">
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" id="loginPassword" placeholder="请输入密码">
+                    </div>
+                    <div id="loginError" style="color:var(--primary);font-size:14px;margin-bottom:12px;text-align:center;display:none">账号或密码错误</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('loginModal')">取消</button>
+                <button class="btn btn-primary" onclick="handleLogin()">登录</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 创建/编辑表单模态框 -->
+    <div class="modal-overlay" id="createFormModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="formModalTitle">✏️ 创建新表单</h2>
+                <button class="modal-close" onclick="closeModal('createFormModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>表单标题</label>
+                    <input type="text" id="formTitle" placeholder="例如：用户满意度调查">
+                </div>
+                <div class="form-group">
+                    <label>表单描述</label>
+                    <textarea id="formDesc" placeholder="简要描述表单的目的和填写说明..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>问题列表</label>
+                    <div id="questionsContainer"></div>
+                    <button class="btn btn-secondary" onclick="addQuestion()" style="width:100%;margin-top:12px;justify-content:center">
+                        <span>➕</span> 添加问题
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createFormModal')">取消</button>
+                <button class="btn btn-primary" onclick="saveForm()">
+                    <span>💾</span> 发布表单
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <script>
+        // ===== 数据存储 =====
+        const ADMIN_ACCOUNT = '18882632073';
+        const ADMIN_PASSWORD = '110110nm';
+        
+        let isAdmin = false;
+        let currentView = 'home';
+        let currentFormId = null;
+        let editingFormId = null;
+        
+        // 加载数据
+        function loadData(key, defaultVal = []) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : defaultVal;
+            } catch (e) {
+                return defaultVal;
+            }
+        }
+        
+        // 保存数据
+        function saveData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        // 表单数据
+        let forms = loadData('bx_forms', []);
+        let submissions = loadData('bx_submissions', []);
+        let replies = loadData('bx_replies', []);
+        
+        // ===== 初始化 =====
+        document.addEventListener('DOMContentLoaded', () => {
+            // 检查登录状态
+            const loginState = localStorage.getItem('bx_admin_login');
+            if (loginState) {
+                isAdmin = true;
+                updateNav();
+            }
+            
+            // 如果没有表单，创建演示数据
+            if (forms.length === 0) {
+                forms = [{
+                    id: 'demo_001',
+                    title: '薄想工作室 · 用户体验调查',
+                    desc: '感谢您参与本次调查！本问卷大约需要2分钟时间，您的反馈对我们非常重要。',
+                    createdAt: new Date().toISOString(),
+                    questions: [
+                        {
+                            id: 'q1',
+                            text: '您对我们产品的整体满意度如何？',
+                            type: 'radio',
+                            options: ['非常满意', '满意', '一般', '不满意']
+                        },
+                        {
+                            id: 'q2',
+                            text: '您是通过什么渠道了解我们的？（可多选）',
+                            type: 'checkbox',
+                            options: ['搜索引擎', '社交媒体', '朋友推荐', '直接访问', '广告投放']
+                        },
+                        {
+                            id: 'q3',
+                            text: '您有什么建议或意见想告诉我们？',
+                            type: 'text',
+                            options: []
+                        }
+                    ]
+                }];
+                saveData('bx_forms', forms);
+            }
+            
+            renderForms();
+            updateStats();
+            
+            // 点击模态框背景关闭
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        overlay.classList.remove('active');
+                    }
+                });
+            });
+            
+            // 回车登录
+            document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+        });
+        
+        // ===== 视图切换 =====
+        function showView(view) {
+            currentView = view;
+            document.getElementById('home').style.display = view === 'home' ? 'block' : 'none';
+            document.getElementById('forms').style.display = view === 'home' ? 'block' : 'none';
+            document.getElementById('formView').style.display = view === 'form' ? 'block' : 'none';
+            document.getElementById('adminPanel').style.display = isAdmin && view === 'admin' ? 'block' : 'none';
+            
+            if (view === 'home') {
+                renderForms();
+                updateStats();
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function scrollToForms() {
+            document.getElementById('forms').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // ===== 渲染表单列表 =====
+        function renderForms() {
+            const grid = document.getElementById('formsGrid');
+            const adminList = document.getElementById('adminFormsList');
+            
+            if (forms.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column:1/-1">
+                        <div class="icon">📭</div>
+                        <p>暂无表单，管理员可以创建新表单</p>
+                    </div>
+                `;
+                adminList.innerHTML = grid.innerHTML;
+                return;
+            }
+            
+            // 公开表单列表
+            grid.innerHTML = forms.map(form => `
+                <div class="form-card">
+                    <h3>${escHtml(form.title)}</h3>
+                    <p class="desc">${escHtml(form.desc || '暂无描述')}</p>
+                    <div class="meta">
+                        <span>📅 ${formatDate(form.createdAt)}</span>
+                        <span>❓ ${form.questions.length} 个问题</span>
+                    </div>
+                    <div class="stats">
+                        <span>📝 ${getFormSubmissions(form.id).length} 次提交</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="viewForm('${form.id}')">
+                            ${isAdmin ? '📊 查看数据' : '✍️ 立即填写'}
+                        </button>
+                    </div>
+                    ${isAdmin ? `
+                    <div class="actions" style="margin-top:8px">
+                        <button class="btn btn-secondary" onclick="editForm('${form.id}')" style="flex:1;justify-content:center;padding:6px;font-size:13px">✏️ 编辑</button>
+                        <button class="btn btn-secondary" onclick="deleteForm('${form.id}')" style="flex:1;justify-content:center;padding:6px;font-size:13px;border-color:#ef4444;color:#ef4444">🗑️ 删除</button>
+                    </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            
+            // 管理面板表单列表
+            adminList.innerHTML = forms.map(form => `
+                <div class="form-card" style="margin-bottom:16px">
+                    <div style="display:flex;justify-content:space-between;align-items:start">
+                        <div>
+                            <h3>${escHtml(form.title)}</h3>
+                            <p class="desc">${escHtml(form.desc || '暂无描述')}</p>
+                            <div class="meta">
+                                <span>📅 ${formatDate(form.createdAt)}</span>
+                                <span>❓ ${form.questions.length} 个问题</span>
+                                <span>📝 ${getFormSubmissions(form.id).length} 次提交</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-shrink:0">
+                            <button class="btn btn-secondary" onclick="viewForm('${form.id}')" style="padding:8px 16px;font-size:13px">📊 数据</button>
+                            <button class="btn btn-secondary" onclick="editForm('${form.id}')" style="padding:8px 16px;font-size:13px">✏️</button>
+                            <button class="btn btn-secondary" onclick="deleteForm('${form.id}')" style="padding:8px 16px;font-size:13px;border-color:#ef4444;color:#ef4444">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // ===== 表单填写 =====
+        function viewForm(formId) {
+            const form = forms.find(f => f.id === formId);
+            if (!form) return;
+            
+            currentFormId = formId;
+            document.getElementById('viewFormTitle').textContent = form.title;
+            document.getElementById('viewFormDesc').textContent = form.desc || '';
+            
+            const questionsContainer = document.getElementById('viewQuestions');
+            questionsContainer.innerHTML = form.questions.map(q => createQuestionHTML(q)).join('');
+            
+            showView('form');
+        }
+        
+        function createQuestionHTML(question) {
+            let inputHTML = '';
+            
+            switch (question.type) {
+                case 'radio':
+                    inputHTML = `<div class="radio-group">
+                        ${question.options.map((opt, i) => `
+                            <label>
+                                <input type="radio" name="${question.id}" value="${escHtml(opt)}">
+                                ${escHtml(opt)}
+                            </label>
+                        `).join('')}
+                    </div>`;
+                    break;
+                case 'checkbox':
+                    inputHTML = `<div class="checkbox-group">
+                        ${question.options.map((opt, i) => `
+                            <label>
+                                <input type="checkbox" name="${question.id}" value="${escHtml(opt)}">
+                                ${escHtml(opt)}
+                            </label>
+                        `).join('')}
+                    </div>`;
+                    break;
+                case 'text':
+                    inputHTML = `<textarea name="${question.id}" placeholder="请输入您的回答..." rows="3"></textarea>`;
+                    break;
+                case 'number':
+                    inputHTML = `<input type="number" name="${question.id}" placeholder="请输入数字" step="any">`;
+                    break;
+                default:
+                    inputHTML = `<input type="text" name="${question.id}" placeholder="请输入您的回答">`;
+            }
+            
+            return `
+                <div class="question-item">
+                    <div class="q-label">
+                        <span>${escHtml(question.text)}</span>
+                        <span class="required">*</span>
+                    </div>
+                    ${inputHTML}
+                </div>
+            `;
+        }
+        
+        function submitForm(e) {
+            e.preventDefault();
+            
+            const form = forms.find(f => f.id === currentFormId);
+            if (!form) return;
+            
+            // 验证必填项
+            for (const q of form.questions) {
+                const answer = getAnswer(q);
+                if (!answer || (Array.isArray(answer) && answer.length === 0)) {
+                    showToast('请填写所有必填问题', 'error');
+                    return;
+                }
+            }
+            
+            // 保存提交
+            const submission = {
+                id: 'sub_' + Date.now(),
+                formId: currentFormId,
+                answers: {},
+                submittedAt: new Date().toISOString()
+            };
+            
+            for (const q of form.questions) {
+                submission.answers[q.id] = getAnswer(q);
+            }
+            
+            submissions.push(submission);
+            saveData('bx_submissions', submissions);
+            
+            showToast('表单提交成功！感谢您的参与', 'success');
+            
+            setTimeout(() => {
+                backToForms();
+            }, 1500);
+        }
+        
+        function getAnswer(question) {
+            const name = question.id;
+            
+            if (question.type === 'radio') {
+                const selected = document.querySelector(`input[name="${name}"]:checked`);
+                return selected ? selected.value : null;
+            } else if (question.type === 'checkbox') {
+                const checked = document.querySelectorAll(`input[name="${name}"]:checked`);
+                return Array.from(checked).map(c => c.value);
+            } else {
+                const input = document.querySelector(`input[name="${name}"], textarea[name="${name}"]`);
+                return input ? input.value.trim() : null;
+            }
+        }
+        
+        function backToForms() {
+            showView('home');
+        }
+        
+        // ===== 管理功能 =====
+        function handleLogin() {
+            const account = document.getElementById('loginAccount').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorEl = document.getElementById('loginError');
+            
+            if (!account || !password) {
+                errorEl.textContent = '请输入账号和密码';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            if (account === ADMIN_ACCOUNT && password === ADMIN_PASSWORD) {
+                isAdmin = true;
+                localStorage.setItem('bx_admin_login', '1');
+                closeModal('loginModal');
+                updateNav();
+                showView('admin');
+                renderForms();
+                showToast('登录成功！欢迎回来，管理员', 'success');
+                
+                // 清空登录表单
+                document.getElementById('loginAccount').value = '';
+                document.getElementById('loginPassword').value = '';
+                errorEl.style.display = 'none';
+            } else {
+                errorEl.textContent = '账号或密码错误，请重试';
+                errorEl.style.display = 'block';
+            }
+        }
+        
+        function logout() {
+            isAdmin = false;
+            localStorage.removeItem('bx_admin_login');
+            updateNav();
+            showView('home');
+            showToast('已退出登录', 'success');
+        }
+        
+        function updateNav() {
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const createBtn = document.getElementById('createFormBtn');
+            
+            if (isAdmin) {
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'flex';
+                createBtn.style.display = 'inline-flex';
+                document.getElementById('adminWelcome').textContent = '欢迎回来，管理员';
+            } else {
+                loginBtn.style.display = 'flex';
+                logoutBtn.style.display = 'none';
+                createBtn.style.display = 'none';
+            }
+        }
+        
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+            setTimeout(() => document.getElementById('loginAccount').focus(), 100);
+        }
+        
+        function showCreateModal() {
+            if (!isAdmin) {
+                showToast('请先登录管理员账号', 'error');
+                showLoginModal();
+                return;
+            }
+            
+            editingFormId = null;
+            document.getElementById('formModalTitle').textContent = '✏️ 创建新表单';
+            document.getElementById('formTitle').value = '';
+            document.getElementById('formDesc').value = '';
+            document.getElementById('questionsContainer').innerHTML = '';
+            
+            addQuestion();
+            document.getElementById('createFormModal').classList.add('active');
+        }
+        
+        function editForm(formId) {
+            const form = forms.find(f => f.id === formId);
+            if (!form) return;
+            
+            editingFormId = formId;
+            document.getElementById('formModalTitle').textContent = '✏️ 编辑表单';
+            document.getElementById('formTitle').value = form.title;
+            document.getElementById('formDesc').value = form.desc || '';
+            
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            form.questions.forEach(q => {
+                addQuestion(q);
+            });
+            
+            document.getElementById('createFormModal').classList.add('active');
+        }
+        
+        function addQuestion(question = null) {
+            const container = document.getElementById('questionsContainer');
+            const qId = 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            
+            const qData = question || {
+                id: qId,
+                text: '',
+                type: 'radio',
+                options: ['选项1', '选项2']
+            };
+            
+            const div = document.createElement('div');
+            div.className = 'question-item-builder';
+            div.dataset.questionId = qId;
+            div.innerHTML = `
+                <div class="q-header">
+                    <span class="q-type">${getTypeName(qData.type)}</span>
+                    <button type="button" class="q-remove" onclick="removeQuestion(this)">🗑️</button>
+                </div>
+                <div class="form-group">
+                    <label>问题内容</label>
+                    <input type="text" class="q-text" value="${escHtml(qData.text)}" placeholder="请输入问题...">
+                </div>
+                <div class="form-group">
+                    <label>问题类型</label>
+                    <select class="q-type-select" onchange="changeQuestionType(this, '${qId}')">
+                        <option value="radio" ${qData.type === 'radio' ? 'selected' : ''}>单选题</option>
+                        <option value="checkbox" ${qData.type === 'checkbox' ? 'selected' : ''}>多选题</option>
+                        <option value="text" ${qData.type === 'text' ? 'selected' : ''}>文本回答</option>
+                        <option value="number" ${qData.type === 'number' ? 'selected' : ''}>数字输入</option>
+                    </select>
+                </div>
+                <div class="options-container" ${['text', 'number'].includes(qData.type) ? 'style="display:none"' : ''}>
+                    <label style="font-size:13px;color:var(--muted);margin-bottom:8px;display:block">选项设置</label>
+                    <div class="options-list">
+                        ${(qData.options || ['选项1', '选项2']).map((opt, i) => `
+                            <div class="option-item">
+                                <input type="text" value="${escHtml(opt)}" placeholder="选项${i + 1}" class="opt-input">
+                                <button type="button" onclick="removeOption(this)">✕</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button type="button" onclick="addOption(this)" style="margin-top:8px;background:none;border:1px dashed var(--muted);color:var(--muted);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px">+ 添加选项</button>
+                </div>
+            `;
+            
+            container.appendChild(div);
+        }
+        
+        function removeQuestion(btn) {
+            const container = document.getElementById('questionsContainer');
+            if (container.children.length > 1) {
+                btn.closest('.question-item-builder').remove();
+            } else {
+                showToast('至少保留一个问题', 'error');
+            }
+        }
+        
+        function changeQuestionType(select, qId) {
+            const type = select.value;
+            const builder = select.closest('.question-item-builder');
+            builder.querySelector('.q-type').textContent = getTypeName(type);
+            
+            const optionsContainer = builder.querySelector('.options-container');
+            if (['text', 'number'].includes(type)) {
+                optionsContainer.style.display = 'none';
+            } else {
+                optionsContainer.style.display = 'block';
+            }
+        }
+        
+        function getTypeName(type) {
+            const names = {
+                'radio': '单选题',
+                'checkbox': '多选题',
+                'text': '文本',
+                'number': '数字'
+            };
+            return names[type] || type;
+        }
+        
+        function addOption(btn) {
+            const list = btn.previousElementSibling;
+            const count = list.children.length + 1;
+            const div = document.createElement('div');
+            div.className = 'option-item';
+            div.innerHTML = `
+                <input type="text" placeholder="选项${count}" class="opt-input">
+                <button type="button" onclick="removeOption(this)">✕</button>
+            `;
+            list.appendChild(div);
+        }
+        
+        function removeOption(btn) {
+            const list = btn.closest('.options-list');
+            if (list.children.length > 2) {
+                btn.closest('.option-item').remove();
+            } else {
+                showToast('至少保留两个选项', 'error');
+            }
+        }
+        
+        function saveForm() {
+            const title = document.getElementById('formTitle').value.trim();
+            const desc = document.getElementById('formDesc').value.trim();
+            
+            if (!title) {
+                showToast('请输入表单标题', 'error');
+                return;
+            }
+            
+            // 收集问题
+            const questions = [];
+            document.querySelectorAll('.question-item-builder').forEach(builder => {
+                const qText = builder.querySelector('.q-text').value.trim();
+                const qType = builder.querySelector('.q-type-select').value;
+                const qId = builder.dataset.questionId;
+                
+                if (!qText) {
+                    showToast('请填写所有问题内容', 'error');
+                    return;
+                }
+                
+                const options = [];
+                builder.querySelectorAll('.opt-input').forEach(inp => {
+                    if (inp.value.trim()) {
+                        options.push(inp.value.trim());
+                    }
+                });
+                
+                questions.push({
+                    id: qId,
+                    text: qText,
+                    type: qType,
+                    options: options
+                });
+            });
+            
+            if (questions.length === 0) {
+                showToast('请至少添加一个问题', 'error');
+                return;
+            }
+            
+            if (editingFormId) {
+                // 编辑现有表单
+                const formIndex = forms.findIndex(f => f.id === editingFormId);
+                if (formIndex !== -1) {
+                    forms[formIndex].title = title;
+                    forms[formIndex].desc = desc;
+                    forms[formIndex].questions = questions;
+                    // 清除旧提交（因为题目变了）
+                    submissions = submissions.filter(s => s.formId !== editingFormId);
+                    replies = replies.filter(r => !forms[formIndex].questions.some(q => Object.keys(s.answers).includes(q.id)));
+                    saveData('bx_submissions', submissions);
+                    saveData('bx_replies', replies);
+                }
+                showToast('表单更新成功', 'success');
+            } else {
+                // 创建新表单
+                forms.push({
+                    id: 'form_' + Date.now(),
+                    title: title,
+                    desc: desc,
+                    createdAt: new Date().toISOString(),
+                    questions: questions
+                });
+                showToast('表单创建成功！', 'success');
+            }
+            
+            saveData('bx_forms', forms);
+            closeModal('createFormModal');
+            renderForms();
+            updateStats();
+        }
+        
+        function deleteForm(formId) {
+            if (!confirm('确定要删除这个表单吗？所有提交数据也将被删除。')) return;
+            
+            forms = forms.filter(f => f.id !== formId);
+            submissions = submissions.filter(s => s.formId !== formId);
+            replies = replies.filter(r => r.formId !== formId);
+            
+            saveData('bx_forms', forms);
+            saveData('bx_submissions', submissions);
+            saveData('bx_replies', replies);
+            
+            renderForms();
+            updateStats();
+            showToast('表单已删除', 'success');
+        }
+        
+        // ===== 数据统计 =====
+        function getFormSubmissions(formId) {
+            return submissions.filter(s => s.formId === formId);
+        }
+        
+        function getFormReplies(formId) {
+            return replies.filter(r => r.formId === formId);
+        }
+        
+        function renderDataView(formId) {
+            const form = forms.find(f => f.id === formId);
+            if (!form) return;
+            
+            const formSubs = getFormSubmissions(formId);
+            const formReplies = getFormReplies(formId);
+            const content = document.getElementById('dataContent');
+            
+            let html = `
+                <div class="form-header" style="margin-bottom:24px">
+                    <h2>${escHtml(form.title)}</h2>
+                    <p class="desc">共 ${formSubs.length} 份提交</p>
+                </div>
+                
+                <div style="margin-bottom:20px">
+                    <button class="btn btn-secondary" onclick="showAdminTab('forms', document.querySelector('.admin-tabs .tab'))">← 返回</button>
+                </div>
+                
+                <div class="chart-container">
+                    <h4>📊 数据统计</h4>
+            `;
+            
+            // 每个问题的统计
+            for (const q of form.questions) {
+                html += `<h4 style="margin:16px 0 8px;font-size:15px;color:var(--text)">${escHtml(q.text)}</h4>`;
+                
+                if (q.type === 'radio' || q.type === 'checkbox') {
+                    // 选项统计
+                    const optionCounts = {};
+                    q.options.forEach(opt => optionCounts[opt] = 0);
+                    
+                    formSubs.forEach(sub => {
+                        const answer = sub.answers[q.id];
+                        if (q.type === 'radio') {
+                            if (answer && optionCounts.hasOwnProperty(answer)) {
+                                optionCounts[answer]++;
+                            }
+                        } else {
+                            if (Array.isArray(answer)) {
+                                answer.forEach(a => {
+                                    if (optionCounts.hasOwnProperty(a)) {
+                                        optionCounts[a]++;
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    
+                    const maxCount = Math.max(...Object.values(optionCounts), 1);
+                    
+                    html += `<div style="margin-bottom:20px">`;
+                    for (const [opt, count] of Object.entries(optionCounts)) {
+                        const pct = formSubs.length > 0 ? Math.round((count / formSubs.length) * 100) : 0;
+                        html += `
+                            <div class="chart-bar">
+                                <span class="label">${escHtml(opt)}</span>
+                                <div class="bar">
+                                    <div class="fill" style="width:${Math.max(pct, count > 0 ? 8 : 2)}%">${count}</div>
+                                </div>
+                                <span class="count">${pct}%</span>
+                            </div>
+                        `;
+                    }
+                    html += `</div>`;
+                } else {
+                    // 文本回答统计
+                    html += `<div style="margin-bottom:20px">`;
+                    formSubs.forEach((sub, i) => {
+                        const answer = sub.answers[q.id];
+                        if (answer) {
+                            html += `<div style="padding:10px 14px;background:rgba(245,239,226,0.6);border-radius:8px;margin-bottom:8px;font-size:14px">
+                                <span style="color:var(--muted);font-size:12px">提交 ${i + 1}:</span>
+                                ${escHtml(answer)}
+                            </div>`;
+                        }
+                    });
+                    html += `</div>`;
+                }
+            }
+            
+            html += `</div>`;
+            
+            // 提交记录表格
+            if (formSubs.length > 0) {
+                html += `
+                    <div class="chart-container">
+                        <h4>📝 提交记录</h4>
+                        <table class="submissions-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>提交时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                formSubs.forEach((sub, i) => {
+                    const subReplies = formReplies.filter(r => r.submissionId === sub.id);
+                    html += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${formatDate(sub.submittedAt)}</td>
+                            <td>
+                                <button class="btn btn-secondary" onclick="toggleReply('${sub.id}')" style="padding:6px 12px;font-size:13px">💬 回复</button>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    // 回复区域
+                    html += `<tr id="reply-row-${sub.id}" style="display:none">
+                        <td colspan="3">
+                            <div class="reply-box">
+                                <div style="margin-bottom:8px;font-size:14px"><strong>回答：</strong></div>
+                                ${form.questions.map(q => `
+                                    <div style="margin-bottom:6px;font-size:13px">
+                                        <span style="color:var(--muted)">${escHtml(q.text)}:</span>
+                                        ${Array.isArray(sub.answers[q.id]) ? sub.answers[q.id].join(', ') : escHtml(sub.answers[q.id] || '-')}
+                                    </div>
+                                `).join('')}
+                                <div style="margin-top:12px">
+                                    <textarea id="reply-text-${sub.id}" placeholder="输入回复内容..." rows="2"></textarea>
+                                    <div class="reply-actions">
+                                        <button class="btn btn-secondary" onclick="toggleReply('${sub.id}')" style="padding:6px 12px;font-size:13px">取消</button>
+                                        <button class="btn btn-primary" onclick="submitReply('${sub.id}', '${formId}')" style="padding:6px 12px;font-size:13px">发送回复</button>
+                                    </div>
+                                </div>
+                                ${subReplies.map(r => `
+                                    <div class="admin-reply">${escHtml(r.content)}</div>
+                                `).join('')}
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+                
+                html += `</tbody></table></div>`;
+            } else {
+                html += `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>暂无提交记录</p>
+                    </div>
+                `;
+            }
+
+
+```html
+                    </div>
+                </div>
+            `;
+            document.getElementById('admin-content').innerHTML = html;
+        }
+
+        function renderCreateForm() {
+            const html = `
+                <div class="admin-card">
+                    <h2>📝 创建新表单</h2>
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label>表单标题</label>
+                            <input type="text" id="new-form-title" placeholder="请输入表单标题">
+                        </div>
+                        <div class="form-group">
+                            <label>表单描述</label>
+                            <textarea id="new-form-desc" placeholder="请输入表单描述" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>表单说明</label>
+                            <textarea id="new-form-note" placeholder="请输入表单填写说明（可选）" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>表单主题色</label>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                                <label><input type="radio" name="form-color" value="#c2402b" checked> 朱砂红</label>
+                                <label><input type="radio" name="form-color" value="#c98a16"> 琥珀金</label>
+                                <label><input type="radio" name="form-color" value="#5b8c5a"> 竹青绿</label>
+                                <label><input type="radio" name="form-color" value="#4a7c9b"> 天青蓝</label>
+                                <label><input type="radio" name="form-color" value="#8b6914"> 古铜金</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>题目设置</h3>
+                        <div id="new-questions"></div>
+                        <button class="btn btn-secondary" onclick="addQuestion()" style="margin-top:15px">
+                            + 添加题目
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
+                        <button class="btn btn-secondary" onclick="showAdmin('forms')">取消</button>
+                        <button class="btn btn-primary" onclick="createForm()">创建表单</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('admin-content').innerHTML = html;
+            window._questionCount = 0;
+            addQuestion();
+        }
+
+        function addQuestion(type = 'text') {
+            const idx = window._questionCount++;
+            const html = `
+                <div class="question-card" id="question-${idx}">
+                    <div class="form-group">
+                        <label>题目类型</label>
+                        <select onchange="window.updateQuestionType(${idx}, this.value)">
+                            <option value="text" ${type==='text'?'selected':''}>单行文本</option>
+                            <option value="textarea" ${type==='textarea'?'selected':''}>多行文本</option>
+                            <option value="radio" ${type==='radio'?'selected':''}>单选题</option>
+                            <option value="checkbox" ${type==='checkbox'?'selected':''}>多选题</option>
+                            <option value="select" ${type==='select'?'selected':''}>下拉选择</option>
+                            <option value="number" ${type==='number'?'selected':''}>数字输入</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>题目内容</label>
+                        <input type="text" id="q-content-${idx}" placeholder="请输入题目内容">
+                    </div>
+                    <div class="form-group" id="q-options-${idx}" style="display:none">
+                        <label>选项设置（每行一个选项）</label>
+                        <textarea id="q-options-text-${idx}" placeholder="请输入选项，每行一个&#10;例如：&#10;选项A&#10;选项B&#10;选项C"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="q-required-${idx}"> 必填
+                        </label>
+                    </div>
+                    <button class="btn btn-danger" onclick="removeQuestion(${idx})" style="padding:5px 12px;font-size:13px">删除</button>
+                </div>
+            `;
+            document.getElementById('new-questions').insertAdjacentHTML('beforeend', html);
+        }
+
+        window.updateQuestionType = function(idx, type) {
+            const optionsDiv = document.getElementById(`q-options-${idx}`);
+            if (['radio', 'checkbox', 'select'].includes(type)) {
+                optionsDiv.style.display = 'block';
+            } else {
+                optionsDiv.style.display = 'none';
+            }
+        };
+
+        window.removeQuestion = function(idx) {
+            const el = document.getElementById(`question-${idx}`);
+            if (el) el.remove();
+        };
+
+        window.createForm = function() {
+            const title = document.getElementById('new-form-title').value.trim();
+            const desc = document.getElementById('new-form-desc').value.trim();
+            const note = document.getElementById('new-form-note').value.trim();
+            const color = document.querySelector('input[name="form-color"]:checked').value;
+            
+            if (!title) {
+                alert('请输入表单标题');
+                return;
+            }
+            
+            const questions = [];
+            const questionCards = document.querySelectorAll('#new-questions .question-card');
+            
+            for (const card of questionCards) {
+                const idx = card.id.split('-')[1];
+                const type = card.querySelector('select').value;
+                const content = card.querySelector(`#q-content-${idx}`).value.trim();
+                const required = card.querySelector(`#q-required-${idx}`).checked;
+                
+                if (!content) continue;
+                
+                let options = [];
+                if (['radio', 'checkbox', 'select'].includes(type)) {
+                    const optText = card.querySelector(`#q-options-text-${idx}`).value;
+                    options = optText.split('\n').map(o => o.trim()).filter(o => o);
+                }
+                
+                questions.push({
+                    id: `q${Date.now()}_${idx}`,
+                    type,
+                    content,
+                    options,
+                    required
+                });
+            }
+            
+            if (questions.length === 0) {
+                alert('请至少添加一道题目');
+                return;
+            }
+            
+            const form = {
+                id: `form_${Date.now()}`,
+                title,
+                desc,
+                note,
+                color,
+                questions,
+                createdAt: new Date().toISOString(),
+                submissions: []
+            };
+            
+            window._forms.push(form);
+            localStorage.setItem('bx_forms', JSON.stringify(window._forms));
+            
+            showNotification('表单创建成功！');
+            showAdmin('forms');
+        };
+
+        window.editForm = function(id) {
+            const form = window._forms.find(f => f.id === id);
+            if (!form) return;
+            
+            const html = `
+                <div class="admin-card">
+                    <h2>📝 编辑表单</h2>
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label>表单标题</label>
+                            <input type="text" id="edit-form-title" value="${escHtml(form.title)}">
+                        </div>
+                        <div class="form-group">
+                            <label>表单描述</label>
+                            <textarea id="edit-form-desc" rows="2">${escHtml(form.desc)}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>表单说明</label>
+                            <textarea id="edit-form-note" rows="2">${escHtml(form.note || '')}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>表单主题色</label>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                                <label><input type="radio" name="edit-form-color" value="#c2402b" ${form.color==='#c2402b'?'checked':''}> 朱砂红</label>
+                                <label><input type="radio" name="edit-form-color" value="#c98a16" ${form.color==='#c98a16'?'checked':''}> 琥珀金</label>
+                                <label><input type="radio" name="edit-form-color" value="#5b8c5a" ${form.color==='#5b8c5a'?'checked':''}> 竹青绿</label>
+                                <label><input type="radio" name="edit-form-color" value="#4a7c9b" ${form.color==='#4a7c9b'?'checked':''}> 天青蓝</label>
+                                <label><input type="radio" name="edit-form-color" value="#8b6914" ${form.color==='#8b6914'?'checked':''}> 古铜金</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>题目设置</h3>
+                        <div id="edit-questions"></div>
+                        <button class="btn btn-secondary" onclick="addEditQuestion()" style="margin-top:15px">
+                            + 添加题目
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
+                        <button class="btn btn-danger" onclick="deleteForm('${id}')">删除表单</button>
+                        <button class="btn btn-secondary" onclick="showAdmin('forms')">取消</button>
+                        <button class="btn btn-primary" onclick="saveForm('${id}')">保存修改</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('admin-content').innerHTML = html;
+            window._editQuestionCount = 0;
+            
+            form.questions.forEach(q => addEditQuestion(q));
+        };
+
+        window.addEditQuestion = function(question = null) {
+            const idx = window._editQuestionCount++;
+            const type = question ? question.type : 'text';
+            const html = `
+                <div class="question-card" id="edit-question-${idx}">
+                    <div class="form-group">
+                        <label>题目类型</label>
+                        <select onchange="window.updateEditQuestionType(${idx}, this.value)">
+                            <option value="text" ${type==='text'?'selected':''}>单行文本</option>
+                            <option value="textarea" ${type==='textarea'?'selected':''}>多行文本</option>
+                            <option value="radio" ${type==='radio'?'selected':''}>单选题</option>
+                            <option value="checkbox" ${type==='checkbox'?'selected':''}>多选题</option>
+                            <option value="select" ${type==='select'?'selected':''}>下拉选择</option>
+                            <option value="number" ${type==='number'?'selected':''}>数字输入</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>题目内容</label>
+                        <input type="text" id="edit-q-content-${idx}" value="${question ? escHtml(question.content) : ''}">
+                    </div>
+                    <div class="form-group" id="edit-q-options-${idx}" style="display:${['radio','checkbox','select'].includes(type)?'block':'none'}">
+                        <label>选项设置（每行一个选项）</label>
+                        <textarea id="edit-q-options-text-${idx}">${question && question.options ? question.options.join('\n') : ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="edit-q-required-${idx}" ${question && question.required ? 'checked' : ''}> 必填
+                        </label>
+                    </div>
+                    <button class="btn btn-danger" onclick="removeEditQuestion(${idx})" style="padding:5px 12px;font-size:13px">删除</button>
+                </div>
+            `;
+            document.getElementById('edit-questions').insertAdjacentHTML('beforeend', html);
+        };
+
+        window.updateEditQuestionType = function(idx, type) {
+            const optionsDiv = document.getElementById(`edit-q-options-${idx}`);
+            if (['radio', 'checkbox', 'select'].includes(type)) {
+                optionsDiv.style.display = 'block';
+            } else {
+                optionsDiv.style.display = 'none';
+            }
+        };
+
+        window.removeEditQuestion = function(idx) {
+            const el = document.getElementById(`edit-question-${idx}`);
+            if (el) el.remove();
+        };
+
+        window.saveForm = function(id) {
+            const form = window._forms.find(f => f.id === id);
+            if (!form) return;
+            
+            form.title = document.getElementById('edit-form-title').value.trim();
+            form.desc = document.getElementById('edit-form-desc').value.trim();
+            form.note = document.getElementById('edit-form-note').value.trim();
+            form.color = document.querySelector('input[name="edit-form-color"]:checked').value;
+            
+            form.questions = [];
+            const questionCards = document.querySelectorAll('#edit-questions .question-card');
+            
+            for (const card of questionCards) {
+                const idx = card.id.split('-')[1];
+                const type = card.querySelector('select').value;
+                const content = card.querySelector(`#edit-q-content-${idx}`).value.trim();
+                const required = card.querySelector(`#edit-q-required-${idx}`).checked;
+                
+                if (!content) continue;
+                
+                let options = [];
+                if (['radio', 'checkbox', 'select'].includes(type)) {
+                    const optText = card.querySelector(`#edit-q-options-text-${idx}`).value;
+                    options = optText.split('\n').map(o => o.trim()).filter(o => o);
+                }
+                
+                form.questions.push({
+                    id: `q${Date.now()}_${idx}`,
+                    type,
+                    content,
+                    options,
+                    required
+                });
+            }
+            
+            localStorage.setItem('bx_forms', JSON.stringify(window._forms));
+            showNotification('表单已保存！');
+            showAdmin('forms');
+        };
+
+        window.deleteForm = function(id) {
+            if (!confirm('确定要删除这个表单吗？所有提交记录也会被删除！')) return;
+            
+            window._forms = window._forms.filter(f => f.id !== id);
+            localStorage.setItem('bx_forms', JSON.stringify(window._forms));
+            showNotification('表单已删除');
+            showAdmin('forms');
+        };
+
+        window.toggleReply = function(subId) {
+            const textarea = document.getElementById(`reply-text-${subId}`);
+            textarea.style.display = textarea.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.submitReply = function(subId, formId) {
+            const textarea = document.getElementById(`reply-text-${subId}`);
+            const content = textarea.value.trim();
+            if (!content) return;
+            
+            const form = window._forms.find(f => f.id === formId);
+            const sub = form.submissions.find(s => s.id === subId);
+            sub.replies.push({
+                id: `reply_${Date.now()}`,
+                content,
+                author: 'admin',
+                createdAt: new Date().toISOString()
+            });
+            
+            localStorage.setItem('bx_forms', JSON.stringify(window._forms));
+            textarea.value = '';
+            textarea.style.display = 'none';
+            showAdmin('submissions', formId);
+            showNotification('回复已发送');
+        };
+
+        window.logout = function() {
+            window._isAdmin = false;
+            window._user = null;
+            document.getElementById('admin-nav').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('user-nav').style.display = 'flex';
+            document.getElementById('user-panel').style.display = 'block';
+            showNotification('已退出登录');
+        };
+
+        window.submitForm = function(formId) {
+            const form = window._forms.find(f => f.id === formId);
+            if (!form) return;
+            
+            const formData = {};
+            let valid = true;
+            
+            for (const q of form.questions) {
+                const el = document.getElementById(`ans-${q.id}`);
+                if (!el) continue;
+                
+                let value;
+                if (q.type === 'radio') {
+                    const checked = document.querySelector(`input[name="ans-${q.id}"]:checked`);
+                    value = checked ? checked.value : '';
+                } else if (q.type === 'checkbox') {
+                    const checked = document.querySelectorAll(`input[name="ans-${q.id}"]:checked`);
+                    value = Array.from(checked).map(c => c.value);
+                } else {
+                    value = el.value.trim();
+                }
+                
+                if (q.required && !value) {
+                    valid = false;
+                    el.style.borderColor = '#c2402b';
+                } else {
+                    el.style.borderColor = '';
+                    formData[q.id] = value;
+                }
+            }
+            
+            if (!valid) {
+                showNotification('请填写所有必填项');
+                return;
+            }
+            
+            const submission = {
+                id: `sub_${Date.now()}`,
+                formId,
+                answers: formData,
+                submittedAt: new Date().toISOString(),
+                replies: []
+            };
+            
+            form.submissions.push(submission);
+            localStorage.setItem('bx_forms', JSON.stringify(window._forms));
+            
+            showNotification('提交成功！感谢您的参与');
+            showPublicForm(formId);
+        };
+
+        window.showPublicForm = function(formId) {
+            const form = window._forms.find(f => f.id === formId);
+            if (!form) return;
+            
+            const html = `
+                <div class="form-container" style="border-top-color:${form.color}">
+                    <div class="form-header" style="background:${form.color}15;border-color:${form.color}">
+                        <h1>${escHtml(form.title)}</h1>
+                        ${form.desc ? `<p>${escHtml(form.desc)}</p>` : ''}
+                        <div class="form-meta">
+                            <span>📊 已有 ${form.submissions.length} 人提交</span>
+                        </div>
+                    </div>
+                    
+                    ${form.note ? `<div class="form-note">${escHtml(form.note)}</div>` : ''}
+                    
+                    <form onsubmit="event.preventDefault();submitForm('${formId}')">
+                        ${form.questions.map(q => `
+                            <div class="form-question">
+                                <div class="question-label">${escHtml(q.content)}${q.required ? '<span class="required">*</span>' : ''}</div>
+                                ${renderQuestionInput(q, `ans-${q.id}`)}
+                            </div>
+                        `).join('')}
+                        
+                        <button type="submit" class="btn btn-primary btn-submit" style="width:100%;padding:14px;font-size:16px;margin-top:10px">
+                            📤 提交表单
+                        </button>
+                    </form>
+                    
+                    <div style="text-align:center;margin-top:20px">
+                        <button class="btn btn-secondary" onclick="showPublic()">返回表单列表</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('user-content').innerHTML = html;
+        };
+
+        function renderQuestionInput(q, inputId) {
+            switch(q.type) {
+                case 'textarea':
+                    return `<textarea id="${inputId}" class="form-input" rows="3" placeholder="请输入内容..."></textarea>`;
+                case 'radio':
+                    return `<div class="option-list">${q.options.map((opt, i) => `
+                        <label class="option-item">
+                            <input type="radio" name="${inputId}" value="${escHtml(opt)}">
+                            <span>${escHtml(opt)}</span>
+                        </label>
+                    `).join('')}</div>`;
+                case 'checkbox':
+                    return `<div class="option-list">${q.options.map((opt, i) => `
+                        <label class="option-item">
+                            <input type="checkbox" name="${inputId}" value="${escHtml(opt)}">
+                            <span>${escHtml(opt)}</span>
+                        </label>
+                    `).join('')}</div>`;
+                case 'select':
+                    return `<select id="${inputId}" class="form-input">
+                        <option value="">请选择...</option>
+                        ${q.options.map(opt => `<option value="${escHtml(opt)}">${escHtml(opt)}</option>`).join('')}
+                    </select>`;
+                case 'number':
+                    return `<input type="number" id="${inputId}" class="form-input" placeholder="请输入数字...">`;
+                default:
+                    return `<input type="text" id="${inputId}" class="form-input" placeholder="请输入内容...">`;
+            }
+        }
+
+        window.showAdmin = function(section = 'forms', formId = null) {
+            document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('user-panel').style.display = 'none';
+            
+            const navItems = document.querySelectorAll('.admin-nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            const map = { forms: 0, stats: 1, create: 2 };
+            if (map[section] !== undefined) navItems[map[section]].classList.add('active');
+            
+            if (section === 'forms') {
+                renderAdminForms();
+            } else if (section === 'stats') {
+                renderAdminStats();
+            } else if (section === 'create') {
+                renderCreateForm();
+            } else if (section === 'submissions') {
+                renderAdminSubmissions(formId);
+            }
+        };
+
+        window.showPublic = function() {
+            document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('user-panel').style.display = 'block';
+            renderPublicForms();
+        };
+
+        function renderPublicForms() {
+            const forms = window._forms || [];
+            
+            if (forms.length === 0) {
+                document.getElementById('user-content').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>暂无可用表单</p>
+                        <p style="font-size:14px;color:#888">管理员尚未创建任何表单</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `<div class="forms-grid">`;
+            forms.forEach(form => {
+                const color = form.color || '#c2402b';
+                html += `
+                    <div class="form-card" onclick="showPublicForm('${form.id}')" style="--form-color:${color}">
+                        <div class="form-card-header" style="background:${color}">
+                            <div class="form-card-icon">📝</div>
+                            <div class="form-card-tag">进行中</div>
+                        </div>
+                        <div class="form-card-body">
+                            <h3>${escHtml(form.title)}</h3>
+                            ${form.desc ? `<p class="form-card-desc">${escHtml(form.desc)}</p>` : ''}
+                            <div class="form-card-meta">
+                                <span>📋 ${form.questions.length} 道题目</span>
+                                <span>👥 ${form.submissions.length} 人参与</span>
+                            </div>
+                        </div>
+                        <div class="form-card-footer">
+                            <span class="btn btn-primary btn-sm">立即填写 →</span>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            document.getElementById('user-content').innerHTML = html;
+        }
+
+        function escHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function showNotification(msg) {
+            const notif = document.getElementById('notification');
+            notif.textContent = msg;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 2500);
+        }
+
+        function initDemoData() {
+            if (window._forms.length > 0) return;
+            
+            window._forms = [
+                {
+                    id: 'form_demo_1',
+                    title: '用户满意度调查',
+                    desc: '感谢使用我们的服务，请花费2分钟填写满意度调查',
+                    note: '您的反馈对我们非常重要，帮助我们持续改进服务质量。',
+                    color: '#c2402b',
+                    questions: [
+                        { id: 'q1', type: 'radio', content: '您对 overall 服务满意度如何？', options: ['非常满意', '满意', '一般', '不满意'], required: true },
+                        { id: 'q2', type: 'textarea', content: '请告诉我们您最喜欢我们服务的哪些方面？', required: false },
+                        { id: 'q3', type: 'checkbox', content: '您会使用我们的哪些功能？', options: ['文档查询', '在线工具', '客户服务', '社区交流'], required: true },
+                        { id: 'q4', type: 'number', content: '您推荐朋友使用的可能性（0-10分）？', required: true }
+                    ],
+                    createdAt: '2024-01-15T10:00:00Z',
+                    submissions: [
+                        {
+                            id: 'sub_1',
+                            formId: 'form_demo_1',
+                            answers: { q1: '非常满意', q2: '界面简洁，操作方便', q3: ['文档查询', '在线工具'], q4: 9 },
+                            submittedAt: '2024-01-15T12:00:00Z',
+                            replies: [{ id: 'r1', content: '感谢您的好评！', author: 'admin', createdAt: '2024-01-15T13:00:00Z' }]
+                        }
+                    ]
+                },
+                {
+                    id: 'form_demo_2',
+                    title: '课程报名表',
+                    desc: '新一期线上课程开始报名，名额有限先到先得',
+                    note: '报名成功后我们会联系您安排上课时间。',
+                    color: '#5b8c5a',
+                    questions: [
+                        { id: 'q1', type: 'text', content: '您的姓名', required: true },
+                        { id: 'q2', type: 'text', content: '联系电话', required: true },
+                        { id: 'q3', type: 'select', content: '请选择想报名的课程', options: ['编程入门', '设计基础', '数据分析', '产品经理'], required: true },
+                        { id: 'q4', type: 'textarea', content: '其他需求或备注', required: false }
+                    ],
+                    createdAt: '2024-01-20T10:00:00Z',
+                    submissions: []
+                }
+            ];
+            
+            localStorage.setItem('bx_forms', JSON.stringify(window._forms));
+        }
+
+        initDemoData();
+        renderPublicForms();
+    </script>
+    
+    <!-- BX-NOTES:这是一个表单统计工具，管理员可以用账号18882632073和密码110110nm登录，登录后可以创建和管理表单，查看所有提交记录和回复；普通用户只能查看和提交表单 -->
+
+<script>window.BX_BACKEND={"slug":"bx-bxf5ck","token":"t_2j6vmoanmsffxam9","preview":false,"url":"https://wcnssyiqitugqfmcbdhe.supabase.co/rest/v1/site_data","key":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjbnNzeWlxaXR1Z3FmbWNiZGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MDEyNzUsImV4cCI6MjA5ODk3NzI3NX0.9EfbEr7BQhZtbOwHJ3IrkOy16kcaxlmzuJuV0A2Z8Eg"};(function(){var C=window.BX_BACKEND;function ready(fn){if(document.readyState!=="loading"){fn();}else{document.addEventListener("DOMContentLoaded",fn);}}ready(function(){document.querySelectorAll("form").forEach(function(f){var h=document.createElement("p");h.style.cssText="margin:10px 0 0;font-size:12px;color:#8a6d3b;text-align:center";h.textContent=C.preview?"🔧 预览模式：发布上线后表单即可正常提交数据（自动保存，上限100条）":"🔒 提交后数据会安全保存（平台自动存储，上限100条）";f.appendChild(h);});});document.addEventListener("submit",function(ev){var f=ev.target;if(!f||f.tagName!=="FORM"||!C.url)return;if(C.preview){ev.preventDefault();alert("🔧 预览模式不能提交，发布上线后表单即可正常使用");return;}ev.preventDefault();var fd=new FormData(f);var a=[];fd.forEach(function(v,k){a.push([String(k).toLowerCase(),String(v)]);});function gv(keys){for(var i=0;i<a.length;i++){for(var j=0;j<keys.length;j++){if(a[i][0].indexOf(keys[j])>=0)return a[i][1];}}return "";}var name=gv(["name","姓名","称呼"]).slice(0,50);var contact=gv(["contact","email","phone","微信","电话","邮箱","手机","qq"]).slice(0,80);var content=gv(["content","message","留言","需求","msg","备注","内容","说明"]).slice(0,500);if(!String(content||"").trim()){var parts=[];a.forEach(function(x){parts.push(x[0]+":"+x[1].slice(0,60));});content=parts.join("；").slice(0,400);}var btn=f.querySelector("[type=submit],button");if(btn){btn.disabled=true;btn.textContent="提交中…";}fetch(C.url,{method:"POST",headers:{"Content-Type":"application/json","apikey":C.key,"Authorization":"Bearer "+C.key},body:JSON.stringify({slug:C.slug,name:name,contact:contact,content:content})}).then(function(r){if(btn){btn.disabled=false;btn.textContent="提交";}if(r.ok){alert("✅ 提交成功！信息已保存，站长会尽快联系你～");f.reset();}else{return r.text().then(function(t){alert("⚠️ 提交失败："+String(t||"").slice(0,120));});}}).catch(function(){if(btn){btn.disabled=false;btn.textContent="提交";}alert("⚠️ 网络异常，请稍后再试");});});})();</script>
+</body></html>
