@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据管理 · 1</title>
+<style>
+:root{--bg:#f5efe2;--panel:#fffdf6;--ink:#33261d;--soft:#6d5c4b;--accent:#c2402b;--amber:#c98a16}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;padding:26px 16px 60px;line-height:1.7}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:1.3rem;font-weight:900;margin-bottom:4px}
+.sub{color:var(--soft);font-size:.86rem;margin-bottom:20px}
+.badge{display:inline-block;background:rgba(201,138,22,.12);color:var(--amber);border:1px solid rgba(201,138,22,.4);border-radius:999px;padding:3px 12px;font-size:.76rem;font-weight:800;margin-bottom:14px}
+.card{background:var(--panel);border:1px solid rgba(51,38,29,.1);border-radius:16px;padding:18px;box-shadow:0 14px 34px rgba(51,38,29,.08)}
+.tip{font-size:.8rem;color:var(--soft);margin-bottom:14px}
+.empty{text-align:center;color:var(--soft);padding:36px 0;font-size:.9rem}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(51,38,29,.08);vertical-align:top}
+th{font-weight:800;color:var(--soft);font-size:.76rem;white-space:nowrap}
+td.time{white-space:nowrap;color:var(--soft);font-size:.76rem}
+.err{background:rgba(194,64,43,.07);border:1px dashed rgba(194,64,43,.4);color:var(--accent);border-radius:12px;padding:14px;font-size:.85rem;margin-bottom:14px}
+.back{display:inline-block;margin-top:22px;color:var(--soft);font-size:.82rem;text-decoration:none}
+.back:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<span class="badge">🔧 简易后台 · 数据上限100条</span>
+<h1>📊 数据管理 · 1</h1>
+<p class="sub">这里显示访客通过网站表单提交的内容（留言 / 预约 / 订单等）。</p>
+<div class="card">
+<p class="tip" id="tip">加载中…</p>
+<div id="list"><div class="empty">正在读取数据…</div></div>
+</div>
+<a class="back" href="index.html">← 返回网站首页</a>
+</div>
+<script>
+var SLUG="bx-bxf5ck";var TOKEN="t_2j6vmoanmsffxam9";
+var URL="https://wcnssyiqitugqfmcbdhe.supabase.co";var KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjbnNzeWlxaXR1Z3FmbWNiZGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MDEyNzUsImV4cCI6MjA5ODk3NzI3NX0.9EfbEr7BQhZtbOwHJ3IrkOy16kcaxlmzuJuV0A2Z8Eg";
+var tip=document.getElementById("tip"),list=document.getElementById("list");
+fetch(URL+"/rest/v1/rpc/get_site_data",{method:"POST",headers:{"Content-Type":"application/json","apikey":KEY,"Authorization":"Bearer "+KEY},body:JSON.stringify({p_slug:SLUG,p_token:TOKEN})})
+.then(function(r){if(!r.ok){return r.text().then(function(t){if(/Could not find the function|404/.test(t)){tip.textContent="⚠️ 数据服务还没开通：请联系站长在平台后台运行升级脚本(upgrade-v5.sql)。";list.innerHTML="";}else if(/令牌无效/.test(t)){tip.textContent="⚠️ 访问令牌无效：请从建站工作台重新获取数据管理链接。";list.innerHTML="";}else{tip.textContent="⚠️ 读取失败："+t.slice(0,120);list.innerHTML="";}});}
+return r.json();})
+.then(function(rows){if(!rows)return;if(!rows.length){tip.textContent="📭 还没有收到任何提交，去网站上试试表单吧。";list.innerHTML="";return;}
+tip.textContent="✅ 共 "+rows.length+" 条提交（最新在前，最多显示200条）";
+var h="<table><thead><tr><th>姓名</th><th>联系方式</th><th>内容</th><th>时间</th></tr></thead><tbody>";
+rows.forEach(function(d){var t=(d.created_at||"").replace("T"," ").slice(0,16);h+="<tr><td>"+(d.name||"-")+"</td><td>"+(d.contact||"-")+"</td><td>"+(d.content||"")+"</td><td class=\"time\">"+t+"</td></tr>";});
+h+="</tbody></table>";list.innerHTML=h;})
+.catch(function(e){tip.textContent="⚠️ 网络异常："+e.message;list.innerHTML="";});
+</script>
+</body>
+</html>
