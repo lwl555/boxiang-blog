@@ -12,7 +12,11 @@
   };
 
   const SYSTEM_PROMPT = '你是一位顶级网页设计师与前端工程师，为「薄想工作室」的免费 AI 建站工作台服务。\n' +
-    '用户会告诉你他想要什么样的网站，你必须只输出一个完整、可直接运行的 HTML 文档（以 <!DOCTYPE html> 开头，以 </html> 结尾），不要输出任何解释文字，不要用 Markdown 代码块包裹。\n' +
+    '用户会告诉你他想要什么样的网站。你按下面的三阶段流程工作，这是最优先规则：\n' +
+    '【阶段1 需求澄清】用户只说「想做一个XX网站」但没说清具体内容时，先用聊天口吻一次问清关键信息：网站类型、目标人群、核心功能、想要的颜色风格、联系方式等，最多一次列 3 个问题（用 1、2、3 编号），不要生成代码。\n' +
+    '【阶段2 搭建文档】需求说清楚后、且本次对话中还没有生成过网站时，先输出一份「📋 网站搭建文档」让用户确认（包括网站定位、目标人群、页面板块、核心功能、视觉风格、需要用户提供的素材，200~400 字，用大白话），结尾加一行「回复「可以」我就开始搭建，想改哪里直接告诉我～」，**严禁直接输出 HTML 代码**。\n' +
+    '【阶段3 生成网站】用户确认文档（回复「可以」「没问题」「开始」「就这样」等）后，才输出一个完整、可直接运行的 HTML 文档（以 <!DOCTYPE html> 开头，以 </html> 结尾），不要输出任何解释文字，不要用 Markdown 代码块包裹。\n' +
+    '【改版】本次对话中已经生成过网站后，用户提出的修改直接输出新版 HTML，不再需要出文档。\n' +
     '【先理解，再设计】\n' +
     '动笔前先在内心提炼用户需求的三个要点：网站类型、目标人群、核心卖点；据此决定板块结构、文案语气与内容细节。禁止套用通用模板，内容必须贴合用户描述的具体业务。多轮修改时，先回顾上一版已确定的信息，只按最新要求重写整站。\n' +
     '【技术硬性要求】\n' +
@@ -32,7 +36,7 @@
     '13. 长度控制：整页控制在 250~450 行以内、总字符 8000 以内，宁可精简也不要写太长，确保一次输出完整、绝不截断。\n' +
     '14. 【配图占位符】如果页面需要真实图片（产品图、场景图、插画、头像等），用 <img src=\"BXIMG:详细画面描述\" alt=\"描述\"> 占位（src 以 BXIMG: 开头，描述 30 字以内，写明主体/环境/光线/风格），系统会自动调用图像模型生成真实图片并替换。整个页面最多 3 个 BXIMG 占位。\n' +
     '15. 【视频占位符】如果确实需要动态视频展示，用 <video src=\"BXVIDEO:画面描述\" controls poster=\"BXVIDEO:封面描述\"></video> 占位（最多 1 个），系统会自动生成并插入。不确定就优先用图片/动画。\n' +
-    '16. 【免费 API 自动接入】如果网站业务适合以下免费功能，在 </body> 前放一个注释标记 <!--BXAPI:功能id-->（一个功能最多一个标记），系统会自动接入并生效：hitokoto 一言（博客/主页金句）、jinrishici 今日诗词（文艺/国风）、weather 天气（本地生活/旅行，默认北京）、ipwhois IP定位（同城/本地服务）、fx 实时汇率（外贸/代购）、dog 随机狗图（宠物/休闲）、photo 随机美图（摄影/生活）、qrcode 二维码（线下引流）、translate 在线翻译（工具/学习）、avatar 随机头像（个人主页）、person 随机用户（演示/社区）、joke 冷笑话（娱乐）、agify 年龄预测（趣味）、genderize 性别预测（趣味）、ghzen GitHub开发格言（程序员主页）、ghcard GitHub名片（程序员主页，默认展示 lwl555，可改 body data-github）、sunrise 日出日落（摄影/旅行/户外）、rain 未来24小时降雨提醒（户外/活动）。用户明确要求接入或移除某个功能时，按用户要求执行。\n' +
+    '16. 【免费 API 自动接入】如果网站业务适合以下免费功能，在 </body> 前放一个注释标记 <!--BXAPI:功能id-->（一个功能最多一个标记），系统会自动接入并生效：hitokoto 一言（博客/主页金句）、jinrishici 今日诗词（文艺/国风）、weather 天气（本地生活/旅行，默认北京）、ipwhois IP定位（同城/本地服务）、fx 实时汇率（外贸/代购）、dog 随机狗图（宠物/休闲）、photo 随机美图（摄影/生活）、qrcode 二维码（线下引流）、translate 在线翻译（工具/学习）、avatar 随机头像（个人主页）、person 随机用户（演示/社区）、joke 冷笑话（娱乐）、agify 年龄预测（趣味）、genderize 性别预测（趣味）、ghzen GitHub开发格言（程序员主页）、ghcard GitHub名片（程序员主页，默认展示 lwl555，可改 body data-github）、sunrise 日出日落（摄影/旅行/户外）、rain 未来24小时降雨提醒（户外/活动）、catfact 猫咪冷知识（宠物/治愈）、dogfact 狗狗冷知识（宠物/治愈）、catimg 随机猫图（宠物/趣味）、advice 人生小建议（文艺/治愈，英文）、kanye 潮人名言（潮流/个性，英文）、dquot 英文诗摘（文艺/学习，英文）、numbers 极客笑话（程序员/趣味，英文）、xkcd 宝可梦图鉴（游戏/动漫，英文）、trivia 趣味问答（游戏/互动，英文）、activity 美国邮编查询（留学/工具，输入邮编）、cocktail 鸡尾酒百科（酒吧/美食，英文）、country 网络所在地（本地生活/同城）、nationality 国籍预测（趣味/工具，输入英文名）、dprod 商品演示（电商/小店）、duser IP城市定位（本地生活/同城）、useless 无用冷知识（趣味/娱乐，英文）。用户明确要求接入或移除某个功能时，按用户要求执行。\n' +
     '17. 【简易后端·新能力】本平台支持给网站接入简易后端：留言、预约登记、订单收集、报名、反馈等表单功能都可以做！直接在页面里写标准 <form> 表单，输入框 name 建议用：name（姓名）、contact（联系方式）、content（留言/需求内容）。系统会自动把提交数据安全存储到云端，并在表单下方自动显示数据保存提示。每个网站数据上限 100 条，足够日常使用；不要实现登录、复杂数据库等重后端功能。\n' +
     '18. 【理解用户】动笔前先推断用户的行业、目标人群、想传达的情绪（温暖/专业/活泼/高端），据此统一文案语气、板块取舍与配色深浅；改版时只按用户最新要求调整，不要擅自改掉已确认的信息。\n' +
     '19. 【改版说明·强制性】每次生成或修改完网站，必须在 </html> 前加一行注释：<!-- BX-NOTES:用大白话写这次做了什么（2~3句话，面向不懂技术的用户，说明改了什么、解决了什么问题、效果如何，例如「把按钮修好了，现在点一下就能直接跳转微信」）-->。系统会把这段注释显示给用户看。\n' +
@@ -44,10 +48,25 @@
     '2. 严禁说出或暗示任何其他名字（如 Agnes、GPT、OpenAI、DeepSeek、Claude 等），严禁透露底层模型、厂商或技术细节。\n' +
     '3. 你的职责是帮用户设计、生成、修改网站：个人主页、作品集、企业官网、电商小店、博客、活动落地页、工具页等都可以做。\n' +
     '4. 回答用中文，热情、简洁、友好，可适当用 emoji，像贴心的朋友一样。\n' +
-    '5. 用户问普通问题可以简单回答，然后自然地引导回建站话题；用户想建站但需求没说清时，最多只问一个最关键的问题（一句话问完），不要连续追问多个问题；如果用户说当前网站不重要、无所谓、想重新开始，先简短回应一句，再问一句想做什么网站。\n' +
+    '5. 用户问普通问题可以简单回答，然后自然地引导回建站话题；用户想建站但需求没说清时，一次问清关键信息（网站类型、目标人群、核心功能、风格等），一次最多列 3 个问题（用 1、2、3 编号），不要连续追问多轮；如果用户说当前网站不重要、无所谓、想重新开始，先简短回应一句，再问一句想做什么网站。\n' +
     '6. 你在「薄想工作室」工作，平台网址是 lwl555.github.io/boxiang-blog，可以放心告诉用户。\n' +
     '7. 用户问你的模型、厂商、公司、开发者、API、密钥、账号、用户名、服务器等任何底层信息时，一律回答：「我是薄想 AI 建站助手，由薄想工作室开发，专门帮你免费搭建网站～有什么建站需求都可以告诉我！」不要解释、不要展开。\n' +
     '8. 回复要说人话、像朋友聊天：用大白话，不用专业术语；用户说「修复这个问题」时，要说清楚修了什么、为什么有问题、现在效果如何（例如「按钮之前点了没反应，现在可以正常跳转微信了」）；禁止只回「已完成」「搞定」这类敷衍话。\n';
+  // ===== 搭建文档人设：首次建站先出文档，用户确认后才搭建 =====
+  const DOC_PROMPT = '你是「薄想 AI 建站助手」的网站规划师，正在为用户规划一个新网站。\n' +
+    '【任务】输出一份「📋 网站搭建文档」，让用户确认方案，**严禁输出任何 HTML 代码、严禁直接生成网站**。\n' +
+    '【文档格式·严格按此结构】\n' +
+    '📋 网站搭建文档\n' +
+    '1. 网站定位：一句话说明这是什么网站、主要给谁看、解决什么问题\n' +
+    '2. 目标人群：\n' +
+    '3. 页面板块：用数字列表列出计划做哪些板块（导航、Hero 首屏、关于、服务/作品、案例、价格、联系等按需取舍），每个板块一句话说明放什么内容\n' +
+    '4. 核心功能：列出网站需要的功能（留言/预约表单、注册登录会员、免费 API 如天气/一言/翻译等），用大白话说明\n' +
+    '5. 视觉风格：主色调（推荐暖色系：米色底 + 朱砂红/琥珀金，避免蓝色紫色青色）、整体气质、动效感觉\n' +
+    '6. 内容素材：需要用户自己准备的东西（照片、文字介绍、联系方式、微信/抖音等）\n' +
+    '【规则】\n' +
+    '1. 用大白话，像朋友聊方案一样，别堆专业术语\n' +
+    '2. 全文 200~400 字，简洁不啰嗦\n' +
+    '3. 结尾必须加一行：✅ 没问题的话回复「可以」我就开始搭建；想改哪里直接告诉我～\n';
   // ===== 会话存储（每个网站一份记忆，刷新不丢）=====
   const SESSIONS_KEY = 'bx_studio_sessions_v2';
   const CUR_KEY = 'bx_studio_cur_v2';
@@ -62,6 +81,7 @@
   let generating = false;
   let aborter = null;
   let videoTimer = null;
+  let docTimer = null;
 
   function uid() { return 's_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function loadSessions() {
@@ -455,7 +475,7 @@
       return (m.role === 'user' ? '用户' : '助手') + '：' + s;
     }).join('\n');
     return [
-      { role: 'system', content: '你是「薄想AI建站工作台」的意图判断器。结合对话历史判断用户最新消息属于哪类，只输出一个 JSON 对象，不要输出任何其他内容：\n- {"intent":"chat"}：问候、感谢、闲聊、询问助手能做什么、与建站无关的提问\n- {"intent":"ask","question":"..."}：用户想建站或改站，但信息不足，需要先问一个最关键的问题（question 用中文一句话，只问一个问题，不要罗列多个问题）\n- {"intent":"build"}：用户明确提出建站/改站需求且信息足够\n注意：问助手名字/模型/厂商/开发者/API等身份信息也算 chat；在已有网站基础上说「换个风格」「加个板块」「改成红色」「加联系方式」等都算 build；消息以建站需求为主但略带寒暄也算 build。对话历史中已有生成网站时，用户说「优化」「升级」「改一下」「改改」「再来一版」「继续」等模糊指令也算 build。用户说「当前网站不重要」「无所谓」「算了」「不要了」「重新开始」「重做」等表示放弃当前网站的意图时，属于 chat（先简短回应，再问一句想做什么网站）。' },
+      { role: 'system', content: '你是「薄想AI建站工作台」的意图判断器。结合对话历史判断用户最新消息属于哪类，只输出一个 JSON 对象，不要输出任何其他内容：\n- {"intent":"chat"}：问候、感谢、闲聊、询问助手能做什么、与建站无关的提问\n- {"intent":"ask","question":"..."}：用户想建站或改站，但信息不足，需要先问清楚（question 用中文，一次最多列 3 个问题，用 1、2、3 编号）\n- {"intent":"doc"}：用户首次提出完整建站需求，且对话历史中从未生成过网站（没有以 <!DOCTYPE 或 <html 开头的助手消息），信息足够 → 先输出搭建文档\n- {"intent":"confirm"}：上一条助手消息是搭建文档（内容以 📋 开头），用户回复「可以」「没问题」「OK」「开始」「就这样」「就按这个」「确认」「批准」等表示认可 → 开始生成网站\n- {"intent":"build"}：对话历史中已经生成过网站（有以 <!DOCTYPE 或 <html 开头的助手消息），用户提出改版、优化、修改、升级需求\n注意：问助手名字/模型/厂商/开发者/API等身份信息也算 chat；在已有网站基础上说「换个风格」「加个板块」「改成红色」「加联系方式」等都算 build；消息以建站需求为主但略带寒暄也算 build。对话历史中已有生成网站时，用户说「优化」「升级」「改一下」「改改」「再来一版」「继续」等模糊指令也算 build。对话历史中只有搭建文档、还没生成网站时，用户对文档提修改意见（如「标题改成XX」「加一个板块」「换个风格」）属于 doc（重新出文档）；用户认可文档属于 confirm。用户说「当前网站不重要」「无所谓」「算了」「不要了」「重新开始」「重做」等表示放弃当前网站的意图时，属于 chat（先简短回应，再问一句想做什么网站）。' },
       { role: 'user', content: '对话历史：\n' + (hist || '（无）') + '\n\n用户最新消息：' + q }
     ];
   }
@@ -701,6 +721,7 @@
         }
       }
 
+      if (intent.intent === 'confirm') intent = { intent: 'build' };
       const fastReply = intent.intent === 'chat' ? localFastReply(q) : null;
       if (fastReply) {
         if (statusEl.isConnected) removeMsgEl(statusEl);
@@ -767,6 +788,58 @@
         addMsg('bot', '<span class="status">❓ ' + esc(intent.question) + '</span>');
         messages.push({ role: 'assistant', content: intent.question });
         persistCurrent();
+        return;
+      }
+      if (intent.intent === 'doc') {
+        messages.push({ role: 'user', content: fullQ });
+        if (statusEl.isConnected) removeMsgEl(statusEl);
+        const docWait = Date.now();
+        statusEl = addMsg('bot', '<div class="think-wrap"><div class="think-head">📋 AI 正在规划搭建方案… <span class="think-arrow">▾ 点击展开思考过程</span></div><div class="think-body" hidden></div><p class="think-tip">AI 正在为你整理网站方案（已等待 0 秒）…</p></div>');
+        statusEl.addEventListener('click', () => {
+          const tb = statusEl.querySelector('.think-body');
+          if (tb) tb.hidden = !tb.hidden;
+        });
+        let thinkDoc = '';
+        let docReply = '';
+        const dbubble = document.createElement('div');
+        dbubble.className = 'msg bot';
+        dbubble.innerHTML = '<div class="avatar">✦</div><div class="bubble"></div>';
+        const dtext = dbubble.querySelector('.bubble');
+        docTimer = setInterval(() => {
+          if (statusEl && statusEl.isConnected) {
+            const sec = Math.round((Date.now() - docWait) / 1000);
+            const tip = statusEl.querySelector('.think-tip');
+            if (tip) tip.textContent = 'AI 正在为你整理网站方案（已等待 ' + sec + ' 秒）…';
+          }
+        }, 1000);
+        try {
+          docReply = await window.Agnes.chat([{ role: 'system', content: DOC_PROMPT }].concat(compactForRequest().slice(1)), {
+            stream: true, signal: aborter.signal, maxTokens: 1500, timeout: 90000,
+            onReasoning: (d) => {
+              thinkDoc += d;
+              const tb = statusEl && statusEl.querySelector ? statusEl.querySelector('.think-body') : null;
+              if (tb) { tb.hidden = false; tb.textContent = thinkDoc.slice(-2500); }
+              chatList.scrollTop = chatList.scrollHeight;
+            },
+            onDelta: (d) => {
+              if (!docReply) { if (statusEl.isConnected) removeMsgEl(statusEl); chatList.appendChild(dbubble); }
+              docReply += d;
+              dtext.textContent = docReply.slice(-900);
+              chatList.scrollTop = chatList.scrollHeight;
+            }
+          });
+        } catch (e) { docReply = ''; }
+        clearInterval(docTimer);
+        if (statusEl.isConnected) removeMsgEl(statusEl);
+        let safeDoc = String(docReply || '').trim();
+        if (!safeDoc || /^<!DOCTYPE html|<html[\s>]/i.test(safeDoc)) {
+          safeDoc = '📋 我已经想好了网站方案～回复「可以」我就开始搭建，或者直接告诉我你想改哪里！';
+        }
+        if (!dtext.isConnected) chatList.appendChild(dbubble);
+        dtext.textContent = safeDoc;
+        messages.push({ role: 'assistant', content: safeDoc, sys: 'doc' });
+        persistCurrent();
+        chatList.scrollTop = chatList.scrollHeight;
         return;
       }
 
@@ -1203,6 +1276,166 @@
         return '<script>/* 降雨提醒 · wttr.in 免费API（改 body data-city 换城市） */' + floatWidget('bx-api-rain', '加载降雨…') +
           'var _city=document.body.getAttribute("data-city")||"Beijing";fetch("https://wttr.in/"+_city+"?format=j1").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-rain");var h=(j&&j.weather&&j.weather[0]&&j.weather[0].hourly)||[];if(t&&t.lastChild&&h.length){var n=h.filter(function(x){return parseInt(x.chanceofrain,10)>=50}).length;var m=0;for(var i=0;i<h.length;i++){var v=parseInt(h[i].chanceofrain,10);if(v>m)m=v}t.lastChild.innerHTML="☔ 未来24小时降雨概率最高 "+m+"%<br><span style=\"opacity:.7\">"+(n>0?"约 "+n+" 个小时降雨概率过半":"大概率不下雨")+" · "+_city+"</span>"}}).catch(function(){var t=document.getElementById("bx-api-rain");if(t)t.lastChild.textContent="降雨加载失败"});</' + 'script>';
       }
+    },
+    catfact: {
+      name: '猫咪冷知识',
+      icon: '🐱',
+      desc: '随机一条猫咪小知识，显示在右下角，宠物类、治愈类网站加分项。免费无需 key。',
+      sample: 'fetch("https://catfact.ninja/fact").then(r=>r.json()).then(d=>console.log(d.fact))',
+      script: function () {
+        return '<script>/* 猫咪冷知识 · catfact.ninja 免费API */' + floatWidget('bx-api-catfact', '加载猫咪知识…') +
+          'fetch("https://catfact.ninja/fact").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-catfact");if(t&&t.lastChild&&j.fact){t.lastChild.textContent="🐱 "+j.fact}}).catch(function(){var t=document.getElementById("bx-api-catfact");if(t)t.lastChild.textContent="猫咪知识加载失败"});</' + 'script>';
+      }
+    },
+    dogfact: {
+      name: '狗狗冷知识',
+      icon: '🐶',
+      desc: '随机一条狗狗小知识，显示在右下角，宠物类、治愈类网站加分项。免费无需 key。',
+      sample: 'fetch("https://dog-api.kinduff.com/api/facts").then(r=>r.json()).then(d=>console.log(d.facts[0]))',
+      script: function () {
+        return '<script>/* 狗狗冷知识 · dog-api.kinduff.com 免费API */' + floatWidget('bx-api-dogfact', '加载狗狗知识…') +
+          'fetch("https://dog-api.kinduff.com/api/facts").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-dogfact");if(t&&t.lastChild&&j.facts&&j.facts[0]){t.lastChild.textContent="🐶 "+j.facts[0]}}).catch(function(){var t=document.getElementById("bx-api-dogfact");if(t)t.lastChild.textContent="狗狗知识加载失败"});</' + 'script>';
+      }
+    },
+    catimg: {
+      name: '随机猫图',
+      icon: '🖼',
+      desc: '右下角显示一张随机的可爱猫咪图片，宠物店、猫咖、治愈类网站很合适。免费无需 key。',
+      sample: 'fetch("https://cataas.com/cat?json").then(r=>r.json()).then(d=>console.log("https://cataas.com"+d.url))',
+      script: function () {
+        return '<script>/* 随机猫图 · cataas 免费API */' + floatWidget('bx-api-catimg', '加载猫图…') +
+          'fetch("https://cataas.com/cat?json").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-catimg");if(t&&t.lastChild&&j.url){t.lastChild.innerHTML="<img src=\\"https://cataas.com"+j.url+"\\" style=\\"max-width:100%;max-height:140px;border-radius:10px;display:block\\">"}}).catch(function(){var t=document.getElementById("bx-api-catimg");if(t)t.lastChild.textContent="猫图加载失败"});</' + 'script>';
+      }
+    },
+    advice: {
+      name: '人生小建议',
+      icon: '💡',
+      desc: '随机一条温暖的人生小建议（英文），文艺类、治愈类网站很搭。免费无需 key。',
+      sample: 'fetch("https://api.adviceslip.com/advice").then(r=>r.text()).then(t=>console.log(JSON.parse(t).slip.advice))',
+      script: function () {
+        return '<script>/* 人生建议 · adviceslip 免费API */' + floatWidget('bx-api-advice', '加载建议…') +
+          'fetch("https://api.adviceslip.com/advice").then(function(r){return r.text()}).then(function(t){var j=JSON.parse(t);var x=document.getElementById("bx-api-advice");if(x&&x.lastChild&&j.slip){x.lastChild.textContent="💡 "+j.slip.advice}}).catch(function(){var x=document.getElementById("bx-api-advice");if(x)x.lastChild.textContent="建议加载失败"});</' + 'script>';
+      }
+    },
+    kanye: {
+      name: '潮人名言',
+      icon: '🎤',
+      desc: '随机一句名人名言（英文），潮流、个性、设计类网站很加分。免费无需 key。',
+      sample: 'fetch("https://api.kanye.rest").then(r=>r.json()).then(d=>console.log(d.quote))',
+      script: function () {
+        return '<script>/* 潮人名言 · kanye.rest 免费API */' + floatWidget('bx-api-kanye', '加载名言…') +
+          'fetch("https://api.kanye.rest").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-kanye");if(t&&t.lastChild&&j.quote){t.lastChild.textContent="🎤 \\""+j.quote+"\\""}}).catch(function(){var t=document.getElementById("bx-api-kanye");if(t)t.lastChild.textContent="名言加载失败"});</' + 'script>';
+      }
+    },
+    dquot: {
+      name: '英文诗摘',
+      icon: '📝',
+      desc: '随机摘录一首英文短诗（带作者），学习类、文艺类网站很合适。免费无需 key。',
+      sample: 'fetch("https://poetrydb.org/random").then(r=>r.json()).then(d=>console.log(d[0].title, d[0].author))',
+      script: function () {
+        return '<script>/* 英文诗摘 · poetrydb 免费API */' + floatWidget('bx-api-dquot', '加载诗歌…') +
+          'fetch("https://poetrydb.org/random").then(function(r){return r.json()}).then(function(j){var d=j&&j[0];var t=document.getElementById("bx-api-dquot");if(t&&t.lastChild&&d){t.lastChild.innerHTML="📝 「"+d.title+"」<br><span style=\"opacity:.8\">—— "+(d.author||"")+"</span><br><span style=\"opacity:.65;font-size:11px\">"+(d.lines&&d.lines.slice(0,3).join(" / ")||"")+"</span>"}}).catch(function(){var t=document.getElementById("bx-api-dquot");if(t)t.lastChild.textContent="诗歌加载失败"});</' + 'script>';
+      }
+    },
+    numbers: {
+      name: '极客笑话',
+      icon: '🤓',
+      desc: '随机一条程序员冷笑话（英文），技术博客、程序员主页很搭。免费无需 key。',
+      sample: 'fetch("https://geek-jokes.sameerkumar.website/api").then(r=>r.text()).then(t=>console.log(t))',
+      script: function () {
+        return '<script>/* 极客笑话 · geek-jokes 免费API */' + floatWidget('bx-api-numbers', '加载笑话…') +
+          'fetch("https://geek-jokes.sameerkumar.website/api").then(function(r){return r.text()}).then(function(t){var x=document.getElementById("bx-api-numbers");if(x&&x.lastChild&&t){x.lastChild.textContent="🤓 "+t.replace(/"/g,"")}}).catch(function(){var x=document.getElementById("bx-api-numbers");if(x)x.lastChild.textContent="笑话加载失败"});</' + 'script>';
+      }
+    },
+    xkcd: {
+      name: '宝可梦图鉴',
+      icon: '⚡',
+      desc: '随机展示一只宝可梦的名字和属性（英文），游戏、动漫、趣味类网站很加分。免费无需 key。',
+      sample: 'fetch("https://pokeapi.co/api/v2/pokemon/25/").then(r=>r.json()).then(d=>console.log(d.name, d.types))',
+      script: function () {
+        return '<script>/* 宝可梦 · pokeapi 免费API */' + floatWidget('bx-api-xkcd', '加载宝可梦…') +
+          'fetch("https://pokeapi.co/api/v2/pokemon/"+(Math.floor(Math.random()*1024)+1)+"/").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-xkcd");if(t&&t.lastChild&&j&&j.name){t.lastChild.innerHTML="⚡ "+j.name.charAt(0).toUpperCase()+j.name.slice(1)+(j.types&&j.types.length?"<br><span style=\"opacity:.8\">属性："+j.types.map(function(x){return x.type.name}).join(" / ")+"</span>":"")}}).catch(function(){var t=document.getElementById("bx-api-xkcd");if(t)t.lastChild.textContent="宝可梦加载失败"});</' + 'script>';
+      }
+    },
+    trivia: {
+      name: '趣味问答',
+      icon: '🧠',
+      desc: '右下角出一道趣味选择题（英文），游戏、互动、娱乐类网站很加分。免费无需 key。',
+      sample: 'fetch("https://opentdb.com/api.php?amount=1").then(r=>r.json()).then(d=>console.log(d.results[0].question))',
+      script: function () {
+        return '<script>/* 趣味问答 · opentdb 免费API */' + floatWidget('bx-api-trivia', '加载题目…') +
+          '(function(){var t=document.getElementById("bx-api-trivia");if(!t||!t.lastChild)return;function dec(s){var d=document.createElement("textarea");d.innerHTML=s;return d.value;}fetch("https://opentdb.com/api.php?amount=1").then(function(r){return r.json()}).then(function(j){var q=j.results&&j.results[0];if(!q)throw 0;t.lastChild.innerHTML="🧠 趣味问答<br>"+dec(q.question)+"<br><span style=\\"opacity:.8\\">✅ 答案："+dec(q.correct_answer)+"</span>"}).catch(function(){t.lastChild.textContent="题目加载失败"});})();</' + 'script>';
+      }
+    },
+    activity: {
+      name: '美国邮编查询',
+      icon: '📮',
+      desc: '输入美国邮编（如 90210），显示对应城市和州，工具类、留学类网站很实用。免费无需 key。',
+      sample: 'fetch("https://api.zippopotam.us/us/90210").then(r=>r.json()).then(d=>console.log(d.places[0]["place name"]))',
+      script: function () {
+        return '<script>/* 邮编查询 · zippopotam 免费API */' + floatWidget('bx-api-activity', '') +
+          '(function(){var t=document.getElementById("bx-api-activity");if(!t||!t.lastChild)return;t.lastChild.innerHTML="📮 美国邮编查询<br><input type=\"text\" placeholder=\"输入邮编，如 90210\" style=\"width:100%;box-sizing:border-box;margin-top:6px;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:12px;outline:none\"><div style=\"margin-top:6px;font-size:12px;opacity:.9\"></div>";var inp=t.lastChild.querySelector("input"),out=t.lastChild.lastChild;inp.addEventListener("keydown",function(e){if(e.key==="Enter"){var q=inp.value.trim();if(!/^\d{3,10}$/.test(q)){out.textContent="请输入数字邮编";return;}out.textContent="查询中…";fetch("https://api.zippopotam.us/us/"+q).then(function(r){return r.json()}).then(function(j){var p=j.places&&j.places[0];out.textContent=p?(p["place name"]+" · "+p["state"]+"州"):"查不到这个邮编"})}})})();</' + 'script>';
+      }
+    },
+    cocktail: {
+      name: '鸡尾酒百科',
+      icon: '🍸',
+      desc: '随机一款鸡尾酒的名字和做法介绍（英文），酒吧、餐厅、美食类网站很合适。免费无需 key。',
+      sample: 'fetch("https://www.thecocktaildb.com/api/json/v1/1/random.php").then(r=>r.json()).then(d=>console.log(d.drinks[0].strDrink))',
+      script: function () {
+        return '<script>/* 鸡尾酒 · thecocktaildb 免费API */' + floatWidget('bx-api-cocktail', '加载鸡尾酒…') +
+          'fetch("https://www.thecocktaildb.com/api/json/v1/1/random.php").then(function(r){return r.json()}).then(function(j){var d=j.drinks&&j.drinks[0];var t=document.getElementById("bx-api-cocktail");if(t&&t.lastChild&&d){t.lastChild.innerHTML="🍸 "+d.strDrink+"<br><span style=\\"opacity:.8\\">"+(d.strInstructions||"")+"</span>"}}).catch(function(){var t=document.getElementById("bx-api-cocktail");if(t)t.lastChild.textContent="鸡尾酒加载失败"});</' + 'script>';
+      }
+    },
+    country: {
+      name: '网络所在地',
+      icon: '🌐',
+      desc: '自动识别访客当前网络所在国家（中文名），适合本地生活、同城服务类网站。免费无需 key。',
+      sample: 'fetch("https://api.country.is/").then(r=>r.json()).then(d=>console.log(d.country))',
+      script: function () {
+        return '<script>/* 网络国家 · country.is 免费API */' + floatWidget('bx-api-country', '识别中…') +
+          'fetch("https://api.country.is/").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-country");if(t&&t.lastChild&&j&&j.country){var m={CN:"中国",US:"美国",JP:"日本",KR:"韩国",GB:"英国",FR:"法国",DE:"德国",SG:"新加坡",HK:"中国香港",TW:"中国台湾",MO:"中国澳门",AU:"澳大利亚",CA:"加拿大",RU:"俄罗斯",IN:"印度",TH:"泰国",VN:"越南",MY:"马来西亚",ID:"印度尼西亚",PH:"菲律宾",NL:"荷兰",IT:"意大利",ES:"西班牙",BR:"巴西",MX:"墨西哥"};t.lastChild.textContent="🌐 你的网络位于 "+(m[j.country]||j.country)}}).catch(function(){var t=document.getElementById("bx-api-country");if(t)t.lastChild.textContent="识别失败"});</' + 'script>';
+      }
+    },
+    nationality: {
+      name: '国籍预测',
+      icon: '🧳',
+      desc: '输入英文名，预测名字最可能来自哪个国家（全球统计），趣味互动类网站最爱。免费无需 key。',
+      sample: 'fetch("https://api.nationalize.io/?name=lin").then(r=>r.json()).then(d=>console.log(d.country))',
+      script: function () {
+        return '<script>/* 国籍预测 · nationalize 免费API */' + floatWidget('bx-api-nation', '') +
+          '(function(){var t=document.getElementById("bx-api-nation");if(!t||!t.lastChild)return;t.lastChild.innerHTML="🧳 国籍预测<br><input type=\\"text\\" placeholder=\\"输入英文名，回车预测\\" style=\\"width:100%;box-sizing:border-box;margin-top:6px;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:12px;outline:none\\"><div style=\\"margin-top:6px;font-size:12px;opacity:.9\\"></div>";var inp=t.lastChild.querySelector("input"),out=t.lastChild.lastChild;inp.addEventListener("keydown",function(e){if(e.key==="Enter"){var q=inp.value.trim();if(!q)return;out.textContent="预测中…";fetch("https://api.nationalize.io/?name="+encodeURIComponent(q)).then(function(r){return r.json()}).then(function(j){var c=j.country&&j.country[0];out.textContent=c?("最可能来自 "+c.country_id+"（概率 "+Math.round(c.probability*100)+"%）"):"查不到，换个名字试试"})}})})();</' + 'script>';
+      }
+    },
+    dprod: {
+      name: '商品演示',
+      icon: '🛍',
+      desc: '随机展示一件商品的名称与价格（美元），电商小店、买手店演示很合适。免费无需 key。',
+      sample: 'fetch("https://fakestoreapi.com/products").then(r=>r.json()).then(d=>console.log(d[0].title, d[0].price))',
+      script: function () {
+        return '<script>/* 商品演示 · fakestoreapi 免费API */' + floatWidget('bx-api-dprod', '加载商品…') +
+          'fetch("https://fakestoreapi.com/products").then(function(r){return r.json()}).then(function(d){var j=d[Math.floor(Math.random()*d.length)];var t=document.getElementById("bx-api-dprod");if(t&&t.lastChild&&j){t.lastChild.innerHTML="🛍 "+j.title+"<br><span style=\"opacity:.85\">💵 $"+(j.price||"?")+" · 类别 "+(j.category||"")+"</span>"}}).catch(function(){var t=document.getElementById("bx-api-dprod");if(t)t.lastChild.textContent="商品加载失败"});</' + 'script>';
+      }
+    },
+    duser: {
+      name: 'IP 城市定位',
+      icon: '📍',
+      desc: '自动显示访客所在城市、地区和国家，本地生活、同城服务类网站很合适。免费无需 key。',
+      sample: 'fetch("https://get.geojs.io/v1/ip/geo.json").then(r=>r.json()).then(d=>console.log(d.city, d.country))',
+      script: function () {
+        return '<script>/* 城市定位 · geojs.io 免费API */' + floatWidget('bx-api-duser', '定位中…') +
+          'fetch("https://get.geojs.io/v1/ip/geo.json").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-duser");if(t&&t.lastChild&&j){t.lastChild.innerHTML="📍 "+(j.city||"")+(j.region&&j.region!==j.city?" · "+(j.region||""):"")+"<br><span style=\"opacity:.8\">"+(j.country||"")+" · 时区 "+(j.timezone||"")+"</span>"}}).catch(function(){var t=document.getElementById("bx-api-duser");if(t)t.lastChild.textContent="定位失败"});</' + 'script>';
+      }
+    },
+    useless: {
+      name: '无用冷知识',
+      icon: '🎲',
+      desc: '随机一条毫无用处的冷知识（英文），趣味、娱乐类网站很合适。免费无需 key。',
+      sample: 'fetch("https://uselessfacts.jsph.pl/random.json?language=en").then(r=>r.json()).then(d=>console.log(d.text))',
+      script: function () {
+        return '<script>/* 无用冷知识 · uselessfacts 免费API */' + floatWidget('bx-api-useless', '加载冷知识…') +
+          'fetch("https://uselessfacts.jsph.pl/random.json?language=en").then(function(r){return r.json()}).then(function(j){var t=document.getElementById("bx-api-useless");if(t&&t.lastChild&&j.text){t.lastChild.textContent="🎲 "+j.text}}).catch(function(){var t=document.getElementById("bx-api-useless");if(t)t.lastChild.textContent="冷知识加载失败"});</' + 'script>';
+      }
     }
   };
 
@@ -1240,7 +1473,9 @@
   const API_GROUPS = {
     hitokoto: 'content', jinrishici: 'content', translate: 'content', joke: 'content', ghzen: 'content',
     weather: 'tool', ipwhois: 'tool', fx: 'tool', qrcode: 'tool', sunrise: 'tool', rain: 'tool',
-    dog: 'visual', avatar: 'visual', photo: 'visual', person: 'visual', agify: 'visual', genderize: 'visual', ghcard: 'visual'
+    dog: 'visual', avatar: 'visual', photo: 'visual', person: 'visual', agify: 'visual', genderize: 'visual', ghcard: 'visual', catimg: 'visual',
+    catfact: 'content', dogfact: 'content', advice: 'content', kanye: 'content', dquot: 'content', numbers: 'content', xkcd: 'content', trivia: 'content', activity: 'content', cocktail: 'content', useless: 'content',
+    country: 'tool', nationality: 'tool', dprod: 'tool', duser: 'tool'
   };
   const API_GROUP_NAMES = [['content', '📖 内容灵感'], ['tool', '🛠️ 实用工具'], ['visual', '🎨 视觉趣味']];
 
