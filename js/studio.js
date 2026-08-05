@@ -1570,6 +1570,15 @@
           }
         } catch (e) { /* 视频创建失败则保留占位 */ }
       }
+      // 兜底：剩余的 BXIMG 占位（AI 偶尔超过 3 个）统一替换为装饰图，避免页面出现破图或占位文字
+      const leftRe = /src=["']BXIMG:([^"']+)["']/gi;
+      let lm;
+      while ((lm = leftRe.exec(lastHtml))) {
+        const d2 = lm[1].trim();
+        const svg2 = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5efe2"/><stop offset="1" stop-color="#e8c9a0"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><text x="640" y="390" font-size="140" text-anchor="middle">' + pickEmoji(d2) + '</text></svg>');
+        lastHtml = lastHtml.split('BXIMG:' + d2).join(svg2);
+        changed = true;
+      }
       if (changed) preview(lastHtml);
     })();
   }
