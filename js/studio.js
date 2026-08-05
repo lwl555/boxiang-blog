@@ -22,7 +22,7 @@
     '【技术硬性要求】\n' +
     '1. 网站类型完全由用户需求决定：个人主页、作品集、企业官网、电商小店、博客、活动落地页、在线工具、导航页等都可以做，不要局限于个人名片。\n' +
     '2. 单文件自包含：所有 CSS 写在 <style> 标签内，所有 JS 写在 <script> 标签内，禁止引用任何外部 CSS/JS/字体/图片/视频（包括 CDN、Google Fonts、picsum、unsplash 等一切外网资源）。\n' +
-    '3. 配图一律用内嵌方案代替真实图片：emoji、CSS 渐变、内联 SVG、data URI。需要照片感时，用「渐变底 + 大号 emoji + 光影层次」的卡片设计，保证断网也能完整显示。\n' +
+    '3. 配图：照片感内容（产品、场景、人物、食物、插画等）一律用 <img src=\"BXIMG:详细画面描述\"> 占位，系统会自动生成真实照片级图片（最多 3 张）；只有装饰性小元素（图标、分隔线、纹理、背景）才用 emoji、CSS 渐变、内联 SVG。严禁用「渐变底 + emoji」卡片冒充照片。\n' +
     '4. JavaScript 必须健壮：事件绑定放在 body 末尾或 DOMContentLoaded 内；任何 DOM 查询先判空；动画优先用 CSS 实现（transition、@keyframes、IntersectionObserver 可选）。\n' +
     '5. 输出必须完整：禁止省略号、禁止「…略…」等占位符、禁止截断，结尾必须是 </html>。\n' +
     '【视觉规范（必须严格遵守）】\n' +
@@ -34,7 +34,7 @@
     '11. 【强制性·不许遗漏】页面最底部必须保留一行平台标注：由 薄想工作室 免费生成 · 网址 lwl555.github.io/boxiang-blog（若你遗漏，系统会自动补上）。严禁在顶部导航、页头、标题、Logo 或页面任何其他位置出现「薄想工作室」「薄想 AI 建站助手」或平台网址字样（用户自己的网站名称不受限），平台名称只允许出现在底部这一行。\n' +
     '12. 输出前自检：单页不少于 60 行；无任何外部依赖；无 JS 明显错误；</html> 完整闭合。\n' +
     '13. 长度控制：整页控制在 250~450 行以内、总字符 8000 以内，宁可精简也不要写太长，确保一次输出完整、绝不截断。\n' +
-    '14. 【配图占位符】如果页面需要真实图片（产品图、场景图、插画、头像等），用 <img src=\"BXIMG:详细画面描述\" alt=\"描述\"> 占位（src 以 BXIMG: 开头，描述 30 字以内，写明主体/环境/光线/风格），系统会自动调用图像模型生成真实图片并替换。整个页面最多 3 个 BXIMG 占位。\n' +
+    '14. 【配图占位符】页面所有需要照片感的地方一律用 <img src=\"BXIMG:详细画面描述\" alt=\"描述\"> 占位（src 以 BXIMG: 开头）。描述必须具体：主体 + 场景 + 光线 + 风格 + 氛围（20~40 字，例如：刚出炉的牛角包放在原木桌上，暖黄灯光，咖啡馆氛围，浅景深特写）。系统会自动调用图像模型生成真实照片级图片并替换。整个页面最多 3 个 BXIMG 占位。\n' +
     '15. 【视频占位符】如果确实需要动态视频展示，用 <video src=\"BXVIDEO:画面描述\" controls poster=\"BXVIDEO:封面描述\"></video> 占位（最多 1 个），系统会自动生成并插入。不确定就优先用图片/动画。\n' +
     '16. 【免费 API 自动接入】如果网站业务适合以下免费功能，在 </body> 前放一个注释标记 <!--BXAPI:功能id-->（一个功能最多一个标记），系统会自动接入并生效：hitokoto 一言（博客/主页金句）、jinrishici 今日诗词（文艺/国风）、weather 天气（本地生活/旅行，默认北京）、ipwhois IP定位（同城/本地服务）、fx 实时汇率（外贸/代购）、dog 随机狗图（宠物/休闲）、photo 随机美图（摄影/生活）、qrcode 二维码（线下引流）、translate 在线翻译（工具/学习）、avatar 随机头像（个人主页）、person 随机用户（演示/社区）、joke 冷笑话（娱乐）、agify 年龄预测（趣味）、genderize 性别预测（趣味）、ghzen GitHub开发格言（程序员主页）、ghcard GitHub名片（程序员主页，默认展示 lwl555，可改 body data-github）、sunrise 日出日落（摄影/旅行/户外）、rain 未来24小时降雨提醒（户外/活动）、catfact 猫咪冷知识（宠物/治愈）、dogfact 狗狗冷知识（宠物/治愈）、catimg 随机猫图（宠物/趣味）、advice 人生小建议（文艺/治愈，英文）、kanye 潮人名言（潮流/个性，英文）、dquot 英文诗摘（文艺/学习，英文）、numbers 极客笑话（程序员/趣味，英文）、xkcd 宝可梦图鉴（游戏/动漫，英文）、trivia 趣味问答（游戏/互动，英文）、activity 美国邮编查询（留学/工具，输入邮编）、cocktail 鸡尾酒百科（酒吧/美食，英文）、country 网络所在地（本地生活/同城）、nationality 国籍预测（趣味/工具，输入英文名）、dprod 商品演示（电商/小店）、duser IP城市定位（本地生活/同城）、useless 无用冷知识（趣味/娱乐，英文）。用户明确要求接入或移除某个功能时，按用户要求执行。\n' +
     '17. 【简易后端·新能力】本平台支持给网站接入简易后端：留言、预约登记、订单收集、报名、反馈等表单功能都可以做！直接在页面里写标准 <form> 表单，输入框 name 建议用：name（姓名）、contact（联系方式）、content（留言/需求内容）。系统会自动把提交数据安全存储到云端，并在表单下方自动显示数据保存提示。每个网站数据上限 100 条，足够日常使用；不要实现登录、复杂数据库等重后端功能。\n' +
@@ -82,6 +82,8 @@
   let aborter = null;
   let videoTimer = null;
   let docTimer = null;
+  const PENDING_KEY = 'bx_studio_pending_v1';
+  let resumeBuild = false;
 
   function uid() { return 's_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function loadSessions() {
@@ -706,7 +708,7 @@
     try {
       // —— 意图分流：打招呼/闲聊/提问 直接对话，建站需求才生成网站 ——
       let intent = { intent: 'build' };
-      if (isChatByRule(q)) {
+      if (resumeBuild) { resumeBuild = false; } else if (isChatByRule(q)) {
         intent = { intent: 'chat' }; // 常见问候/闲聊：本地识别，稳定且零延迟
       } else {
         try {
@@ -845,6 +847,7 @@
 
       // —— 建站/改站：生成完整网站（带思考过程展示）——
       messages.push({ role: 'user', content: fullQ });
+      try { localStorage.setItem(PENDING_KEY, JSON.stringify({ id: current ? current.id : '', q: q, ts: Date.now() })); } catch (e) {}
       if (statusEl.isConnected) removeMsgEl(statusEl);
       const waitStart = Date.now();
       statusEl = addMsg('bot', '<div class="think-wrap"><div class="think-head">🧠 AI 深度思考中… <span class="think-arrow">▾ 点击展开思考过程</span></div><div class="think-body" hidden></div><p class="think-tip">AI 正在生成网站（已等待 0 秒），完整页面通常需要 30~90 秒，请耐心等待…</p></div>');
@@ -956,12 +959,14 @@
         if (parts.length) summary = ' 已包含：' + parts.join('、') + '。';
         buildBubbleText.textContent = '✅ 网站已生成！' + (bxNotes ? '\n' + bxNotes : summary) + '\n看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
       }
+      try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
       const verNow = pushVersion(lastHtml, bxNotes || '');
       $('stStatus').textContent = '✅ 已生成 v' + verNow + ' · 可继续对话修改';
       persistCurrent();
     } catch (e) {
       const msg = e && e.message ? e.message : '生成失败，请重试';
       if (buildBubble && buildBubbleText && buildBubble.isConnected && !buildBubbleText.textContent.trim()) buildBubble.remove();
+      try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
       addMsg('bot', '<span class="status">❌ ' + esc(msg) + '</span>');
     } finally {
       clearInterval(waitTimer);
@@ -1501,6 +1506,13 @@
   }
 
   // 图片/视频占位符解析：BXIMG:描述 / BXVIDEO:描述
+  function pickEmoji(desc) {
+    const kw = String(desc || '');
+    const pairs = [['美食|菜|饭|面|包|甜|咖啡|茶|餐', '🍜'], ['风景|山|海|湖|森林|草原|天空|日落|日出', '🏞'], ['人物|人像|模特|女孩|男孩|顾客|老板', '👩'], ['宠物|猫|狗|动物', '🐾'], ['建筑|楼|店|馆|空间|客厅|房间|卧室', '🏛'], ['科技|电脑|手机|数码|智能', '💻'], ['花|植物|绿植|花园', '🌿'], ['车|汽车|摩托', '🚗'], ['书|教育|学习|课堂', '📚'], ['音乐|吉他|乐器', '🎸'], ['运动|健身|跑步', '⚽'], ['艺术|画|设计|插画', '🎨'], ['珠宝|首饰|戒指|项链', '💎'], ['婚礼|婚纱', '💍'], ['婴儿|宝宝|孩子', '👶']];
+    for (const p of pairs) if (new RegExp(p[0]).test(kw)) return p[1];
+    return '🎨';
+  }
+
   function resolveMediaPlaceholders() {
     return (async () => {
       if (!lastHtml) return;
@@ -1514,21 +1526,27 @@
       for (const desc of uniq) {
         done++;
         const st = addStatus('<span class="status">🎨 AI 正在为页面配图（' + done + '/' + uniq.length + '）…</span>');
+        let url = '';
         try {
-          const url = await window.Agnes.generateImage(desc, { ratio: '16:9' });
-          if (url) {
-            lastHtml = lastHtml.split('BXIMG:' + desc).join(url);
-            changed = true;
-            st.textContent = '✅ 配图完成（' + done + '/' + uniq.length + '）';
-          } else {
-            lastHtml = lastHtml.split('BXIMG:' + desc).join('');
-            changed = true;
-            st.textContent = '⚠️ 配图失败，已移除占位';
+          url = await window.Agnes.generateImage(desc, { ratio: '16:9' });
+          if (!url) {
+            st.textContent = '🎨 第一次配图没成功，再试一次…';
+            try { url = await window.Agnes.generateImage(desc + '，高清、写实、构图完整、细节丰富', { ratio: '16:9' }); } catch (e2) {}
           }
         } catch (e) {
-          lastHtml = lastHtml.split('BXIMG:' + desc).join('');
+          st.textContent = '🎨 第一次配图没成功，再试一次…';
+          try { url = await window.Agnes.generateImage(desc + '，高清、写实、构图完整、细节丰富', { ratio: '16:9' }); } catch (e2) {}
+        }
+        if (url) {
+          lastHtml = lastHtml.split('BXIMG:' + desc).join(url);
           changed = true;
-          st.textContent = '⚠️ 配图失败，已移除占位';
+          st.textContent = '✅ 配图完成（' + done + '/' + uniq.length + '）';
+        } else {
+          const emo = pickEmoji(desc);
+          const svg = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5efe2"/><stop offset="1" stop-color="#e8c9a0"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><text x="640" y="390" font-size="140" text-anchor="middle">' + emo + '</text><text x="640" y="500" font-size="26" text-anchor="middle" fill="#8a6a4a">图片生成服务暂不可用，重新生成一次即可获得真实图片</text></svg>');
+          lastHtml = lastHtml.split('BXIMG:' + desc).join(svg);
+          changed = true;
+          st.textContent = '⚠️ 图片服务暂时没响应，已用装饰图占位（重新生成一次可获得真实图片）';
         }
         // 配图状态保留在对话里，避免出现空头像和内容消失
       }
@@ -1765,7 +1783,7 @@
     if (old) old.remove();
     const style = doc.createElement('style');
     style.id = 'bx-edit-css';
-    style.textContent = '[contenteditable="true"]{outline:2px dashed rgba(194,64,43,.6)!important;outline-offset:3px;border-radius:4px;cursor:text;min-height:1em}[contenteditable="true"]:hover,[contenteditable="true"]:focus{outline-color:#c2402b!important;background:rgba(255,253,246,.65)}';
+    style.textContent = '[contenteditable="true"]{outline:2px dashed rgba(194,64,43,.6)!important;outline-offset:3px;border-radius:4px;cursor:text;min-height:1em}[contenteditable="true"]:hover,[contenteditable="true"]:focus{outline-color:#c2402b!important;background:rgba(255,253,246,.65)}img{outline:2px dashed rgba(201,138,22,.65)!important;outline-offset:3px;cursor:pointer!important;border-radius:6px}img:hover{outline-color:#c2402b!important}';
     (doc.head || doc.documentElement).appendChild(style);
     doc.querySelectorAll(EDITABLE_SEL).forEach((el) => {
       if (el.closest('script,style,iframe,svg,code,pre')) return;
@@ -1773,6 +1791,130 @@
       el.setAttribute('contenteditable', 'true');
     });
     doc.addEventListener('click', bxEditClick, true);
+    // —— 图片替换 / 文字链接工具条 ——
+    function hideBar() { const b = doc.getElementById('bx-edit-bar'); if (b) b.style.display = 'none'; }
+    function showBar() {
+      let b = doc.getElementById('bx-edit-bar');
+      if (!b) {
+        b = doc.createElement('div');
+        b.id = 'bx-edit-bar';
+        b.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:2147483647;background:rgba(48,32,24,.96);color:#fff;border-radius:14px;padding:9px 14px;font:13px/1.6 system-ui,sans-serif;display:flex;gap:8px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:92%;flex-wrap:wrap;justify-content:center';
+        (doc.body || doc.documentElement).appendChild(b);
+      }
+      b.innerHTML = '';
+      b.style.display = 'flex';
+      return b;
+    }
+    function barBtn(label, fn) {
+      const bt = doc.createElement('button');
+      bt.textContent = label;
+      bt.style.cssText = 'border:0;border-radius:9px;padding:6px 12px;cursor:pointer;font:12px/1.5 system-ui;background:rgba(255,255,255,.16);color:#fff;white-space:nowrap';
+      bt.addEventListener('click', function (ev) { ev.stopPropagation(); ev.preventDefault(); fn(); });
+      return bt;
+    }
+    function setLink(el) {
+      const url = prompt('🔗 输入点击后要跳转的网址（https://…）：');
+      if (!url || !url.trim()) return;
+      const href = /^https?:\/\//i.test(url.trim()) ? url.trim() : 'https://' + url.trim();
+      if (el.tagName === 'A') { el.setAttribute('href', href); return; }
+      const a = doc.createElement('a');
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      el.parentNode.insertBefore(a, el);
+      a.appendChild(el);
+    }
+    function unlink(el) {
+      const a = el.tagName === 'A' ? el : (el.closest ? el.closest('a') : null);
+      if (a && a.parentNode) {
+        while (a.firstChild) a.parentNode.insertBefore(a.firstChild, a);
+        a.remove();
+      }
+    }
+    function compressImage(file) {
+      return new Promise(function (resolve, reject) {
+        const rd = new FileReader();
+        rd.onload = function () {
+          const img = new Image();
+          img.onload = function () {
+            let w = img.width, h = img.height;
+            const maxSide = 1280;
+            if (Math.max(w, h) > maxSide) {
+              const r = maxSide / Math.max(w, h);
+              w = Math.round(w * r); h = Math.round(h * r);
+            }
+            const cv = document.createElement('canvas');
+            cv.width = w; cv.height = h;
+            cv.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(cv.toDataURL('image/jpeg', 0.75));
+          };
+          img.onerror = function () { reject(new Error('图片解析失败')); };
+          img.src = rd.result;
+        };
+        rd.onerror = function () { reject(new Error('读取失败')); };
+        rd.readAsDataURL(file);
+      });
+    }
+    function uploadFor(img) {
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      inp.style.display = 'none';
+      document.body.appendChild(inp);
+      inp.addEventListener('change', async function () {
+        const f = inp.files && inp.files[0];
+        inp.remove();
+        if (!f) return;
+        try {
+          const dataUri = await compressImage(f);
+          img.setAttribute('src', dataUri);
+          img.removeAttribute('srcset');
+          img.style.maxWidth = '100%';
+          hideBar();
+          addMsg('bot', '<span class="status">🖼 图片已替换（已自动压缩）。点「保存修改」即可生效！</span>');
+        } catch (e2) {
+          alert('图片处理失败：' + e2.message);
+        }
+      });
+      inp.click();
+    }
+    const bxMD = function (e) {
+      if (!editMode) return;
+      const t = e.target;
+      if (!t || !t.closest) return;
+      if (t.closest('#bx-edit-bar')) return;
+      const img = t.closest('img');
+      if (img) {
+        e.preventDefault();
+        const b = showBar();
+        b.appendChild(barBtn('📤 上传本地图片', function () { uploadFor(img); }));
+        b.appendChild(barBtn('🔗 图片网址', function () {
+          const url = prompt('🖼 输入图片网址（https://…）：');
+          if (url && url.trim()) {
+            img.setAttribute('src', url.trim());
+            img.removeAttribute('srcset');
+            hideBar();
+            addMsg('bot', '<span class="status">🖼 图片网址已替换。点「保存修改」即可生效！</span>');
+          }
+        }));
+        b.appendChild(barBtn('✕ 关闭', hideBar));
+        return;
+      }
+      const el = t.closest('[contenteditable]');
+      if (el) {
+        const b = showBar();
+        b.appendChild(barBtn('🔗 设为链接', function () { setLink(el); hideBar(); }));
+        if (el.closest('a')) b.appendChild(barBtn('🔗 取消链接', function () { unlink(el); hideBar(); }));
+        b.appendChild(barBtn('✕ 关闭', hideBar));
+      }
+    };
+    const bxKD = function (e) {
+      if (editMode && e.key === 'Escape') { const b = doc.getElementById('bx-edit-bar'); if (b) b.style.display = 'none'; }
+    };
+    doc.__bxEditMD = bxMD;
+    doc.__bxEditKD = bxKD;
+    doc.addEventListener('mousedown', bxMD, true);
+    doc.addEventListener('keydown', bxKD, true);
     $('editBar').hidden = false;
     const btn = $('stEditText');
     if (btn) btn.classList.add('active');
@@ -1782,6 +1924,10 @@
     if (doc) {
       const style = doc.getElementById('bx-edit-css');
       if (style) style.remove();
+      const bar = doc.getElementById('bx-edit-bar');
+      if (bar) bar.remove();
+      if (doc.__bxEditMD) { doc.removeEventListener('mousedown', doc.__bxEditMD, true); doc.__bxEditMD = null; }
+      if (doc.__bxEditKD) { doc.removeEventListener('keydown', doc.__bxEditKD, true); doc.__bxEditKD = null; }
       doc.querySelectorAll('[contenteditable]').forEach((el) => el.removeAttribute('contenteditable'));
       doc.removeEventListener('click', bxEditClick, true);
     }
@@ -1797,6 +1943,8 @@
     const style = doc.getElementById('bx-edit-css');
     if (style) style.remove();
     doc.querySelectorAll('[contenteditable]').forEach((el) => el.removeAttribute('contenteditable'));
+    const tbar = doc.getElementById('bx-edit-bar');
+    if (tbar) tbar.remove();
     let html = doc.documentElement.outerHTML;
     if (!/^<!DOCTYPE/i.test(html)) html = '<!DOCTYPE html>\n' + html;
     html = html.replace(/\scontenteditable(?:="[^"]*")?/gi, '');
@@ -2169,10 +2317,25 @@
   }
   $('stSessionCount').textContent = sessions.length;
   renderSessions();
+  // 生成中断自动续跑：回到页面时检测未完成的生成任务
+  (function () {
+    let pending = null;
+    try { pending = JSON.parse(localStorage.getItem(PENDING_KEY)) || null; } catch (e) { pending = null; }
+    if (!pending || !pending.id || !pending.q) return;
+    if (!pending.ts || Date.now() - pending.ts > 45 * 60 * 1000) { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} return; }
+    const sess = sessions.find((x) => x.id === pending.id);
+    if (!sess) { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} return; }
+    switchTo(sess.id);
+    setTimeout(() => {
+      addMsg('bot', '<span class="status">🔄 检测到上次生成网站时被打断，正在自动继续生成，请不要关闭页面…</span>');
+      resumeBuild = true;
+      $('chatInput').value = pending.q;
+      sendText();
+    }, 800);
+  })();
 
   window.addEventListener('beforeunload', () => {
     persistCurrent();
     if (videoTimer) clearInterval(videoTimer);
-    if (aborter) aborter.abort();
   });
 })();
