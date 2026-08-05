@@ -31,12 +31,29 @@
 
   $('logoutBtn').addEventListener('click', async () => {
     try { await sb.auth.signOut(); } catch (e) {}
+    clearAuthStorage();
     showLogin();
   });
 
-  // 会话恢复
-  sb.auth.getSession().then(({ data }) => {
-    if (data.session) { showAdmin(); loadAll(); }
+  function clearAuthStorage() {
+    try { Object.keys(localStorage).filter((k) => k.startsWith('sb-')).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
+  }
+
+  // 会话恢复：校验登录状态是否真的有效（防止残留的过期会话导致操作失败）
+  sb.auth.getSession().then(async ({ data }) => {
+    if (data.session) {
+      try {
+        const { error } = await sb.auth.refreshSession();
+        if (error) throw new Error(error.message || 'session expired');
+        showAdmin(); loadAll();
+      } catch (e) {
+        try { await sb.auth.signOut(); } catch (e2) {}
+        clearAuthStorage();
+        showLogin();
+      }
+    } else {
+      showLogin();
+    }
   });
 
   // Tab 切换
@@ -458,7 +475,11 @@
           : await sb.from(T.config).insert({ key: c.key, value: c.val });
         if (error) throw new Error(error.message);
         configKeys.add(c.key);
-      } catch (e) { failed = (failed ? failed + '；' : '') + c.key + '：' + e.message; }
+      } catch (e) {
+        const m = String((e && e.message) || '');
+        const hint = /row-level security|JWT|invalid claim/i.test(m) ? '登录状态已失效，请点击「退出登录」后重新登录' : m;
+        failed = (failed ? failed + '；' : '') + c.key + '：' + hint;
+      }
     }));
     btn.disabled = false; btn.textContent = '保存设置';
     if (failed) { alert('保存失败：' + failed); return; }
