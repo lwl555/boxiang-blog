@@ -2,7 +2,7 @@
 (function () {
   const $ = (id) => document.getElementById(id);
   const BASE = 'https://lwl555.github.io/boxiang-blog';
-  const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
   const T = window.SUPABASE_TABLES;
 
   const MODE_INFO = {
