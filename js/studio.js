@@ -27,7 +27,7 @@
     '8. 响应式：移动端必须同样好看，导航折叠、字号自适应、卡片单列。\n' +
     '9. 文案：内容具体真实，围绕用户业务展开（导航、Hero、关于、服务/产品、案例、价格、联系等按类型取舍），避免空话套话。\n' +
     '10. 联系区域放一个明显按钮，链接到 https://lwl555.github.io/boxiang-blog/#order（文案：向薄想工作室下单）。\n' +
-    '11. 【强制性·不许遗漏】页脚最底部必须有一行半透明小字：由 薄想工作室 免费生成 · lwl555.github.io/boxiang-blog。生成和改版都必须保留。\n' +
+    '11. 【强制性·不许遗漏】页面最底部必须保留一行平台标注：由 薄想工作室 免费生成 · 网址 lwl555.github.io/boxiang-blog（若你遗漏，系统会自动补上）。严禁在顶部导航、页头、标题、Logo 或页面任何其他位置出现「薄想工作室」「薄想 AI 建站助手」或平台网址字样（用户自己的网站名称不受限），平台名称只允许出现在底部这一行。\n' +
     '12. 输出前自检：单页不少于 60 行；无任何外部依赖；无 JS 明显错误；</html> 完整闭合。\n' +
     '13. 长度控制：整页控制在 250~450 行以内、总字符 8000 以内，宁可精简也不要写太长，确保一次输出完整、绝不截断。\n' +
     '14. 【配图占位符】如果页面需要真实图片（产品图、场景图、插画、头像等），用 <img src=\"BXIMG:详细画面描述\" alt=\"描述\"> 占位（src 以 BXIMG: 开头，描述 30 字以内，写明主体/环境/光线/风格），系统会自动调用图像模型生成真实图片并替换。整个页面最多 3 个 BXIMG 占位。\n' +
@@ -111,7 +111,7 @@
         published: false,
         publishedSlug: '',
         updated_at: new Date().toISOString(),
-        apis: []
+        apis: [], versions: []
       });
       saveMsgs(id, { messages: s.messages || [], lastHtml: s.lastHtml || '' });
       setCurId(id);
@@ -125,7 +125,7 @@
     const id = uid();
     const s = {
       id: id, name: '', type: '自动判断', theme: '朱砂', mode: 'text',
-      published: false, publishedSlug: '', updated_at: new Date().toISOString(), apis: []
+      published: false, publishedSlug: '', updated_at: new Date().toISOString(), apis: [], versions: []
     };
     sessions.unshift(s);
     saveSessions();
@@ -225,7 +225,8 @@
         '</div>' +
         '<div class="session-ops">' +
         (url ? '<a class="mini-btn link" href="' + url + '" target="_blank" rel="noopener" hidden>🌐 打开</a>' : '') +
-        (s.backend && url ? '<a class="mini-btn link" href="' + BASE + '/sites/' + s.backend.slug + '/admin.html?token=' + s.backend.token + '" target="_blank" rel="noopener" hidden>📊 数据管理</a>' : '') +
+        (s.backend ? '<button class="mini-btn link" data-data="' + s.id + '">📊 数据</button>' : '') +
+        ((s.versions && s.versions.length) ? '<button class="mini-btn" data-versions="' + s.id + '">🕘 v' + s.versions[s.versions.length - 1].v + '</button>' : '') +
         '<button class="mini-btn" data-rename="' + s.id + '">✏️ 改名</button>' +
         '<button class="mini-btn danger" data-del="' + s.id + '">删除</button>' +
         '</div>' +
@@ -243,7 +244,7 @@
     });
     list.querySelectorAll('[data-sid]').forEach((el) => {
       el.addEventListener('click', (e) => {
-        if (e.target.closest('[data-del],[data-rename],a')) return;
+        if (e.target.closest('[data-del],[data-rename],[data-data],[data-versions],a')) return;
         switchTo(el.dataset.sid);
         $('sessionModal').hidden = true;
       });
@@ -263,6 +264,24 @@
         saveSessions();
         if (s.id === curId()) $('stName').value = s.name;
         renderSessions();
+      });
+    });
+    list.querySelectorAll('[data-data]').forEach((b) => {
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const s = sessions.find((x) => x.id === b.dataset.data);
+        if (!s || !s.backend) { addMsg('bot', '<span class="status">⚠️ 该网站还没有接入后端（需要网站里包含表单，发布时自动接入）</span>'); return; }
+        showSiteData(s);
+      });
+    });
+    list.querySelectorAll('[data-versions]').forEach((b) => {
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const s = sessions.find((x) => x.id === b.dataset.versions);
+        if (!s) return;
+        if (s.id !== curId()) switchTo(s.id);
+        renderVersions(s);
+        $('versionModal').hidden = false;
       });
     });
   }
@@ -477,12 +496,149 @@
   function ensureFooter(html) {
     const s = String(html || '');
     if (!s) return s;
-    if (s.includes('薄想工作室') && s.includes('lwl555.github.io')) return s;
-    const tag = '<footer style="text-align:center;padding:16px 12px;font-size:11.5px;color:#6d5c4b;background:transparent;border-top:1px solid rgba(51,38,29,.1);margin-top:28px;line-height:1.8">本站由 <b style="color:#c2402b">薄想工作室</b> AI 免费生成 · <a href="https://lwl555.github.io/boxiang-blog" target="_blank" rel="noopener" style="color:#c98a16;text-decoration:none">lwl555.github.io/boxiang-blog</a></footer>';
+    if (s.includes('lwl555.github.io')) return s;
+    const tag = '<footer style="text-align:center;padding:18px 14px;font-size:13px;color:#5c4a38;background:rgba(245,239,226,.55);border-top:1px solid rgba(194,64,43,.16);margin-top:32px;line-height:2.1">' +
+      '本站由 <b style="color:#c2402b;font-weight:800">薄想工作室</b> AI 免费生成 · ' +
+      '<a href="https://lwl555.github.io/boxiang-blog" target="_blank" rel="noopener" ' +
+      'onclick="navigator.clipboard.writeText(\'https://lwl555.github.io/boxiang-blog\').then(function(){var t=this.textContent;this.textContent=\'✓ 已复制网址\';var el=this;setTimeout(function(){el.textContent=t},1600);}.bind(this));" ' +
+      'style="color:#c98a16;font-weight:700;text-decoration:none;border-bottom:1px dashed rgba(201,138,22,.55);padding-bottom:2px" title="点击复制网址，并新标签页打开">lwl555.github.io/boxiang-blog</a>' +
+      '</footer>';
     if (/<\/body>/i.test(s)) return s.replace(/<\/body>/i, tag + '</body>');
     return s + tag;
   }
   // ===== 文本：生成/修改网站（带断网自动重试）=====
+
+  // ===== 版本管理：每次生成/更新自动存一个版本，可回退 =====
+  const MAX_VERSIONS = 30;
+  function nextVersion(s) {
+    const vs = (s && s.versions) || [];
+    const last = vs.length ? vs[vs.length - 1].v : '';
+    const m = /^(\d+)\.(\d+)$/.exec(last);
+    return m ? m[1] + '.' + (parseInt(m[2], 10) + 1) : '1.0';
+  }
+  function pushVersion(html, note) {
+    if (!current || !html) return '';
+    if (!current.versions) current.versions = [];
+    const v = nextVersion(current);
+    current.versions.push({ v: v, html: html, at: new Date().toISOString(), note: String(note || '').slice(0, 60) });
+    if (current.versions.length > MAX_VERSIONS) current.versions.splice(0, current.versions.length - MAX_VERSIONS);
+    saveSessions();
+    return v;
+  }
+  function currentVersionOf(s) {
+    if (!s || !s.versions || !s.versions.length) return '';
+    const vs = s.versions;
+    for (let i = vs.length - 1; i >= 0; i--) {
+      if (vs[i].html === lastHtml) return vs[i].v;
+    }
+    return vs[vs.length - 1].v;
+  }
+  function restoreVersion(s, ver) {
+    if (!s || !ver || !ver.html) return false;
+    lastHtml = ver.html;
+    preview(lastHtml);
+    messages.push({ role: 'user', content: '【系统】用户已回退到 v' + ver.v + '，后续修改请以这个版本为基础，忽略之前生成的其他版本。', sys: true });
+    s.updated_at = new Date().toISOString();
+    persistCurrent();
+    saveSessions();
+    renderSessions();
+    return true;
+  }
+  function fmtDT(iso) {
+    try {
+      const x = new Date(iso);
+      return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0') + ' ' + String(x.getHours()).padStart(2, '0') + ':' + String(x.getMinutes()).padStart(2, '0');
+    } catch (e) { return ''; }
+  }
+  function renderVersions(s) {
+    const list = $('versionList');
+    $('versionTitle').textContent = '🕘 版本历史 · ' + (s.name || '我的网站');
+    if (!s.versions || !s.versions.length) {
+      list.innerHTML = '<div class="empty-tip">还没有版本记录。每次 AI 生成或更新网站都会自动保存一个版本。</div>';
+      return;
+    }
+    const cur = currentVersionOf(s);
+    list.innerHTML = s.versions.slice().reverse().map((v) => {
+      const isCur = v.v === cur;
+      return '<div class="version-item' + (isCur ? ' cur' : '') + '">' +
+        '<div class="ver-main"><b>v' + v.v + (isCur ? ' · 当前' : '') + '</b>' +
+        '<span class="ver-meta">' + fmtDT(v.at) + (v.note ? ' · ' + esc(v.note) : '') + '</span></div>' +
+        '<button class="mini-btn' + (isCur ? '' : ' ok') + '" data-restore="' + v.v + '"' + (isCur ? ' disabled' : '') + '>恢复</button>' +
+        '</div>';
+    }).join('');
+    list.querySelectorAll('[data-restore]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const ver = s.versions.find((x) => x.v === b.dataset.restore);
+        if (!ver) return;
+        if (!confirm('确定恢复到 v' + ver.v + '？右侧预览会回到该版本，之后可以继续让 AI 修改。')) return;
+        if (restoreVersion(s, ver)) {
+          $('versionModal').hidden = true;
+          addMsg('bot', '<span class="status">🕘 已恢复到 v' + ver.v + '，右侧预览已更新。继续告诉我改哪里就行。</span>');
+        }
+      });
+    });
+  }
+  async function showSiteData(s) {
+    const body = $('dataBody');
+    $('dataTitle').textContent = '📊 数据管理 · ' + (s.name || '我的网站');
+    $('dataModal').hidden = false;
+    if (!s.backend) {
+      body.innerHTML = '<div class="empty-tip">该网站还没有接入简易后台（发布时自动接入，需要网站里包含表单）。</div>';
+      return;
+    }
+    body.innerHTML = '<div class="empty-tip">加载中…</div>';
+    try {
+      const { data, error } = await sb.rpc('get_site_data', { p_slug: s.backend.slug, p_token: s.backend.token });
+      if (error) throw new Error(error.message);
+      const rows = data || [];
+      if (!rows.length) {
+        body.innerHTML = '<div class="empty-tip">📭 还没有收到任何提交。去网站上试试表单吧。</div>' +
+          '<p class="data-hint">🔧 每个网站后端上限 100 条；站长在上线后也可通过网站自带的「数据管理页」查看。</p>';
+        return;
+      }
+      body.innerHTML = '<p class="data-count">✅ 共 ' + rows.length + ' 条提交（最新在前）</p>' +
+        '<div class="data-table-wrap"><table class="data-table"><thead><tr><th>姓名</th><th>联系方式</th><th>内容</th><th>时间</th></tr></thead><tbody>' +
+        rows.map((d) => '<tr><td>' + esc(d.name || '-') + '</td><td>' + esc(d.contact || '-') + '</td><td>' + esc(d.content || '') + '</td><td class="time">' + fmtDT(d.created_at) + '</td></tr>').join('') +
+        '</tbody></table></div>';
+    } catch (e) {
+      body.innerHTML = '<div class="empty-tip">⚠️ 读取失败：' + esc(e.message || '') + '</div>';
+    }
+  }
+  async function showDataOverview() {
+    const body = $('dataBody');
+    $('dataTitle').textContent = '📊 数据总览 · 所有网站';
+    $('dataModal').hidden = false;
+    const items = sessions.filter((s) => s.backend);
+    if (!items.length) {
+      body.innerHTML = '<div class="empty-tip">还没有网站接入后端。让 AI 做一个带表单（留言/预约/订单）的网站并发布，就能在这里看到数据。</div>';
+      return;
+    }
+    body.innerHTML = '<div class="empty-tip">加载中…</div>';
+    const lines = [];
+    let done = 0;
+    for (const s of items) {
+      try {
+        const { data, error } = await sb.rpc('get_site_data', { p_slug: s.backend.slug, p_token: s.backend.token });
+        lines.push({ s: s, n: (!error && data) ? data.length : -1, err: error ? error.message : '' });
+      } catch (e) { lines.push({ s: s, n: -1, err: e.message || '' }); }
+      done++;
+      body.innerHTML = '<div class="empty-tip">加载中… ' + Math.round(done / items.length * 100) + '%</div>';
+    }
+    body.innerHTML = lines.map((l) => {
+      return '<div class="data-site-row">' +
+        '<div class="ds-main"><b>' + esc(l.s.name || '未命名网站') + '</b>' +
+        '<span class="ds-count">' + (l.err ? '⚠️ ' + esc(l.err) : '📥 ' + l.n + ' 条提交') + '</span></div>' +
+        '<button class="mini-btn ok" data-detail="' + l.s.id + '">查看数据</button>' +
+        '</div>';
+    }).join('');
+    body.querySelectorAll('[data-detail]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const s = sessions.find((x) => x.id === b.dataset.detail);
+        if (s) showSiteData(s);
+      });
+    });
+  }
+
   async function sendText() {
     const input = $('chatInput');
     const q = input.value.trim();
@@ -710,7 +866,8 @@
         if (parts.length) summary = ' 已包含：' + parts.join('、') + '。';
         buildBubbleText.textContent = '✅ 网站已生成！' + (bxNotes ? '\n' + bxNotes : summary) + '\n看看右边预览 👉 不满意就继续跟我说，想换风格、加板块、改颜色都可以。';
       }
-      $('stStatus').textContent = '✅ 已生成 · 可继续对话修改';
+      const verNow = pushVersion(lastHtml, bxNotes || '');
+      $('stStatus').textContent = '✅ 已生成 v' + verNow + ' · 可继续对话修改';
       persistCurrent();
     } catch (e) {
       const msg = e && e.message ? e.message : '生成失败，请重试';
@@ -1583,6 +1740,12 @@
     newSession();
     addMsg('bot', '<span class="status">✨ 已新建一个空白网站记忆，之前的网站在「📚 我的网站」里可以随时切回来。</span>');
   });
+  $('sessionDataBtn').addEventListener('click', showDataOverview);
+  $('dataClose').addEventListener('click', () => { $('dataModal').hidden = true; });
+  $('dataBackdrop').addEventListener('click', () => { $('dataModal').hidden = true; });
+  $('versionClose').addEventListener('click', () => { $('versionModal').hidden = true; });
+  $('versionBackdrop').addEventListener('click', () => { $('versionModal').hidden = true; });
+
   $('stSessionsBtn').addEventListener('click', () => {
     renderSessions();
     $('sessionModal').hidden = false;
